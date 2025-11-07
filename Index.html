@@ -38,18 +38,18 @@
     /* --- Game Layout --- */
     .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
     .sidebar {
-      width: 200px; background:#2a3d56; display:flex; flex-direction:column; justify-content:space-between; align-items:center;
-      padding: 20px 0; border-right: 2px solid #5bc0be;
+      width: 220px; background:#2a3d56; display:flex; flex-direction:column; justify-content:space-between; align-items:center;
+      padding: 16px 10px; border-right: 2px solid #5bc0be;
     }
     .nav-buttons { display:flex; flex-direction:column; align-items:center; width:100%; }
-    .nav-buttons button { width:80%; margin:10px 0; background:#3a506b; }
+    .nav-buttons button { width:88%; margin:8px 0; background:#3a506b; }
     .nav-buttons button:hover { background:#5bc0be; color:#1b2735; }
-    .logout-btn { background:#b0413e; color:#fff; width:80%; margin-bottom:10px; white-space:nowrap; }
+    .logout-btn { background:#b0413e; color:#fff; width:88%; margin-top:8px; white-space:nowrap; }
     .logout-btn:hover { background:#e24e4b; }
     .main-content { flex:1; display:flex; justify-content:center; align-items:center; text-align:center; padding: 30px; position: relative; }
 
     /* Admin reset button */
-    .admin-reset-btn { background:#7a1f1b; color:#fff; width:80%; margin-bottom:10px; }
+    .admin-reset-btn { background:#7a1f1b; color:#fff; width:88%; margin-top:8px; }
     .admin-reset-btn:hover { background:#a52b25; color:#fff; }
 
     /* HUD */
@@ -72,18 +72,18 @@
       cursor: not-allowed;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
     }
-    .location-btn.locked:hover {
-      background: #2b394d;
-      color: #9aa7b7;
-    }
-    .lock-note {
-      font-size: .9rem;
-      opacity: .85;
-      margin-top: 6px;
-    }
+    .location-btn.locked:hover { background: #2b394d; color: #9aa7b7; }
+    .lock-note { font-size: .9rem; opacity: .85; margin-top: 6px; }
 
-    .pond-wrap { max-width: 640px; width: 100%; margin: 0 auto; }
+    .pond-wrap { max-width: 640px; width: 100%; margin: 0 auto; position: relative; }
     .status { margin: 10px 0 16px; opacity: .9; min-height: 1.2em; }
+
+    /* Inline header + back button */
+    .pond-header { position: relative; display:flex; justify-content:center; align-items:center; }
+    .back-inline {
+      position:absolute; right:0; top:0;
+      padding:.6rem 1rem; border-radius:10px;
+    }
 
     .progress {
       position: relative; height: 10px; width: 100%; max-width: 560px;
@@ -105,14 +105,18 @@
     .success { color:#6fffe9; }
     .fail { color:#ff7a7a; }
 
-    /* Backpack */
-    .bp-wrap { width: 720px; max-width: 95vw; margin: 0 auto; text-align: left; }
+    /* ---------- Centered wrappers ---------- */
+    .bp-wrap, .shop-wrap, .board-wrap {
+      width: 720px; max-width: 95vw; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
     .bp-row {
       display: grid; grid-template-columns: 1fr auto 40px; gap: 12px; align-items: center; padding: 10px 12px; margin: 6px 0;
       background: rgba(0,0,0,.25); border-radius: 10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+      width: 100%;
     }
-    .bp-name { font-weight: 600; }
-    .bp-meta { opacity: .85; }
+    .bp-name { font-weight: 600; text-align: left; }
+    .bp-meta { opacity: .85; text-align: right; }
 
     .heart { width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; user-select: none; }
     .heart-btn {
@@ -132,10 +136,10 @@
     @keyframes floatUp { 0%{opacity:0; transform: translateY(10px);} 15%{opacity:1;} 85%{opacity:1;} 100%{opacity:0; transform: translateY(-12px);} }
 
     /* Shop */
-    .shop-wrap { width: 720px; max-width: 95vw; margin: 0 auto; text-align: left; }
     .sell-list .sell-row {
       display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
       padding:10px 12px; margin:6px 0; background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+      width: 100%;
     }
     .sell-summary { margin-top: 10px; opacity:.9; }
 
@@ -154,18 +158,12 @@
     .status-burned       { background: rgba(255, 120,  90, 0.85); color: inherit; padding: 0 .25em; border-radius: 6px; }
 
     /* Leaderboard */
-    .board-wrap { width: 720px; max-width: 95vw; margin: 0 auto; text-align:left; }
-    .board-table { width:100%; border-collapse: collapse; }
-    .board-table th, .board-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
-    .board-table th { text-align:left; opacity:.9; }
+    .board-table { width:100%; border-collapse: collapse; table-layout: fixed; }
+    .board-table th, .board-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: center; }
     .me-row { background: rgba(155, 201, 255, 0.08); }
 
     /* Scrollable panels for long lists */
-    .scroll-panel {
-      max-height: 60vh;
-      overflow-y: auto;
-      padding-right: 6px;
-    }
+    .scroll-panel { max-height: 60vh; overflow-y: auto; padding-right: 6px; width: 100%; }
     .scroll-panel::-webkit-scrollbar { width: 8px; }
     .scroll-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
     .scroll-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
@@ -173,6 +171,20 @@
     /* Hide XP column visually (kept for ranking) */
     .col-xp { display: none; }
     thead .col-xp { display: none; }
+
+    /* --- Admin panel (master only) --- */
+    .admin-panel {
+      width: 88%;
+      background: rgba(0,0,0,.18);
+      border-radius: 10px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: .9rem;
+    }
+    .admin-row { display:flex; justify-content:space-between; align-items:center; margin:6px 0; gap:8px; }
+    .admin-row .btn-sm { padding: .4rem .7rem; border-radius: 8px; min-width: auto; }
+    .admin-title { font-weight: 700; opacity: .9; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -221,6 +233,10 @@
         <button id="shopBtn">🛒 Shop</button>
         <button id="leaderboardBtn">🏆 Leaderboard</button>
       </div>
+
+      <!-- Admin panel placeholder -->
+      <div id="adminPanel" style="display:none;"></div>
+
       <button class="admin-reset-btn" id="adminResetBtn" style="display:none;">⚠ Reset All Data</button>
       <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
@@ -245,6 +261,7 @@
     const title = document.getElementById('title');
     const logoutBtn = document.getElementById('logoutBtn');
     const adminResetBtn = document.getElementById('adminResetBtn');
+    const adminPanel = document.getElementById('adminPanel');
 
     // Unlock modal controls
     const unlockOverlay = document.getElementById('unlockOverlay');
@@ -252,12 +269,10 @@
       if (!unlockOverlay) return;
       unlockOverlay.style.display = 'flex';
       const btn = document.getElementById('unlockOkBtn');
-      if (btn) {
-        btn.onclick = () => { unlockOverlay.style.display = 'none'; };
-      }
+      if (btn) btn.onclick = () => { unlockOverlay.style.display = 'none'; };
     }
 
-    // Modal behavior (fix: preventDefault on anchors)
+    // Modal behavior
     const openModal = () => overlay.style.display = 'flex';
     signinLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
     startButton.addEventListener('click', (e) => { e.preventDefault?.(); openModal(); });
@@ -271,7 +286,7 @@
     const getCurrentUser = () => JSON.parse(localStorage.getItem('currentUser'));
     const setCurrentUser = (u) => localStorage.setItem('currentUser', JSON.stringify(u));
 
-    // --- Per-user flags (e.g., unlock notifications)
+    // --- Per-user flags
     function getUserFlags() {
       const cu = getCurrentUser(); if (!cu) return {};
       return cu.flags || {};
@@ -284,9 +299,7 @@
       const idx = players.findIndex(p => p.username === cu.username);
       if (idx !== -1) { players[idx].flags = cu.flags; savePlayers(players); }
     }
-    function isStreamUnlocked() {
-      return (getStats().level || 1) >= 10;
-    }
+    function isStreamUnlocked() { return (getStats().level || 1) >= 10; }
 
     // Master check
     function isMasterUser(u = getCurrentUser()) { return !!u && (u.username === 'Llama'); }
@@ -315,7 +328,7 @@
       const cu = getCurrentUser(); if (!cu) return;
       cu.rodLevel = stats.rodLevel ?? 1;
       cu.baitTier = stats.baitTier ?? 0;
-      cu.level    = stats.level ?? 1;
+      cu.level    = Math.max(1, stats.level ?? 1);
       cu.xp       = stats.xp ?? 0;
       setCurrentUser(cu);
       const players = getPlayers();
@@ -328,28 +341,25 @@
         savePlayers(players);
       }
       updateGoldHud();
+      renderAdminPanel(); // keep panel numbers fresh
     }
 
-    // XP / Level (with unlock check at 10)
+    // XP / Level
     function xpNeededFor(level) { return 20 + (level - 1) * 10; }
     function addXP(amount) {
       const before = getStats();
       let xp = (before.xp ?? 0) + amount;
       let level = before.level ?? 1;
       let leveled = 0;
-
       while (xp >= xpNeededFor(level)) {
         xp -= xpNeededFor(level);
         level += 1;
         leveled += 1;
       }
-
       setStats({ ...before, xp, level });
       xpPopup(`+${amount} XP`);
       if (leveled > 0) {
         goldPopup(`⭐ Level Up! Lv ${level - leveled} → ${level}`);
-
-        // First time reaching Level 10+: show unlock modal once
         const flags = getUserFlags();
         if (level >= 10 && !flags.streamUnlockNotified) {
           setUserFlags({ streamUnlockNotified: true });
@@ -373,6 +383,15 @@
       const idx = players.findIndex(p => p.username === cu.username);
       if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
       updateGoldHud(); goldPopup(`+${amount} gold`);
+      renderAdminPanel();
+    }
+    function setGold(newAmount) {
+      const cu = getCurrentUser(); if (!cu) return;
+      cu.coins = Math.max(0, Math.floor(newAmount||0)); setCurrentUser(cu);
+      const players = getPlayers();
+      const idx = players.findIndex(p => p.username === cu.username);
+      if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
+      updateGoldHud(); renderAdminPanel();
     }
     function goldPopup(text) {
       const el = document.createElement('div');
@@ -385,24 +404,10 @@
       mainContent.appendChild(el); setTimeout(()=> el.remove(), 1100);
     }
 
-    // ---------- Variant normalization helpers ----------
+    // ---------- Variant helpers ----------
     const VALID_VARIANTS = new Set(['none','bronze','silver','gold','diamond','rainbow']);
-    function normalizeVariantKey(v){
-      if (!v) return 'none';
-      const s = String(v).toLowerCase().trim();
-      if (s === 'copper') return 'bronze'; // legacy remap
-      return VALID_VARIANTS.has(s) ? s : 'none';
-    }
-    function prettyLabelFromKey(k){
-      switch (normalizeVariantKey(k)) {
-        case 'bronze':   return 'Bronze';
-        case 'silver':   return 'Silver';
-        case 'gold':     return 'Gold';
-        case 'diamond':  return 'Diamond';
-        case 'rainbow':  return 'Rainbow';
-        default:         return '';
-      }
-    }
+    function normalizeVariantKey(v){ if (!v) return 'none'; const s = String(v).toLowerCase().trim(); if (s==='copper') return 'bronze'; return VALID_VARIANTS.has(s)?s:'none'; }
+    function prettyLabelFromKey(k){ switch (normalizeVariantKey(k)) { case 'bronze': return 'Bronze'; case 'silver': return 'Silver'; case 'gold': return 'Gold'; case 'diamond': return 'Diamond'; case 'rainbow': return 'Rainbow'; default: return ''; } }
 
     // Inventory
     function getInventory() {
@@ -411,16 +416,10 @@
       const upgraded = raw.map(it => {
         if (typeof it === 'string') {
           const meta = lookupItemMeta(it);
-          return {
-            name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false,
-            variantBaseKey: 'none', variantBaseLabel: '', statusLabel: ''
-          };
+          return { name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false, variantBaseKey: 'none', variantBaseLabel: '', statusLabel: '' };
         }
-        const normKey = normalizeVariantKey(
-          it.variantBaseKey ?? it.variantBase ?? it.variant ?? it.variantBaseLabel
-        );
+        const normKey = normalizeVariantKey(it.variantBaseKey ?? it.variantBase ?? it.variant ?? it.variantBaseLabel);
         const label = it.variantBaseLabel ?? prettyLabelFromKey(normKey);
-
         return {
           name: it.name,
           type: it.type ?? lookupItemMeta(it.name).type,
@@ -440,6 +439,45 @@
       const players = getPlayers();
       const idx = players.findIndex(p => p.username === cu.username);
       if (idx !== -1) { players[idx].items = newInv; savePlayers(players); }
+    }
+
+    /* ✅ ADD: saveCatchToUser directly after setInventory */
+    function saveCatchToUser(catchData) {
+      // If passed a string, assume "trash" name and auto-sell for gold
+      if (typeof catchData === 'string') {
+        const meta = lookupItemMeta(catchData);
+        if (meta && meta.type === 'trash') {
+          addGold(meta.value || 0); // autosell trash
+          return;
+        }
+        // Non-trash string: store a generic item
+        const inv = getInventory();
+        inv.push({
+          name: catchData,
+          type: meta?.type || 'unknown',
+          value: meta?.value || 0,
+          favorite: false,
+          variantBaseKey: 'none',
+          variantBaseLabel: '',
+          statusLabel: ''
+        });
+        setInventory(inv);
+        return;
+      }
+
+      // Full fish object: add to backpack (no immediate gold)
+      const item = {
+        name: catchData.name,
+        type: catchData.type || 'fish',
+        value: typeof catchData.value === 'number' ? catchData.value : (lookupItemMeta(catchData.name).value || 0),
+        favorite: !!catchData.favorite,
+        variantBaseKey: normalizeVariantKey(catchData.variantBaseKey || catchData.variant || catchData.variantBaseLabel),
+        variantBaseLabel: catchData.variantBaseLabel || prettyLabelFromKey(catchData.variantBaseKey || catchData.variant || catchData.variantBaseLabel),
+        statusLabel: catchData.statusLabel || ''
+      };
+      const inv = getInventory();
+      inv.push(item);
+      setInventory(inv);
     }
 
     // Gear
@@ -498,10 +536,7 @@
       for (const v of sorted) { acc += v.chance; if (r < acc) return v; }
       return VARIANT_BASES[0];
     }
-    function rollSingleStatus() {
-      for (const s of STATUS_POOL) { if (Math.random() < s.chance) return s; }
-      return null;
-    }
+    function rollSingleStatus() { for (const s of STATUS_POOL) { if (Math.random() < s.chance) return s; } return null; }
     function buildVariantResult() {
       const base = rollBaseVariant();
       const status = rollSingleStatus();
@@ -516,21 +551,15 @@
       return { base, status, totalMult, diff };
     }
 
-    // Styled fish-name rendering (variant color + status highlight)
-    function variantClassFor(key){ if (!key || key==='none') return ''; return `variant-${key}`; }
-    function statusClassFor(key){ return key ? `status-${key}` : ''; }
+    // Styled fish-name
     function renderStyledFishName(item) {
       const baseKey   = normalizeVariantKey(item.variantBaseKey || item.variantBase || item.variant || item.variantBaseLabel);
       const statusKey = (item.statusLabel ? item.statusLabel.toLowerCase() : '').replace(/\s+/g,'');
       const vClass = baseKey && baseKey !== 'none' ? `variant-${baseKey}` : '';
       const sClass = statusKey ? `status-${statusKey}` : '';
-      if (sClass && vClass) {
-        return `<span class="${sClass}"><span class="${vClass}">${item.name}</span></span>`;
-      } else if (sClass) {
-        return `<span class="${sClass}">${item.name}</span>`;
-      } else if (vClass) {
-        return `<span class="${vClass}">${item.name}</span>`;
-      }
+      if (sClass && vClass) return `<span class="${sClass}"><span class="${vClass}">${item.name}</span></span>`;
+      if (sClass) return `<span class="${sClass}">${item.name}</span>`;
+      if (vClass) return `<span class="${vClass}">${item.name}</span>`;
       return item.name;
     }
 
@@ -597,6 +626,45 @@
       location.reload();
     }
 
+    function renderAdminPanel() {
+      if (!isMasterUser()) {
+        adminPanel.style.display = 'none';
+        adminResetBtn.style.display = 'none';
+        return;
+      }
+      const s = getStats();
+      const coins = getCurrentUser()?.coins ?? 0;
+      adminPanel.style.display = 'block';
+      adminResetBtn.style.display = 'block';
+      adminPanel.className = 'admin-panel';
+      adminPanel.innerHTML = `
+        <div class="admin-title">🧰 Admin (Master)</div>
+        <div class="admin-row">
+          <span>Level: <strong>${s.level}</strong></span>
+          <div>
+            <button class="btn-sm" id="lvlMinus">−1</button>
+            <button class="btn-sm" id="lvlPlus">+1</button>
+          </div>
+        </div>
+        <div class="admin-row">
+          <span>Gold: <strong>${coins}g</strong></span>
+          <div>
+            <button class="btn-sm" id="goldMinus">−100</button>
+            <button class="btn-sm" id="goldPlus">+100</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('lvlPlus').onclick = () => {
+        const s = getStats(); setStats({ ...s, level: s.level + 1 });
+      };
+      document.getElementById('lvlMinus').onclick = () => {
+        const s = getStats(); setStats({ ...s, level: Math.max(1, s.level - 1) });
+      };
+      document.getElementById('goldPlus').onclick = () => addGold(100);
+      document.getElementById('goldMinus').onclick = () => setGold((getCurrentUser()?.coins ?? 0) - 100);
+      adminResetBtn.onclick = adminResetAllData;
+    }
+
     function launchGame(username) {
       overlay.style.display = 'none';
       title.style.display = 'none';
@@ -607,13 +675,7 @@
       mainContent.innerHTML = `<div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>Welcome back, ${username}! Choose where to go.`;
       updateGoldHud();
 
-      if (isMasterUser()) {
-        adminResetBtn.style.display = 'block';
-        adminResetBtn.onclick = adminResetAllData;
-      } else {
-        adminResetBtn.style.display = 'none';
-        adminResetBtn.onclick = null;
-      }
+      renderAdminPanel();
     }
 
     logoutBtn.addEventListener('click', () => {
@@ -624,7 +686,7 @@
       signinLink.style.display = 'block';
       mainContent.innerHTML = "";
       adminResetBtn.style.display = 'none';
-      adminResetBtn.onclick = null;
+      adminPanel.style.display = 'none';
     });
 
     (function autoLogin(){
@@ -635,7 +697,6 @@
         if (stored) setCurrentUser(stored);
         launchGame((stored || saved).username);
       }
-      // Notify once if already level 10+
       const s = getStats();
       const flags = getUserFlags();
       if (s.level >= 10 && !flags.streamUnlockNotified) {
@@ -646,26 +707,15 @@
 
     // ---------- Pond Table ----------
     const pondTable = [
-      // Common (total 40)
       { name: "Crappie",         type: "fish",  weight: 16, rarity: "common",   value: 4  },
       { name: "Pumpkinseed",     type: "fish",  weight: 12, rarity: "common",   value: 4  },
       { name: "Yellow Perch",    type: "fish",  weight: 12, rarity: "common",   value: 4  },
-
-      // Uncommon (total 20)
       { name: "Bluegill",        type: "fish",  weight: 9,  rarity: "uncommon", value: 6  },
       { name: "Catfish",         type: "fish",  weight: 7,  rarity: "uncommon", value: 8  },
       { name: "Carp",            type: "fish",  weight: 4,  rarity: "uncommon", value:10  },
-
-      // Rare (total 10)
       { name: "Goldfish",        type: "fish",  weight: 10, rarity: "rare",     value:15  },
-
-      // Epic (total 4)
       { name: "Largemouth Bass", type: "fish",  weight: 4,  rarity: "epic",     value:20  },
-
-      // Legendary (total 1)
       { name: "Golden Koi",      type: "fish",  weight: 1,  rarity: "legendary",value:40  },
-
-      // Trash (total 25 → each 5)
       { name: "Old Boot",        type: "trash", weight: 5,  value: 1 },
       { name: "Tin Can",         type: "trash", weight: 5,  value: 1 },
       { name: "Tangled Line",    type: "trash", weight: 5,  value: 1 },
@@ -676,7 +726,28 @@
       return pondTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
     }
 
-    // ---------- Navigation ----------
+    // ---------- Stream Table ----------
+    const streamTable = [
+      { name: "Creek Chub",        type: "fish",  weight: 10, rarity: "common",   value: 4 },
+      { name: "Fallfish",          type: "fish",  weight: 10, rarity: "common",   value: 4 },
+      { name: "White Sucker",      type: "fish",  weight: 8,  rarity: "common",   value: 5 },
+      { name: "Common Shiner",     type: "fish",  weight: 6,  rarity: "common",   value: 4 },
+      { name: "Redbreast Sunfish", type: "fish",  weight: 6,  rarity: "common",   value: 4 },
+      { name: "Smallmouth Bass",   type: "fish",  weight: 7,  rarity: "uncommon", value: 10 },
+      { name: "Rock Bass",         type: "fish",  weight: 5,  rarity: "uncommon", value: 7 },
+      { name: "Rainbow Darter",    type: "fish",  weight: 4,  rarity: "uncommon", value: 8 },
+      { name: "Brook Stickleback", type: "fish",  weight: 4,  rarity: "uncommon", value: 6 },
+      { name: "Brook Trout",       type: "fish",  weight: 4,  rarity: "rare",     value: 16 },
+      { name: "Brown Trout",       type: "fish",  weight: 3,  rarity: "rare",     value: 18 },
+      { name: "Tiger Trout",       type: "fish",  weight: 3,  rarity: "rare",     value: 19 },
+      { name: "Atlantic Salmon",   type: "fish",  weight: 4,  rarity: "epic",     value: 28 },
+      { name: "Ancient River Sturgeon", type: "fish", weight: 1, rarity: "legendary", value: 45 },
+      { name: "Waterlogged Branch", type: "trash", weight: 8, value: 1 },
+      { name: "Torn Fishing Net",   type: "trash", weight: 8, value: 1 },
+      { name: "Muddy Bottle",       type: "trash", weight: 9, value: 1 }
+    ];
+
+    // ---------- Navigation (only one listener) ----------
     document.getElementById('fishingSpotBtn').addEventListener('click', () => {
       const s = getStats();
       const unlocked = s.level >= 10;
@@ -696,11 +767,8 @@
 
       const streamBtn = document.getElementById('streamBtn');
       if (streamBtn) {
-        if (unlocked) {
-          streamBtn.addEventListener('click', showStream);
-        } else {
-          streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
-        }
+        if (unlocked) streamBtn.addEventListener('click', showStream);
+        else streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
       }
     });
 
@@ -760,37 +828,19 @@
       updateGoldHud();
     }
 
-    // ---------- Stream Area (gated at Lv10) ----------
+    // ---------- Stream (header back button) ----------
     function showStream() {
-      if (!isStreamUnlocked()) {
-        alert('Locked: Reach Level 10 to access the Stream.');
-        return;
-      }
+      if (!isStreamUnlocked()) { alert('Locked: Reach Level 10 to access the Stream.'); return; }
 
-      const s = getStats();
-      mainContent.innerHTML = `
-        <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${s.level} (${s.xp}/${xpNeededFor(s.level)})</div>
-        <div class="pond-wrap">
-          <h2>🌊 Stream</h2>
-          <div class="status" id="streamStatus">The current is swift and the water is clear. (Area WIP)</div>
-          <div class="row" id="streamControls">
-            <button id="backToSpots">← Back to Spots</button>
-          </div>
-          <p class="small" style="margin-top:10px;">(We’ll hook up unique fish and tuning here next.)</p>
-        </div>
-      `;
-      updateGoldHud();
-      const backBtn = document.getElementById('backToSpots');
-      if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-    }
-
-    // ---------- Pond + Minigame (one-time Cast, then Recast; Space support) ----------
-    function showPond() {
       mainContent.innerHTML = `
         <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
         <div class="pond-wrap">
-          <h2>🐟 Pond</h2>
-          <div class="status" id="pondStatus">Cast your line into the quiet pond.</div>
+          <div class="pond-header">
+            <h2>🌊 Stream</h2>
+            <button id="backToSpots" class="back-inline">← Back to Spots</button>
+          </div>
+
+          <div class="status" id="streamStatus">The current is swift and the water is clear.</div>
 
           <div class="progress" id="searchProg" style="display:none;">
             <div class="progress-fill" id="searchFill"></div>
@@ -802,21 +852,21 @@
 
           <div id="minigameArea" style="margin-top:14px;"></div>
           <div class="small" style="margin-top:10px;">
-            Tip: Hold <b>Reel</b> (or hold <b>Space</b>) to raise tension; release to let it fall.
-            Keep it inside the glowing zone to land the fish.
+            Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.
           </div>
         </div>
       `;
       updateGoldHud();
+      const backBtn   = document.getElementById('backToSpots');
+      const status    = document.getElementById('streamStatus');
+      const area      = document.getElementById('minigameArea');
+      const searchProg= document.getElementById('searchProg');
+      const searchFill= document.getElementById('searchFill');
+      const castRow   = document.getElementById('castRow');
+      const castBtn   = document.getElementById('castBtn');
 
-      const status = document.getElementById('pondStatus');
-      const area = document.getElementById('minigameArea');
-      const searchProg = document.getElementById('searchProg');
-      const searchFill = document.getElementById('searchFill');
-      const castRow = document.getElementById('castRow');
-      const castBtn = document.getElementById('castBtn');
+      if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
 
-      // Space-to-Recast toggle
       let spaceRecastKeydown = null;
       function setSpaceRecast(handler) {
         if (spaceRecastKeydown) {
@@ -825,58 +875,49 @@
         }
         if (handler) {
           spaceRecastKeydown = (e) => {
-            if (e.code === 'Space' || e.key === ' ') {
-              e.preventDefault();
-              handler();
-            }
+            if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); }
           };
           window.addEventListener('keydown', spaceRecastKeydown);
         }
       }
 
       const runCastCycle = async () => {
-        setSpaceRecast(null); // disable space-recast while searching/reeling
+        setSpaceRecast(null);
         castRow.style.display = 'none';
         area.innerHTML = '';
-        status.textContent = "Looking for the next fish...";
+        status.textContent = "Scanning the fast current...";
         searchProg.style.display = 'block';
         searchFill.style.width = '0%';
 
         const { baitTier } = getStats();
-        const baseWait = 900 + Math.random()*1800;
-        const waitMs = Math.max(300, baseWait * (1 - 0.1 * baitTier));
+        const baseWait = 1000 + Math.random()*2000;
+        const waitMs = Math.max(350, baseWait * (1 - 0.1 * baitTier));
         await animateProgress(searchFill, waitMs);
         searchProg.style.display = 'none';
 
-        const hooked = weightedPick(pondTable);
+        const hooked = weightedPick(streamTable);
 
         if (hooked.type === 'trash') {
-          status.innerHTML = `You reeled in <b>${hooked.name}</b> (+${hooked.value}g).`;
+          status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
           saveCatchToUser(hooked.name);
           addXP(1);
-          area.innerHTML = `
-            <div class="row">
-              <button id="recastBtn">Recast</button>
-            </div>
-          `;
+          area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
           document.getElementById('recastBtn').onclick = runCastCycle;
-          setSpaceRecast(runCastCycle); // Spacebar to recast
+          setSpaceRecast(runCastCycle);
           return;
         }
 
-        // Build variant + status
         const vr = buildVariantResult();
         const statusLabel = vr.status ? vr.status.label : '';
 
-        // Difficulty with modifiers
         const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
         const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
         const width = (cfg.zoneMax - cfg.zoneMin);
-        const newWidth = Math.max(8, width * (1 - vr.diff.zoneNarrow));
-        cfg.zoneMin = Math.max(5, zoneCenter - newWidth/2);
-        cfg.zoneMax = Math.min(95, zoneCenter + newWidth/2);
-        cfg.wobble  = cfg.wobble * (1 + vr.diff.wobble);
-        cfg.drift   = (cfg.drift || 0.35) * (1 + vr.diff.driftUp);
+        const narrow = Math.max(8, width * (1 - vr.diff.zoneNarrow));
+        cfg.zoneMin = Math.max(5, zoneCenter - narrow/2);
+        cfg.zoneMax = Math.min(95, zoneCenter + narrow/2);
+        cfg.wobble  = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
+        cfg.drift   = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
         cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
 
         status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
@@ -891,7 +932,8 @@
               variantBaseKey: normalizeVariantKey(vr.base.key),
               statusLabel
             };
-            status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b> (+${finalValue}g).`;
+            /* ✅ fish message: no (+Xg) */
+            status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
 
             saveCatchToUser({
               name: hooked.name,
@@ -918,20 +960,150 @@
             reelBtnRef.ontouchstart = null;
             reelBtnRef.ontouchend = null;
             reelBtnRef.onclick = () => runCastCycle();
-            setSpaceRecast(runCastCycle); // Spacebar to recast
+            setSpaceRecast(runCastCycle);
           } else {
-            area.innerHTML = `
-              <div class="row">
-                <button id="recastBtn">Recast</button>
-              </div>
-            `;
+            area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
             document.getElementById('recastBtn').onclick = runCastCycle;
-            setSpaceRecast(runCastCycle); // Spacebar to recast
+            setSpaceRecast(runCastCycle);
           }
         });
       };
 
-      castBtn.onclick = runCastCycle; // first cast only
+      if (castBtn) castBtn.onclick = runCastCycle;  // <-- safe: no redeclare
+    }
+
+    // ---------- Pond (header back button) ----------
+    function showPond() {
+      mainContent.innerHTML = `
+        <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+        <div class="pond-wrap">
+          <div class="pond-header">
+            <h2>🐟 Pond</h2>
+            <button id="backToSpots" class="back-inline">← Back to Spots</button>
+          </div>
+
+          <div class="status" id="pondStatus">Cast your line into the quiet pond.</div>
+
+          <div class="progress" id="searchProg" style="display:none;">
+            <div class="progress-fill" id="searchFill"></div>
+          </div>
+
+          <div class="row" id="castRow">
+            <button id="castBtn">Cast</button>
+          </div>
+
+          <div id="minigameArea" style="margin-top:14px;"></div>
+          <div class="small" style="margin-top:10px;">
+            Tip: Hold <b>Reel</b> (or hold <b>Space</b>) to raise tension; release to let it fall.
+            Keep it inside the glowing zone to land the fish.
+          </div>
+        </div>
+      `;
+      updateGoldHud();
+
+      const backBtn   = document.getElementById('backToSpots');
+      const status    = document.getElementById('pondStatus');
+      const area      = document.getElementById('minigameArea');
+      const searchProg= document.getElementById('searchProg');
+      const searchFill= document.getElementById('searchFill');
+      const castRow   = document.getElementById('castRow');
+      const castBtn   = document.getElementById('castBtn');
+
+      if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
+      let spaceRecastKeydown = null;
+      function setSpaceRecast(handler) {
+        if (spaceRecastKeydown) { window.removeEventListener('keydown', spaceRecastKeydown); spaceRecastKeydown = null; }
+        if (handler) {
+          spaceRecastKeydown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); } };
+          window.addEventListener('keydown', spaceRecastKeydown);
+        }
+      }
+
+      const runCastCycle = async () => {
+        setSpaceRecast(null);
+        castRow.style.display = 'none';
+        area.innerHTML = '';
+        status.textContent = "Looking for the next fish...";
+        searchProg.style.display = 'block';
+        searchFill.style.width = '0%';
+
+        const { baitTier } = getStats();
+        const baseWait = 900 + Math.random()*1800;
+        const waitMs = Math.max(300, baseWait * (1 - 0.1 * baitTier));
+        await animateProgress(searchFill, waitMs);
+        searchProg.style.display = 'none';
+
+        const hooked = weightedPick(pondTable);
+
+        if (hooked.type === 'trash') {
+          status.innerHTML = `You reeled in <b>${hooked.name}</b> (+${hooked.value}g).`;
+          saveCatchToUser(hooked.name);
+          addXP(1);
+          area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+          document.getElementById('recastBtn').onclick = runCastCycle;
+          setSpaceRecast(runCastCycle);
+          return;
+        }
+
+        const vr = buildVariantResult();
+        const statusLabel = vr.status ? vr.status.label : '';
+
+        const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
+        const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
+        const width = (cfg.zoneMax - cfg.zoneMin);
+        const newWidth = Math.max(8, width * (1 - vr.diff.zoneNarrow));
+        cfg.zoneMin = Math.max(5, zoneCenter - newWidth/2);
+        cfg.zoneMax = Math.min(95, zoneCenter + newWidth/2);
+        cfg.wobble  = cfg.wobble * (1 + vr.diff.wobble);
+        cfg.drift   = (cfg.drift || 0.35) * (1 + vr.diff.driftUp);
+        cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
+
+        status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
+
+        startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
+          if (success) {
+            const baseValue = hooked.value || 0;
+            const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult));
+            const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel };
+            /* ✅ fish message: no (+Xg) */
+            status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
+
+            saveCatchToUser({
+              name: hooked.name,
+              type: hooked.type,
+              value: finalValue,
+              favorite: false,
+              variantBaseKey: normalizeVariantKey(vr.base.key),
+              variantBaseLabel: prettyLabelFromKey(vr.base.key),
+              statusLabel
+            });
+
+            const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
+            addXP(xpByRarity[hooked.rarity] ?? 2);
+          } else {
+            status.innerHTML = `<span class="fail">It got away!</span>`;
+          }
+
+          if (reelBtnRef) {
+            reelBtnRef.textContent = 'Recast';
+            reelBtnRef.disabled = false;
+            reelBtnRef.onmousedown = null;
+            reelBtnRef.onmouseup = null;
+            reelBtnRef.onmouseleave = null;
+            reelBtnRef.ontouchstart = null;
+            reelBtnRef.ontouchend = null;
+            reelBtnRef.onclick = () => runCastCycle();
+            setSpaceRecast(runCastCycle);
+          } else {
+            area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+            document.getElementById('recastBtn').onclick = runCastCycle;
+            setSpaceRecast(runCastCycle);
+          }
+        });
+      };
+
+      if (castBtn) castBtn.onclick = runCastCycle; // <-- safe: no redeclare
     }
 
     async function animateProgress(fillEl, durationMs){
@@ -946,7 +1118,7 @@
       });
     }
 
-    // Minigame core (Space support, no Give Up) — with edge grace
+    // Minigame core
     function startReelMinigame(container, fish, onDone) {
       const cfg = rarityConfig[fish.rarity] || rarityConfig.common;
 
@@ -996,12 +1168,8 @@
       reelBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); onRelease(); }, {passive:false});
 
       // Space key hold
-      const onKeyDown = (e) => {
-        if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; }
-      };
-      const onKeyUp = (e) => {
-        if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; }
-      };
+      const onKeyDown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; } };
+      const onKeyUp   = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; } };
       window.addEventListener('keydown', onKeyDown);
       window.addEventListener('keyup', onKeyUp);
 
@@ -1014,34 +1182,23 @@
       function step(ts) {
         const dt = Math.min(50, ts - lastTs); lastTs = ts;
         const baseDrift = (eff.drift != null ? eff.drift : 0.25);
-
-        // Drift up when holding, drop when not
         let drift = (holding ? baseDrift*2.2 : -baseDrift*1.6);
-        // Natural wobble
         const wobble = (Math.sin(ts/140) + Math.cos(ts/310)) * eff.wobble;
 
-        // Integrate and clamp
         tension += (drift + wobble) * (dt/16.7);
         tension = Math.max(0, Math.min(100, tension));
 
-        // Move bar
         fill.style.left = (tension - 10) + '%';
         fill.style.width = '20%';
 
-        // In-zone check
         const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
         landedTime = inZone ? (landedTime + dt) : Math.max(0, landedTime - dt*0.35);
         const pct = Math.max(0, Math.min(100, (landedTime / eff.timeToLand) * 100));
         landFill.style.width = pct.toFixed(1) + '%';
 
-        // Edge grace handling
         const atEdge = (tension <= 0.5 || tension >= 99.5);
-        if (atEdge) {
-          outOfBoundsMs += dt;
-          if (outOfBoundsMs >= FAIL_GRACE_MS) return end(false);
-        } else {
-          outOfBoundsMs = Math.max(0, outOfBoundsMs - dt*0.5);
-        }
+        if (atEdge) { outOfBoundsMs += dt; if (outOfBoundsMs >= FAIL_GRACE_MS) return end(false); }
+        else { outOfBoundsMs = Math.max(0, outOfBoundsMs - dt*0.5); }
 
         if (landedTime >= eff.timeToLand) return end(true);
         timer = requestAnimationFrame(step);
@@ -1066,7 +1223,7 @@
       });
     }
 
-    // Backpack
+    // ---------- Backpack ----------
     document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
     function friendlyMeta(item) {
       if (item.type === 'gear-rod')  return 'gear · rod';
@@ -1126,7 +1283,7 @@
       renderBackpack();
     }
 
-    // Shop
+    // ---------- Shop ----------
     document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
     function isSellable(item) { return (item && !item.favorite && (item.type === 'fish' || item.type === 'trash')); }
     function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
@@ -1137,8 +1294,10 @@
         <div class="shop-wrap">
           <h2>🛒 Shop</h2>
           <p>What would you like to do?</p>
-          <button class="location-btn" id="buyBtn">🧺 Buy</button>
-          <button class="location-btn" id="sellBtn">💰 Sell</button>
+          <div class="row" style="margin-top:6px;">
+            <button class="location-btn" id="buyBtn">🧺 Buy</button>
+            <button class="location-btn" id="sellBtn">💰 Sell</button>
+          </div>
         </div>
       `;
       updateGoldHud();
@@ -1305,61 +1464,6 @@
       addGold(earned);
       showSell();
     }
-
-    // Fishing Spot convenience re-render
-    document.getElementById('fishingSpotBtn').addEventListener('click', () => {
-      const s = getStats();
-      const unlocked = s.level >= 10;
-
-      mainContent.innerHTML = `
-        <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${s.level} (${s.xp}/${xpNeededFor(s.level)})</div>
-        <div class="pond-wrap">
-          <h2>🎣 Fishing Spot</h2>
-          <p>Select your location:</p>
-          <button class="location-btn" id="pondBtn">🐟 Pond</button>
-          <button class="location-btn ${unlocked ? '' : 'locked'}" id="streamBtn" ${unlocked ? '' : 'disabled'}>🌊 Stream</button>
-          ${unlocked ? '' : '<div class="lock-note">Reach <b>Level 10</b> to access the Stream.</div>'}
-        </div>
-      `;
-      updateGoldHud();
-      document.getElementById('pondBtn').addEventListener('click', showPond);
-
-      const streamBtn = document.getElementById('streamBtn');
-      if (streamBtn) {
-        if (unlocked) {
-          streamBtn.addEventListener('click', showStream);
-        } else {
-          streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
-        }
-      }
-    });
-
-    // Save catch (supports variants/elementals) — normalized
-    function saveCatchToUser(catchData) {
-      const inv = getInventory();
-      if (typeof catchData === 'string') {
-        const meta = lookupItemMeta(catchData);
-        inv.push({
-          name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false,
-          variantBaseKey: 'none', variantBaseLabel: '', statusLabel: ''
-        });
-      } else {
-        const key = normalizeVariantKey(catchData.variantBaseKey);
-        inv.push({
-          name: catchData.name,
-          type: catchData.type,
-          value: catchData.value,
-          favorite: false,
-          variantBaseKey: key,
-          variantBaseLabel: prettyLabelFromKey(key),
-          statusLabel: catchData.statusLabel || ''
-        });
-      }
-      setInventory(inv);
-    }
-
-    // Admin reset bind (after elements exist)
-    document.getElementById('adminResetBtn').addEventListener('click', adminResetAllData);
   </script>
 </body>
 </html>
