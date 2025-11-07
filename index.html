@@ -17,7 +17,7 @@
       background-color: #3a506b; color: #fff; border: none; padding: 1rem 2rem;
       font-size: 1.1rem; border-radius: 10px; cursor: pointer; transition: background-color .2s;
     }
-    button:hover { background-color: #5bc0be; color: #1b2735; }
+    button:hover { background-color: #5bc0be; color:#1b2735; }
 
     .signin-top { position: absolute; top: 20px; right: 30px; background: #3a506b; color:#e0e0e0; padding:.5rem 1rem; border-radius:8px; text-decoration:none; }
     .signin-top:hover { background:#5bc0be; color:#1b2735; }
@@ -58,14 +58,13 @@
       padding: 8px 12px; border-radius: 10px; font-size: .95rem; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
     }
 
-    /* Pond/Area UI */
+    /* Area buttons */
     .location-btn {
       margin: 10px; padding: 1rem 2rem; border-radius: 10px;
       background:#3a506b; color:#fff; font-size:1.05rem;
     }
     .location-btn:hover { background:#5bc0be; color:#1b2735; }
 
-    /* 🔒 Locked area button style */
     .location-btn.locked {
       background: #2b394d;
       color: #9aa7b7;
@@ -78,12 +77,10 @@
     .pond-wrap { max-width: 640px; width: 100%; margin: 0 auto; position: relative; }
     .status { margin: 10px 0 16px; opacity: .9; min-height: 1.2em; }
 
-    /* Inline header + back button */
     .pond-header { position: relative; display:flex; justify-content:center; align-items:center; }
-    .back-inline {
-      position:absolute; right:0; top:0;
-      padding:.6rem 1rem; border-radius:10px;
-    }
+    .back-inline { position:absolute; right:0; top:0; padding:.6rem 1rem; border-radius:10px; }
+    /* allow left placement on Pond/Stream */
+    .back-left { left: 0; right: auto; }
 
     .progress {
       position: relative; height: 10px; width: 100%; max-width: 560px;
@@ -97,7 +94,7 @@
       overflow: hidden; margin: 8px auto 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
     }
     .meter-zone { position: absolute; top:0; bottom:0; border-left: 2px solid rgba(91,192,190,.9); border-right: 2px solid rgba(91,192,190,.9); background: rgba(91,192,190,.18); }
-    .meter-fill { position: absolute; top:0; bottom:0; left:0; width: 20%; background: linear-gradient(90deg, #58a, #6fffe9); box-shadow: 0 0 10px rgba(111,255,233,.35); transition: left .03s linear, width .03s linear; }
+    .meter-fill { position: absolute; top:0; bottom:0; left:0; width: 20%; box-shadow: 0 0 10px rgba(111,255,233,.35); background: linear-gradient(90deg, #58a, #6fffe9); transition: left .03s linear, width .03s linear; }
 
     .row { display:flex; gap: 10px; justify-content:center; align-items:center; margin-top: 12px; flex-wrap: wrap; }
     .row button { min-width: 120px; }
@@ -105,23 +102,27 @@
     .success { color:#6fffe9; }
     .fail { color:#ff7a7a; }
 
-    /* ---------- Centered wrappers ---------- */
+    /* Centered wrappers (widened) */
     .bp-wrap, .shop-wrap, .board-wrap {
-      width: 720px; max-width: 95vw; margin: 0 auto;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
+      width: 880px;
+      max-width: 96vw;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
     .bp-row {
-      display: grid; grid-template-columns: 1fr auto 40px; gap: 12px; align-items: center; padding: 10px 12px; margin: 6px 0;
-      background: rgba(0,0,0,.25); border-radius: 10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
-      width: 100%;
+      display: grid; grid-template-columns: 1fr auto 120px; gap: 12px; align-items: center; padding: 10px 12px; margin: 6px 0;
+      background: rgba(0,0,0,.25); border-radius: 10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; width: 100%;
     }
     .bp-name { font-weight: 600; text-align: left; }
     .bp-meta { opacity: .85; text-align: right; }
 
-    .heart { width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,.2); display: flex; align-items: center; justify-content: center; user-select: none; }
+    .heart { width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,.2); display:flex; align-items:center; justify-content:center; user-select:none; }
     .heart-btn {
       padding: 0 !important; background: transparent !important; border: none; box-shadow: none;
-      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; display:flex; align-items:center; justify-content:center;
       font-size: 18px; line-height: 1; color: #9ad4d6; cursor: pointer; border-radius: 6px;
     }
     .heart-btn:hover { background: rgba(255,255,255,0.08) !important; }
@@ -130,12 +131,10 @@
 
     .bp-hint { margin-top: 8px; font-size: .9rem; opacity: .8; }
 
-    /* Popups */
     .gold-pop { position: absolute; right: 24px; top: 36px; font-weight: bold; animation: floatUp 1s ease forwards; }
     .xp-pop { position: absolute; right: 24px; top: 64px; font-weight: bold; animation: floatUp 1s ease forwards; color: #9ad4d6; }
     @keyframes floatUp { 0%{opacity:0; transform: translateY(10px);} 15%{opacity:1;} 85%{opacity:1;} 100%{opacity:0; transform: translateY(-12px);} }
 
-    /* Shop */
     .sell-list .sell-row {
       display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
       padding:10px 12px; margin:6px 0; background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
@@ -143,48 +142,113 @@
     }
     .sell-summary { margin-top: 10px; opacity:.9; }
 
-    /* Variant colors (text color) */
-    .variant-bronze   { color: #b87333; font-weight: 600; }
-    .variant-silver   { color: #c0c0c0; font-weight: 600; }
-    .variant-gold     { color: #ffd700; font-weight: 700; text-shadow: 0 0 6px rgba(255,215,0,.25); }
-    .variant-diamond  { color: #7dd3fc; font-weight: 700; text-shadow: 0 0 6px rgba(125,211,252,.25); }
-    .variant-rainbow  { font-weight: 800; background: linear-gradient(90deg,#ff6,#f9f,#6ff,#9f6,#f96);
-                        -webkit-background-clip: text; background-clip: text; color: transparent;
-                        text-shadow: 0 0 10px rgba(255,255,255,.15); }
+    .variant-bronze{ color:#b87333; font-weight:600; }
+    .variant-silver{ color:#c0c0c0; font-weight:600; }
+    .variant-gold{ color:#ffd700; font-weight:700; text-shadow:0 0 6px rgba(255,215,0,.25); }
+    .variant-diamond{ color:#7dd3fc; font-weight:700; text-shadow:0 0 6px rgba(125,211,252,.25); }
+    .variant-rainbow{
+      font-weight:800; background: linear-gradient(90deg,#ff6,#f9f,#6ff,#9f6,#f96);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 0 10px rgba(255,255,255,.15);
+    }
 
-    /* Status highlights: background only (don’t override variant color) */
-    .status-frozen       { background: rgba(120, 180, 255, 0.85); color: inherit; padding: 0 .25em; border-radius: 6px; }
-    .status-electrocuted { background: rgba(250, 230,  90, 0.85); color: inherit; padding: 0 .25em; border-radius: 6px; }
-    .status-burned       { background: rgba(255, 120,  90, 0.85); color: inherit; padding: 0 .25em; border-radius: 6px; }
+    /* Status highlights: 35% opacity */
+    .status-frozen{ background: rgba(120,180,255,.35); color:inherit; padding:0 .25em; border-radius:6px; }
+    .status-electrocuted{ background: rgba(250,230,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
+    .status-burned{ background: rgba(255,120,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
 
-    /* Leaderboard */
-    .board-table { width:100%; border-collapse: collapse; table-layout: fixed; }
-    .board-table th, .board-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: center; }
-    .me-row { background: rgba(155, 201, 255, 0.08); }
+    .board-table { width:100%; border-collapse: collapse; table-layout:fixed; }
+    .board-table th, .board-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); text-align:center; }
+    .me-row { background: rgba(155,201,255,.08); }
 
-    /* Scrollable panels for long lists */
-    .scroll-panel { max-height: 60vh; overflow-y: auto; padding-right: 6px; width: 100%; }
+    /* Taller list; no horizontal scrollbar */
+    .scroll-panel {
+      max-height: 75vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 10px;
+      width:100%;
+      box-sizing: border-box;
+    }
     .scroll-panel::-webkit-scrollbar { width: 8px; }
     .scroll-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
     .scroll-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
 
-    /* Hide XP column visually (kept for ranking) */
-    .col-xp { display: none; }
-    thead .col-xp { display: none; }
+    .col-xp { display:none; }
+    thead .col-xp { display:none; }
 
-    /* --- Admin panel (master only) --- */
-    .admin-panel {
-      width: 88%;
-      background: rgba(0,0,0,.18);
-      border-radius: 10px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
-      padding: 10px;
-      margin-top: 8px;
-      font-size: .9rem;
+    .admin-panel{
+      width:88%; background: rgba(0,0,0,.18); border-radius:10px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; padding:10px; margin-top:8px; font-size:.9rem;
     }
-    .admin-row { display:flex; justify-content:space-between; align-items:center; margin:6px 0; gap:8px; }
-    .admin-row .btn-sm { padding: .4rem .7rem; border-radius: 8px; min-width: auto; }
-    .admin-title { font-weight: 700; opacity: .9; margin-bottom: 4px; }
+    .admin-row{ display:flex; justify-content:space-between; align-items:center; margin:6px 0; gap:8px; }
+    .admin-row .btn-sm{ padding:.4rem .7rem; border-radius:8px; min-width:auto; }
+    .admin-title{ font-weight:700; opacity:.9; margin-bottom:4px; }
+
+    /* Showcase-only: manage list with wide action column */
+    .showcase-mode .bp-row { grid-template-columns: 1fr auto 120px; }
+    .showcase-mode .sc-action { display:flex; justify-content:flex-end; }
+    .showcase-mode .sc-btn{
+      padding:.48rem 1rem;
+      border-radius:10px;
+      background:#3a506b;
+      color:#fff; border:none; font-weight:600; cursor:pointer;
+    }
+    .showcase-mode .sc-btn:hover{ background:#5bc0be; color:#1b2735; }
+    .showcase-mode .heart { background: transparent; width:auto; height:auto; box-shadow:none; }
+    .showcase-mode .heart-btn { display:none; }
+
+    /* Displayed list rows with right-aligned Remove */
+    .displayed-list { width:100%; }
+    .displayed-row{
+      display:grid;
+      grid-template-columns: 1fr 120px;
+      gap:12px;
+      align-items:center;
+      padding:10px 12px;
+      margin:6px 0;
+      background: rgba(0,0,0,.25);
+      border-radius:10px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+    .remove-btn{
+      padding:.48rem 1rem;
+      border-radius:10px;
+      background:#5b6d86;
+      color:#fff; border:none; font-weight:600; cursor:pointer;
+    }
+    .remove-btn:hover{ background:#8ea8c6; color:#1b2735; }
+
+    /* Player Profile modal */
+    .profile-box{
+      width: 560px;
+      max-width: 95vw;
+      text-align: left;
+    }
+    .profile-list{ width:100%; max-height: 60vh; overflow-y:auto; padding-right:6px; }
+    .profile-row{
+      display:grid; grid-template-columns: 1fr; gap:12px; align-items:center;
+      padding:10px 12px; margin:6px 0;
+      background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+
+    /* Leaderboard links: white & accent on hover */
+    .board-table a.lb-player { color:#e0e0e0; text-decoration: underline; }
+    .board-table a.lb-player:visited { color:#e0e0e0; }
+    .board-table a.lb-player:hover, .board-table a.lb-player:focus { color:#5bc0be; outline:none; }
+
+    /* === Size tiers (icons + font scaling) === */
+    .size-wrap { display:inline-flex; align-items:center; gap:6px; }
+    .size-tag { display:inline-block; line-height:1; }
+    .size-micro  .size-tag::before { content:"🤹"; }
+    .size-queen  .size-tag::before { content:"♛"; color:#c0c0c0; }
+    .size-king   .size-tag::before { content:"👑"; }
+    .size-micro  .fish-name { font-size:0.90em; }
+    .size-small  .fish-name { font-size:0.95em; }
+    .size-normal .fish-name { font-size:1.00em; }
+    .size-big    .fish-name { font-size:1.05em; }
+    .size-queen  .fish-name { font-size:1.08em; }
+    .size-king   .fish-name { font-size:1.12em; }
   </style>
 </head>
 <body>
@@ -223,18 +287,28 @@
     </div>
   </div>
 
+  <!-- 👤 Player Profile Modal -->
+  <div class="overlay" id="profileOverlay" style="display:none;">
+    <div class="signin-box profile-box" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <h2 id="profileTitle">Player</h2>
+      <div id="profileBody"></div>
+      <div class="row" style="margin-top:12px;">
+        <button id="profileCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Game UI -->
   <div class="game-container" id="gameContainer">
     <div class="sidebar">
       <div class="nav-buttons">
+        <button id="homeBtn">🏠 Home</button>
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
-        <button id="farmBtn">🌾 Farm</button>
         <button id="backpackBtn">🎒 Backpack</button>
         <button id="shopBtn">🛒 Shop</button>
         <button id="leaderboardBtn">🏆 Leaderboard</button>
       </div>
 
-      <!-- Admin panel placeholder -->
       <div id="adminPanel" style="display:none;"></div>
 
       <button class="admin-reset-btn" id="adminResetBtn" style="display:none;">⚠ Reset All Data</button>
@@ -262,6 +336,14 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const adminResetBtn = document.getElementById('adminResetBtn');
     const adminPanel = document.getElementById('adminPanel');
+
+    /* --- Global delegation so Pond/Stream buttons always work --- */
+    mainContent.addEventListener('click', (e) => {
+      const btn = e.target.closest && e.target.closest('button');
+      if (!btn) return;
+      if (btn.id === 'pondBtn') { e.preventDefault(); showPond(); }
+      if (btn.id === 'streamBtn') { e.preventDefault(); showStream(); }
+    });
 
     // Unlock modal controls
     const unlockOverlay = document.getElementById('unlockOverlay');
@@ -306,6 +388,16 @@
 
     // Stats helpers
     function defaultStats() { return { rodLevel: 1, baitTier: 0, level: 1, xp: 0 }; }
+    function xpNeededFor(level) { return 20 + (level - 1) * 10; }
+
+    // 🔔 Notify once when crossing into level >= 10
+    function maybeNotifyStreamUnlock(prevLevel, nextLevel) {
+      if (prevLevel < 10 && nextLevel >= 10 && !getUserFlags().streamUnlockNotified) {
+        setUserFlags({ streamUnlockNotified: true });
+        showUnlockModal('Stream');
+      }
+    }
+
     function getStats() {
       const cu = getCurrentUser(); if (!cu) return defaultStats();
       cu.rodLevel = cu.rodLevel ?? 1;
@@ -324,7 +416,10 @@
       }
       return { rodLevel: cu.rodLevel, baitTier: cu.baitTier, level: cu.level, xp: cu.xp };
     }
+
     function setStats(stats) {
+      const prev = getStats();               // capture current first
+
       const cu = getCurrentUser(); if (!cu) return;
       cu.rodLevel = stats.rodLevel ?? 1;
       cu.baitTier = stats.baitTier ?? 0;
@@ -340,12 +435,18 @@
         players[idx].xp       = cu.xp;
         savePlayers(players);
       }
+
+      // 🔔 also notify here (covers admin +/- and direct edits)
+      maybeNotifyStreamUnlock(prev.level, cu.level);
+
       updateGoldHud();
-      renderAdminPanel(); // keep panel numbers fresh
+      renderAdminPanel();
     }
 
+    // Showcase selection cap
+    const SHOWCASE_LIMIT = 10;
+
     // XP / Level
-    function xpNeededFor(level) { return 20 + (level - 1) * 10; }
     function addXP(amount) {
       const before = getStats();
       let xp = (before.xp ?? 0) + amount;
@@ -356,19 +457,18 @@
         level += 1;
         leveled += 1;
       }
+
+      // 🔔 Notify exactly when we cross to >= 10
+      maybeNotifyStreamUnlock(before.level, level);
+
       setStats({ ...before, xp, level });
       xpPopup(`+${amount} XP`);
       if (leveled > 0) {
-        goldPopup(`⭐ Level Up! Lv ${level - leveled} → ${level}`);
-        const flags = getUserFlags();
-        if (level >= 10 && !flags.streamUnlockNotified) {
-          setUserFlags({ streamUnlockNotified: true });
-          showUnlockModal('Stream');
-        }
+        goldPopup(`⭐ Level Up! Lv ${before.level} → ${level}`);
       }
     }
 
-    // HUD
+    // HUD + currency
     function goldHudEl() { return document.getElementById('goldHud'); }
     function updateGoldHud() {
       const cu = getCurrentUser();
@@ -409,6 +509,24 @@
     function normalizeVariantKey(v){ if (!v) return 'none'; const s = String(v).toLowerCase().trim(); if (s==='copper') return 'bronze'; return VALID_VARIANTS.has(s)?s:'none'; }
     function prettyLabelFromKey(k){ switch (normalizeVariantKey(k)) { case 'bronze': return 'Bronze'; case 'silver': return 'Silver'; case 'gold': return 'Gold'; case 'diamond': return 'Diamond'; case 'rainbow': return 'Rainbow'; default: return ''; } }
 
+    // === Size tiers ===
+    const SIZE_TIERS = [
+      { key:'micro',  label:'Micro',  chance:0.06,  mult:0.75 },
+      { key:'small',  label:'Small',  chance:0.13,  mult:0.90 },
+      // normal is implicit
+      { key:'big',    label:'Big',    chance:0.07,  mult:1.15 },
+      { key:'queen',  label:'Queen',  chance:0.035, mult:1.35 },
+      { key:'king',   label:'King',   chance:0.010, mult:1.60 },
+    ];
+    function rollSizeTier(){
+      const pool = SIZE_TIERS;
+      const total = pool.reduce((a,c)=>a+(c.chance||0),0);
+      const r = Math.random();
+      let acc = 0;
+      for (const s of pool) { acc += (s.chance||0); if (r < acc) return s; }
+      return { key:'normal', label:'', mult:1.0 };
+    }
+
     // Inventory
     function getInventory() {
       const cu = getCurrentUser(); if (!cu) return [];
@@ -416,10 +534,16 @@
       const upgraded = raw.map(it => {
         if (typeof it === 'string') {
           const meta = lookupItemMeta(it);
-          return { name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false, variantBaseKey: 'none', variantBaseLabel: '', statusLabel: '' };
+          return { name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false, variantBaseKey: 'none', variantBaseLabel: '', statusLabel: '', showcased:false, sizeKey:'normal', sizeLabel:'' };
         }
         const normKey = normalizeVariantKey(it.variantBaseKey ?? it.variantBase ?? it.variant ?? it.variantBaseLabel);
         const label = it.variantBaseLabel ?? prettyLabelFromKey(normKey);
+
+        const sizeKeyRaw  = (it.sizeKey || it.size || '').toString().toLowerCase();
+        const validSizes = ['micro','small','normal','big','queen','king'];
+        const safeSize = validSizes.includes(sizeKeyRaw) ? sizeKeyRaw : 'normal';
+        const sizeLabel = it.sizeLabel || (safeSize === 'normal' ? '' : safeSize[0].toUpperCase()+safeSize.slice(1));
+
         return {
           name: it.name,
           type: it.type ?? lookupItemMeta(it.name).type,
@@ -427,7 +551,10 @@
           favorite: !!it.favorite,
           variantBaseKey: normKey,
           variantBaseLabel: label,
-          statusLabel: it.statusLabel || ''
+          statusLabel: it.statusLabel || '',
+          showcased: it.showcased === true,
+          sizeKey: safeSize,
+          sizeLabel
         };
       });
       if (JSON.stringify(raw) !== JSON.stringify(upgraded)) setInventory(upgraded);
@@ -441,31 +568,29 @@
       if (idx !== -1) { players[idx].items = newInv; savePlayers(players); }
     }
 
-    /* ✅ ADD: saveCatchToUser directly after setInventory */
+    // Showcase helpers
+    function getShowcaseItems() {
+      return getInventory()
+        .map((it, idx) => ({ ...it, _idx: idx }))
+        .filter(it => it.type === 'fish' && it.showcased === true);
+    }
+    function setShowcaseForIndex(index, enabled) {
+      const inv = getInventory();
+      if (!inv[index] || inv[index].type !== 'fish') return;
+      inv[index].showcased = !!enabled;
+      setInventory(inv);
+    }
+
+    /* Save catch helper */
     function saveCatchToUser(catchData) {
-      // If passed a string, assume "trash" name and auto-sell for gold
       if (typeof catchData === 'string') {
         const meta = lookupItemMeta(catchData);
-        if (meta && meta.type === 'trash') {
-          addGold(meta.value || 0); // autosell trash
-          return;
-        }
-        // Non-trash string: store a generic item
+        if (meta && meta.type === 'trash') { addGold(meta.value || 0); return; }
         const inv = getInventory();
-        inv.push({
-          name: catchData,
-          type: meta?.type || 'unknown',
-          value: meta?.value || 0,
-          favorite: false,
-          variantBaseKey: 'none',
-          variantBaseLabel: '',
-          statusLabel: ''
-        });
+        inv.push({ name: catchData, type: meta?.type || 'unknown', value: meta?.value || 0, favorite: false, variantBaseKey:'none', variantBaseLabel:'', statusLabel:'', showcased:false, sizeKey:'normal', sizeLabel:'' });
         setInventory(inv);
         return;
       }
-
-      // Full fish object: add to backpack (no immediate gold)
       const item = {
         name: catchData.name,
         type: catchData.type || 'fish',
@@ -473,7 +598,10 @@
         favorite: !!catchData.favorite,
         variantBaseKey: normalizeVariantKey(catchData.variantBaseKey || catchData.variant || catchData.variantBaseLabel),
         variantBaseLabel: catchData.variantBaseLabel || prettyLabelFromKey(catchData.variantBaseKey || catchData.variant || catchData.variantBaseLabel),
-        statusLabel: catchData.statusLabel || ''
+        statusLabel: catchData.statusLabel || '',
+        showcased:false,
+        sizeKey: (catchData.sizeKey || 'normal'),
+        sizeLabel: (catchData.sizeLabel || '')
       };
       const inv = getInventory();
       inv.push(item);
@@ -483,32 +611,31 @@
     // Gear
     function ensureStarterGear() {
       let inv = getInventory();
-      if (!inv.some(i => i.type === 'gear-rod')) inv.push({ name: 'Starter Rod (Lv1)', type: 'gear-rod', value: 0, favorite: false });
-      if (!inv.some(i => i.type === 'gear-bait')) inv.push({ name: 'No Bait (T0)', type: 'gear-bait', value: 0, favorite: false });
+      if (!inv.some(i => i.type === 'gear-rod')) inv.push({ name: 'Starter Rod (Lv1)', type: 'gear-rod', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
+      if (!inv.some(i => i.type === 'gear-bait')) inv.push({ name: 'No Bait (T0)', type: 'gear-bait', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
       setInventory(inv);
     }
     function equipRod(level) {
       let inv = getInventory();
       inv = inv.filter(i => i.type !== 'gear-rod');
-      inv.push({ name: `Rod (Lv${level})`, type: 'gear-rod', value: 0, favorite: false });
+      inv.push({ name: `Rod (Lv${level})`, type: 'gear-rod', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
       setInventory(inv);
     }
     function equipBait(tier) {
       let inv = getInventory();
       inv = inv.filter(i => i.type !== 'gear-bait');
-      inv.push({ name: `Bait (T${tier})`, type: 'gear-bait', value: 0, favorite: false });
+      inv.push({ name: `Bait (T${tier})`, type: 'gear-bait', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
       setInventory(inv);
     }
 
-    // ---------- Fishing difficulty + minigame ----------
+    // Difficulty + minigame params
     const rarityConfig = {
       common:    { zoneMin: 28, zoneMax: 72, drift: 0.25, wobble: 0.6,  timeToLand: 2200 },
       uncommon:  { zoneMin: 33, zoneMax: 67, drift: 0.38, wobble: 0.9,  timeToLand: 3000 },
       rare:      { zoneMin: 40, zoneMax: 60, drift: 0.55, wobble: 1.2,  timeToLand: 3800 },
-      epic:      { zoneMin: 42, zoneMax: 58, drift: 0.65, wobble: 1.4,  timeToLand: 4600 },
-      legendary: { zoneMin: 44, zoneMax: 56, drift: 0.75, wobble: 1.6,  timeToLand: 5200 }
+      epic:      { zoneMin: 42, zoneMax: 58, drift: 0.75, wobble: 1.6,  timeToLand: 5200 },
+      legendary: { zoneMin: 44, zoneMax: 56, drift: 0.95, wobble: 1.9,  timeToLand: 6200 }
     };
-
     function weightedPick(table) {
       const total = table.reduce((a,c)=>a+c.weight,0);
       let roll = Math.random() * total;
@@ -516,7 +643,7 @@
       return table[0];
     }
 
-    // Variants (one base + one elemental)
+    // Variants + statuses
     const VARIANT_BASES = [
       { key:'none',     label:'',        mult:1.00, chance:null,  wobble:0,    zoneNarrow:0,    timeUp:0,   driftUp:0 },
       { key:'bronze',   label:'Bronze',  mult:1.25, chance:0.050, wobble:0.05, zoneNarrow:0.02, timeUp:0.02, driftUp:0.05 },
@@ -551,19 +678,29 @@
       return { base, status, totalMult, diff };
     }
 
-    // Styled fish-name
     function renderStyledFishName(item) {
       const baseKey   = normalizeVariantKey(item.variantBaseKey || item.variantBase || item.variant || item.variantBaseLabel);
       const statusKey = (item.statusLabel ? item.statusLabel.toLowerCase() : '').replace(/\s+/g,'');
+      const sizeKey   = (item.sizeKey || 'normal').toLowerCase();
+      const validSizes = ['micro','small','normal','big','queen','king'];
+      const sizeClass = `size-${validSizes.includes(sizeKey) ? sizeKey : 'normal'}`;
+
       const vClass = baseKey && baseKey !== 'none' ? `variant-${baseKey}` : '';
       const sClass = statusKey ? `status-${statusKey}` : '';
-      if (sClass && vClass) return `<span class="${sClass}"><span class="${vClass}">${item.name}</span></span>`;
-      if (sClass) return `<span class="${sClass}">${item.name}</span>`;
-      if (vClass) return `<span class="${vClass}">${item.name}</span>`;
-      return item.name;
+
+      const nameInner =
+        vClass ? `<span class="${vClass} fish-name">${item.name}</span>`
+               : `<span class="fish-name">${item.name}</span>`;
+
+      return `
+        <span class="size-wrap ${sizeClass}">
+          ${sizeKey !== 'normal' ? `<span class="size-tag" title="${item.sizeLabel||''}"></span>` : ''}
+          ${sClass ? `<span class="${sClass}">${nameInner}</span>` : nameInner}
+        </span>
+      `;
     }
 
-    // ---------- Auth ----------
+    // Auth
     document.getElementById('signupButton').addEventListener('click', () => {
       const email = document.getElementById('signup-email').value.trim();
       const username = document.getElementById('signup-username').value.trim();
@@ -674,7 +811,6 @@
       ensureStarterGear();
       mainContent.innerHTML = `<div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>Welcome back, ${username}! Choose where to go.`;
       updateGoldHud();
-
       renderAdminPanel();
     }
 
@@ -747,7 +883,7 @@
       { name: "Muddy Bottle",       type: "trash", weight: 9, value: 1 }
     ];
 
-    // ---------- Navigation (only one listener) ----------
+    // ---------- Navigation ----------
     document.getElementById('fishingSpotBtn').addEventListener('click', () => {
       const s = getStats();
       const unlocked = s.level >= 10;
@@ -763,29 +899,243 @@
         </div>
       `;
       updateGoldHud();
-      document.getElementById('pondBtn').addEventListener('click', showPond);
-
+      
       const streamBtn = document.getElementById('streamBtn');
-      if (streamBtn) {
-        if (unlocked) streamBtn.addEventListener('click', showStream);
-        else streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
+      if (streamBtn && !unlocked) {
+        streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
       }
     });
 
-    document.getElementById('farmBtn').addEventListener('click', renderFarm);
-    function renderFarm() {
+    document.getElementById('leaderboardBtn').addEventListener('click', renderLeaderboard);
+    document.getElementById('homeBtn').addEventListener('click', renderHome);
+    document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
+    document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
+
+    function renderHome() {
       const coins = getCurrentUser()?.coins ?? 0;
+
       mainContent.innerHTML = `
         <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
         <div class="pond-wrap">
-          <h2>🌾 Farm</h2>
-          <p>Coming soon: plant seeds, harvest crops for bait and buffs.</p>
+          <h2>🏠 Home</h2>
+          <p class="small">Your cozy base. Visit the Showcase or tend to your Nursery.</p>
+          <div class="row" style="margin-top:12px;">
+            <button id="showcaseBtn">🖼 Showcase</button>
+            <button id="nurseryBtn">🌱 Nursery</button>
+          </div>
         </div>
       `;
       updateGoldHud();
+
+      document.getElementById('showcaseBtn').onclick = renderShowcase;
+      document.getElementById('nurseryBtn').onclick = renderNursery;
     }
 
-    document.getElementById('leaderboardBtn').addEventListener('click', renderLeaderboard);
+    function renderShowcase() {
+      const coins = getCurrentUser()?.coins ?? 0;
+      const inv = getInventory();
+      const showcased = getShowcaseItems();
+      const remainingSlots = Math.max(0, SHOWCASE_LIMIT - showcased.length);
+
+      const manageList = inv
+        .map((it, idx) => ({ ...it, _idx: idx }))
+        .filter(it => it.type === 'fish' && it.showcased !== true)
+        .map(it => {
+          const btnId = `sc-btn-${it._idx}`;
+          const meta = `${it.value || 0}g`;
+          const addDisabled = remainingSlots === 0 ? 'disabled' : '';
+          return `
+            <div class="bp-row" data-idx="${it._idx}">
+              <div class="bp-name">${renderStyledFishName(it)}</div>
+              <div class="bp-meta">fish · ${meta}</div>
+              <div class="sc-action">
+                <button id="${btnId}" class="sc-btn" ${addDisabled} title="Add to Showcase">Add</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      const displayedRows = showcased.map(i => {
+        const rid = `sc-rem-${i._idx}`;
+        const meta = `${i.value || 0}g`;
+        return `
+          <div class="displayed-row">
+            <div class="bp-name">${renderStyledFishName(i)} <span class="small">· ${meta}</span></div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button id="${rid}" class="remove-btn" title="Remove from Showcase">Remove</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      mainContent.innerHTML = `
+        <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+        <div class="pond-wrap showcase-mode">
+          <div class="pond-header">
+            <h2>🖼 Showcase</h2>
+            <button id="backHome" class="back-inline">← Back</button>
+          </div>
+
+          <p class="small" style="margin-top:8px;">
+            Selected: <b>${showcased.length}</b> / <b>${SHOWCASE_LIMIT}</b> · Slots left: <b>${remainingSlots}</b>
+          </p>
+
+          <div style="width:100%; text-align:left; margin-top:8px;">
+            <h3 style="margin:8px 0 6px;">Currently Displayed</h3>
+            <div class="displayed-list">
+              ${displayedRows || `<p class="small" style="opacity:.85;">No fish displayed yet.</p>`}
+            </div>
+          </div>
+
+          <div style="width:100%; text-align:left; margin-top:12px;">
+            <h3 style="margin:8px 0 6px;">Manage Selection</h3>
+            <div class="scroll-panel">
+              ${manageList || `<p class="small" style="opacity:.85;">No fish available to add.</p>`}
+            </div>
+            <p class="small" style="opacity:.8; margin-top:8px;">
+              You can favorite as many fish as you want in your Backpack — favorites are separate from the Showcase.
+            </p>
+          </div>
+        </div>
+      `;
+      updateGoldHud();
+
+      document.getElementById('backHome').onclick = renderHome;
+
+      inv.forEach((it, idx) => {
+        if (it?.type !== 'fish' || it.showcased === true) return;
+        const btn = document.getElementById(`sc-btn-${idx}`);
+        if (!btn) return;
+        btn.onclick = () => {
+          if (getShowcaseItems().length >= SHOWCASE_LIMIT) {
+            alert('Showcase is full. Remove one first.');
+            return;
+          }
+          setShowcaseForIndex(idx, true);
+          renderShowcase();
+        };
+      });
+
+      showcased.forEach(it => {
+        const rbtn = document.getElementById(`sc-rem-${it._idx}`);
+        if (!rbtn) return;
+        rbtn.onclick = () => {
+          setShowcaseForIndex(it._idx, false);
+          renderShowcase();
+        };
+      });
+    }
+
+    function renderNursery() {
+      const coins = getCurrentUser()?.coins ?? 0;
+
+      const NURSERY_UNLOCK_COST = 2500;
+      function hasNurseryAccess() { return !!getUserFlags().nurseryAccess; }
+      function canAfford(cost){ return (getCurrentUser()?.coins ?? 0) >= cost; }
+      function spendGold(amount){
+        const cu = getCurrentUser(); if (!cu) return false;
+        if ((cu.coins ?? 0) < amount) return false;
+        cu.coins -= amount; setCurrentUser(cu);
+        const players = getPlayers();
+        const idx = players.findIndex(p => p.username === cu.username);
+        if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
+        updateGoldHud(); return true;
+      }
+      function grantNurseryAccess(){ setUserFlags({ nurseryAccess: true }); }
+
+      if (!hasNurseryAccess()) {
+        const canBuy = coins >= NURSERY_UNLOCK_COST;
+        mainContent.innerHTML = `
+          <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+          <div class="pond-wrap">
+            <div class="pond-header">
+              <h2>🌱 Nursery (Locked)</h2>
+              <button id="backHome" class="back-inline">← Back</button>
+            </div>
+            <p class="small">Unlock the Nursery to raise fish eggs and grow helpful buffs.</p>
+            <div class="status" style="margin-top:10px;">Cost to unlock: <b>${NURSERY_UNLOCK_COST}g</b></div>
+            <div class="row" style="margin-top:12px;">
+              <button id="unlockNurseryBtn" ${canBuy ? "" : "disabled"}>Unlock Nursery</button>
+            </div>
+            <div class="small" style="margin-top:6px; opacity:.85;">
+              ${canBuy ? "You have enough gold to unlock the Nursery." : "You need more gold to unlock the Nursery."}
+            </div>
+          </div>
+        `;
+        updateGoldHud();
+
+        document.getElementById('backHome').onclick = renderHome;
+        const unlockBtn = document.getElementById('unlockNurseryBtn');
+        if (unlockBtn) {
+          unlockBtn.onclick = () => {
+            if (!canAfford(NURSERY_UNLOCK_COST)) { alert("Not enough gold to unlock the Nursery."); return; }
+            const ok = confirm(`Spend ${NURSERY_UNLOCK_COST} gold to unlock the Nursery?`);
+            if (!ok) return;
+            if (!spendGold(NURSERY_UNLOCK_COST)) { alert("Purchase failed. Please try again."); return; }
+            grantNurseryAccess();
+            goldPopup("🌱 Nursery unlocked!");
+            renderNursery();
+          };
+        }
+        return;
+      }
+
+      // Unlocked Nursery
+      mainContent.innerHTML = `
+        <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+        <div class="pond-wrap">
+          <div class="pond-header">
+            <h2>🌱 Nursery</h2>
+            <button id="backHome" class="back-inline">← Back</button>
+          </div>
+          <p>Coming soon: incubate eggs, feed fry, and earn time-limited boosts.</p>
+        </div>
+      `;
+      updateGoldHud();
+      document.getElementById('backHome').onclick = renderHome;
+    }
+
+    // ---------- Player Profile popup ----------
+    function showPlayerProfile(username){
+      const p = (getPlayers() || []).find(q => q.username === username);
+      if(!p){ alert("Player not found."); return; }
+
+      const level = p.level ?? 1;
+      const xp    = p.xp ?? 0;
+
+      const showcased = (p.items || [])
+        .map((it, idx) => ({...it, _idx: idx}))
+        .filter(it => it && it.type === 'fish' && it.showcased === true);
+
+      const listHTML = showcased.length
+        ? showcased.map(i => `
+            <div class="profile-row">
+              <div class="bp-name">${renderStyledFishName(i)} <span class="small">· ${i.value || 0}g</span></div>
+            </div>
+          `).join('')
+        : `<p class="small" style="opacity:.85;">No fish in Showcase.</p>`;
+
+      const ov   = document.getElementById('profileOverlay');
+      const body = document.getElementById('profileBody');
+      const ttl  = document.getElementById('profileTitle');
+
+      ttl.textContent = username;
+      body.innerHTML = `
+        <div class="small" style="opacity:.9;margin-bottom:8px;">
+          ⭐ Level ${level} · XP ${xp}/${xpNeededFor(level)}
+        </div>
+        <h3 style="margin:8px 0 6px;">Showcase</h3>
+        <div class="profile-list">${listHTML}</div>
+      `;
+
+      ov.style.display = 'flex';
+      const close = () => { ov.style.display = 'none'; };
+      document.getElementById('profileCloseBtn').onclick = close;
+      const outsideHandler = (e) => { if (e.target === ov) close(); };
+      ov.addEventListener('click', outsideHandler, { once: true });
+    }
+
+    // ---------- Leaderboard ----------
     function renderLeaderboard() {
       const coins = getCurrentUser()?.coins ?? 0;
       const me = getCurrentUser();
@@ -799,10 +1149,11 @@
       const rows = players.map((p, i) => {
         const isMe = me && p.username === me.username;
         const cls = isMe ? ' class="me-row"' : '';
+        const safeName = p.username || '—';
         return `
           <tr${cls}>
             <td>#${i+1}</td>
-            <td>${p.username || '—'}</td>
+            <td><a href="#" class="lb-player" data-username="${safeName}">${safeName}</a></td>
             <td>Lv ${p.level ?? 1}</td>
             <td class="col-xp">${p.xp ?? 0}</td>
             <td>${p.coins ?? 0}g</td>
@@ -826,9 +1177,146 @@
         </div>
       `;
       updateGoldHud();
+
+      document.querySelectorAll('.lb-player').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const u = e.currentTarget.getAttribute('data-username');
+          if (u && u !== '—') showPlayerProfile(u);
+        });
+      });
     }
 
-    // ---------- Stream (header back button) ----------
+    // ---------- POND ----------
+    function showPond() {
+      mainContent.innerHTML = `
+        <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+        <div class="pond-wrap">
+          <div class="pond-header">
+            <h2>🐟 Pond</h2>
+            <button id="backToSpots" class="back-inline back-left">← Back to Spots</button>
+          </div>
+          <div class="status" id="pondStatus">The pond is calm and reflective.</div>
+          <div class="progress" id="searchProg" style="display:none;"><div class="progress-fill" id="searchFill"></div></div>
+          <div class="row" id="castRow"><button id="castBtn">Cast</button></div>
+          <div id="minigameArea" style="margin-top:14px;"></div>
+          <div class="small" style="margin-top:10px;">Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.</div>
+        </div>
+      `;
+      updateGoldHud();
+      const backBtn   = document.getElementById('backToSpots');
+      const status    = document.getElementById('pondStatus');
+      const area      = document.getElementById('minigameArea');
+      const searchProg= document.getElementById('searchProg');
+      const searchFill= document.getElementById('searchFill');
+      const castRow   = document.getElementById('castRow');
+      const castBtn   = document.getElementById('castBtn');
+      if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
+      let spaceRecastKeydown = null;
+      function setSpaceRecast(handler) {
+        if (spaceRecastKeydown) {
+          window.removeEventListener('keydown', spaceRecastKeydown);
+          spaceRecastKeydown = null;
+        }
+        if (handler) {
+          spaceRecastKeydown = (e) => {
+            if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); }
+          };
+          window.addEventListener('keydown', spaceRecastKeydown);
+        }
+      }
+
+      const runCastCycle = async () => {
+        setSpaceRecast(null);
+        castRow.style.display = 'none';
+        area.innerHTML = '';
+        status.textContent = "Watching for ripples...";
+        searchProg.style.display = 'block';
+        searchFill.style.width = '0%';
+
+        const { baitTier } = getStats();
+        const baseWait = 1000 + Math.random()*2000;
+        const waitMs = Math.max(350, baseWait * (1 - 0.1 * baitTier));
+        await animateProgress(searchFill, waitMs);
+        searchProg.style.display = 'none';
+
+        const hooked = weightedPick(pondTable);
+
+        if (hooked.type === 'trash') {
+          status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
+          saveCatchToUser(hooked.name);
+          addXP(1);
+          area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+          document.getElementById('recastBtn').onclick = runCastCycle;
+          setSpaceRecast(runCastCycle);
+          return;
+        }
+
+        const vr = buildVariantResult();
+        const statusLabel = vr.status ? vr.status.label : '';
+
+        const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
+        const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
+        const width = (cfg.zoneMax - cfg.zoneMin);
+        const narrow = Math.max(8, width * (1 - vr.diff.zoneNarrow));
+        cfg.zoneMin = Math.max(5, zoneCenter - narrow/2);
+        cfg.zoneMax = Math.min(95, zoneCenter + narrow/2);
+        cfg.wobble  = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
+        cfg.drift   = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
+        cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
+
+        status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
+
+        startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
+          if (success) {
+            const sz = rollSizeTier();
+            const baseValue = hooked.value || 0;
+            const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1)));
+
+            const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
+            status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
+
+            saveCatchToUser({
+              name: hooked.name,
+              type: hooked.type,
+              value: finalValue,
+              favorite: false,
+              variantBaseKey: normalizeVariantKey(vr.base.key),
+              variantBaseLabel: prettyLabelFromKey(vr.base.key),
+              statusLabel,
+              sizeKey: sz.key,
+              sizeLabel: sz.label
+            });
+
+            const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
+            addXP(xpByRarity[hooked.rarity] ?? 2);
+          } else {
+            status.innerHTML = `<span class="fail">It got away!</span>`;
+          }
+
+          if (reelBtnRef) {
+            reelBtnRef.textContent = 'Recast';
+            reelBtnRef.disabled = false;
+            reelBtnRef.onmousedown = null;
+            reelBtnRef.onmouseup = null;
+            reelBtnRef.onmouseleave = null;
+            reelBtnRef.ontouchstart = null;
+            reelBtnRef.ontouchend = null;
+            reelBtnRef.onclick = () => runCastCycle();
+            setSpaceRecast(runCastCycle);
+          } else {
+            area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+            document.getElementById('recastBtn').onclick = runCastCycle;
+            setSpaceRecast(runCastCycle);
+          }
+        });
+      };
+
+      if (castBtn) castBtn.onclick = runCastCycle;
+    }
+
+    // ---------- STREAM ----------
     function showStream() {
       if (!isStreamUnlocked()) { alert('Locked: Reach Level 10 to access the Stream.'); return; }
 
@@ -837,23 +1325,13 @@
         <div class="pond-wrap">
           <div class="pond-header">
             <h2>🌊 Stream</h2>
-            <button id="backToSpots" class="back-inline">← Back to Spots</button>
+            <button id="backToSpots" class="back-inline back-left">← Back to Spots</button>
           </div>
-
           <div class="status" id="streamStatus">The current is swift and the water is clear.</div>
-
-          <div class="progress" id="searchProg" style="display:none;">
-            <div class="progress-fill" id="searchFill"></div>
-          </div>
-
-          <div class="row" id="castRow">
-            <button id="castBtn">Cast</button>
-          </div>
-
+          <div class="progress" id="searchProg" style="display:none;"><div class="progress-fill" id="searchFill"></div></div>
+          <div class="row" id="castRow"><button id="castBtn">Cast</button></div>
           <div id="minigameArea" style="margin-top:14px;"></div>
-          <div class="small" style="margin-top:10px;">
-            Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.
-          </div>
+          <div class="small" style="margin-top:10px;">Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.</div>
         </div>
       `;
       updateGoldHud();
@@ -924,15 +1402,11 @@
 
         startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
           if (success) {
+            const sz = rollSizeTier();
             const baseValue = hooked.value || 0;
-            const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult));
+            const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1)));
 
-            const tempItemForStyle = {
-              name: hooked.name,
-              variantBaseKey: normalizeVariantKey(vr.base.key),
-              statusLabel
-            };
-            /* ✅ fish message: no (+Xg) */
+            const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
             status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
 
             saveCatchToUser({
@@ -942,7 +1416,9 @@
               favorite: false,
               variantBaseKey: normalizeVariantKey(vr.base.key),
               variantBaseLabel: prettyLabelFromKey(vr.base.key),
-              statusLabel
+              statusLabel,
+              sizeKey: sz.key,
+              sizeLabel: sz.label
             });
 
             const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
@@ -969,141 +1445,7 @@
         });
       };
 
-      if (castBtn) castBtn.onclick = runCastCycle;  // <-- safe: no redeclare
-    }
-
-    // ---------- Pond (header back button) ----------
-    function showPond() {
-      mainContent.innerHTML = `
-        <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
-        <div class="pond-wrap">
-          <div class="pond-header">
-            <h2>🐟 Pond</h2>
-            <button id="backToSpots" class="back-inline">← Back to Spots</button>
-          </div>
-
-          <div class="status" id="pondStatus">Cast your line into the quiet pond.</div>
-
-          <div class="progress" id="searchProg" style="display:none;">
-            <div class="progress-fill" id="searchFill"></div>
-          </div>
-
-          <div class="row" id="castRow">
-            <button id="castBtn">Cast</button>
-          </div>
-
-          <div id="minigameArea" style="margin-top:14px;"></div>
-          <div class="small" style="margin-top:10px;">
-            Tip: Hold <b>Reel</b> (or hold <b>Space</b>) to raise tension; release to let it fall.
-            Keep it inside the glowing zone to land the fish.
-          </div>
-        </div>
-      `;
-      updateGoldHud();
-
-      const backBtn   = document.getElementById('backToSpots');
-      const status    = document.getElementById('pondStatus');
-      const area      = document.getElementById('minigameArea');
-      const searchProg= document.getElementById('searchProg');
-      const searchFill= document.getElementById('searchFill');
-      const castRow   = document.getElementById('castRow');
-      const castBtn   = document.getElementById('castBtn');
-
-      if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-
-      let spaceRecastKeydown = null;
-      function setSpaceRecast(handler) {
-        if (spaceRecastKeydown) { window.removeEventListener('keydown', spaceRecastKeydown); spaceRecastKeydown = null; }
-        if (handler) {
-          spaceRecastKeydown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); } };
-          window.addEventListener('keydown', spaceRecastKeydown);
-        }
-      }
-
-      const runCastCycle = async () => {
-        setSpaceRecast(null);
-        castRow.style.display = 'none';
-        area.innerHTML = '';
-        status.textContent = "Looking for the next fish...";
-        searchProg.style.display = 'block';
-        searchFill.style.width = '0%';
-
-        const { baitTier } = getStats();
-        const baseWait = 900 + Math.random()*1800;
-        const waitMs = Math.max(300, baseWait * (1 - 0.1 * baitTier));
-        await animateProgress(searchFill, waitMs);
-        searchProg.style.display = 'none';
-
-        const hooked = weightedPick(pondTable);
-
-        if (hooked.type === 'trash') {
-          status.innerHTML = `You reeled in <b>${hooked.name}</b> (+${hooked.value}g).`;
-          saveCatchToUser(hooked.name);
-          addXP(1);
-          area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
-          document.getElementById('recastBtn').onclick = runCastCycle;
-          setSpaceRecast(runCastCycle);
-          return;
-        }
-
-        const vr = buildVariantResult();
-        const statusLabel = vr.status ? vr.status.label : '';
-
-        const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
-        const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
-        const width = (cfg.zoneMax - cfg.zoneMin);
-        const newWidth = Math.max(8, width * (1 - vr.diff.zoneNarrow));
-        cfg.zoneMin = Math.max(5, zoneCenter - newWidth/2);
-        cfg.zoneMax = Math.min(95, zoneCenter + newWidth/2);
-        cfg.wobble  = cfg.wobble * (1 + vr.diff.wobble);
-        cfg.drift   = (cfg.drift || 0.35) * (1 + vr.diff.driftUp);
-        cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
-
-        status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
-
-        startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
-          if (success) {
-            const baseValue = hooked.value || 0;
-            const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult));
-            const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel };
-            /* ✅ fish message: no (+Xg) */
-            status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
-
-            saveCatchToUser({
-              name: hooked.name,
-              type: hooked.type,
-              value: finalValue,
-              favorite: false,
-              variantBaseKey: normalizeVariantKey(vr.base.key),
-              variantBaseLabel: prettyLabelFromKey(vr.base.key),
-              statusLabel
-            });
-
-            const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
-            addXP(xpByRarity[hooked.rarity] ?? 2);
-          } else {
-            status.innerHTML = `<span class="fail">It got away!</span>`;
-          }
-
-          if (reelBtnRef) {
-            reelBtnRef.textContent = 'Recast';
-            reelBtnRef.disabled = false;
-            reelBtnRef.onmousedown = null;
-            reelBtnRef.onmouseup = null;
-            reelBtnRef.onmouseleave = null;
-            reelBtnRef.ontouchstart = null;
-            reelBtnRef.ontouchend = null;
-            reelBtnRef.onclick = () => runCastCycle();
-            setSpaceRecast(runCastCycle);
-          } else {
-            area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
-            document.getElementById('recastBtn').onclick = runCastCycle;
-            setSpaceRecast(runCastCycle);
-          }
-        });
-      };
-
-      if (castBtn) castBtn.onclick = runCastCycle; // <-- safe: no redeclare
+      if (castBtn) castBtn.onclick = runCastCycle;
     }
 
     async function animateProgress(fillEl, durationMs){
@@ -1118,7 +1460,7 @@
       });
     }
 
-    // Minigame core
+    // Minigame core (TOP BAR is sole success/fail)
     function startReelMinigame(container, fish, onDone) {
       const cfg = rarityConfig[fish.rarity] || rarityConfig.common;
 
@@ -1131,17 +1473,15 @@
       eff.zoneMax = Math.min(95, center + width/2);
       eff.wobble  = Math.max(0.25, eff.wobble * (1 - 0.08 * rodLevel));
 
+      const START_PROGRESS_FRAC = 0.45; // start 45% filled
+
       container.innerHTML = `
-        <div class="progress" id="landProg">
-          <div class="progress-fill" id="landFill"></div>
-        </div>
+        <div class="progress" id="landProg"><div class="progress-fill" id="landFill"></div></div>
         <div class="meter" id="meter">
           <div class="meter-zone" id="zone"></div>
           <div class="meter-fill" id="fill"></div>
         </div>
-        <div class="row">
-          <button id="reelBtn">Reel</button>
-        </div>
+        <div class="row"><button id="reelBtn">Reel</button></div>
       `;
 
       const reelBtn = document.getElementById('reelBtn');
@@ -1152,11 +1492,10 @@
       zone.style.left = eff.zoneMin + '%';
       zone.style.width = (eff.zoneMax - eff.zoneMin) + '%';
 
-      let tension = 50, holding = false, landedTime = 0, lastTs = performance.now(), timer;
+      let tension = 50, holding = false, lastTs = performance.now(), timer;
 
-      // edge grace
-      const FAIL_GRACE_MS = 220;
-      let outOfBoundsMs = 0;
+      // progress (0..eff.timeToLand) is the only win/lose metric
+      let progress = Math.round(eff.timeToLand * START_PROGRESS_FRAC);
 
       const onHold = () => { holding = true; };
       const onRelease = () => { holding = false; };
@@ -1167,7 +1506,6 @@
       reelBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onHold(); }, {passive:false});
       reelBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); onRelease(); }, {passive:false});
 
-      // Space key hold
       const onKeyDown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; } };
       const onKeyUp   = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; } };
       window.addEventListener('keydown', onKeyDown);
@@ -1181,6 +1519,8 @@
 
       function step(ts) {
         const dt = Math.min(50, ts - lastTs); lastTs = ts;
+
+        // Bottom meter: influences progress rate only
         const baseDrift = (eff.drift != null ? eff.drift : 0.25);
         let drift = (holding ? baseDrift*2.2 : -baseDrift*1.6);
         const wobble = (Math.sin(ts/140) + Math.cos(ts/310)) * eff.wobble;
@@ -1192,15 +1532,20 @@
         fill.style.width = '20%';
 
         const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
-        landedTime = inZone ? (landedTime + dt) : Math.max(0, landedTime - dt*0.35);
-        const pct = Math.max(0, Math.min(100, (landedTime / eff.timeToLand) * 100));
+
+        // Top progress bar logic: fill in zone, drain out of zone
+        const FILL_RATE  = 1.00;
+        const DRAIN_RATE = 0.90;
+        progress += inZone ? (dt * FILL_RATE) : (-dt * DRAIN_RATE);
+        if (progress < 0) progress = 0;
+        if (progress > eff.timeToLand) progress = eff.timeToLand;
+
+        const pct = Math.max(0, Math.min(100, (progress / eff.timeToLand) * 100));
         landFill.style.width = pct.toFixed(1) + '%';
 
-        const atEdge = (tension <= 0.5 || tension >= 99.5);
-        if (atEdge) { outOfBoundsMs += dt; if (outOfBoundsMs >= FAIL_GRACE_MS) return end(false); }
-        else { outOfBoundsMs = Math.max(0, outOfBoundsMs - dt*0.5); }
+        if (progress >= eff.timeToLand) return end(true);
+        if (progress <= 0)             return end(false);
 
-        if (landedTime >= eff.timeToLand) return end(true);
         timer = requestAnimationFrame(step);
       }
       timer = requestAnimationFrame(step);
@@ -1224,26 +1569,29 @@
     }
 
     // ---------- Backpack ----------
-    document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
     function friendlyMeta(item) {
       if (item.type === 'gear-rod')  return 'gear · rod';
       if (item.type === 'gear-bait') return 'gear · bait';
       return `${item.type}${item.value ? ` · ${item.value}g` : ''}`;
     }
     function renderBackpack() {
-      const inv = getInventory();
+      const full = getInventory();
+      const inv = full
+        .map((it, original) => ({ ...it, _idx: original }))
+        .filter(i => i.showcased !== true);
+
       const coins = getCurrentUser()?.coins ?? 0;
 
-      const rows = inv.map((item, idx) => {
+      const rows = inv.map(item => {
         const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
-        const heartChar = item.favorite ? '♥' : '♡';
-        const meta = friendlyMeta(item);
         return `
-          <div class="bp-row" data-idx="${idx}">
+          <div class="bp-row" data-idx="${item._idx}">
             <div class="bp-name">${renderStyledFishName(item)}</div>
-            <div class="bp-meta">${meta}</div>
+            <div class="bp-meta">${friendlyMeta(item)}</div>
             <div class="heart">
-              <button class="${heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx="${idx}">${heartChar}</button>
+              <button class="${heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx="${item._idx}">
+                ${item.favorite ? '♥' : '♡'}
+              </button>
             </div>
           </div>
         `;
@@ -1256,22 +1604,24 @@
           <div class="scroll-panel">
             ${rows || '<p>No items yet.</p>'}
           </div>
-          <div class="bp-hint">Tip: Left-click the heart to favorite. Or right-click an item row to toggle favorite. Gear can’t be sold.</div>
+          <div class="bp-hint">
+            Tip: Showcased fish are hidden here and can’t be sold until you remove them from 🖼 Showcase.
+          </div>
         </div>
       `;
       updateGoldHud();
 
       document.querySelectorAll('.heart-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          const idx = Number(e.currentTarget.getAttribute('data-idx'));
-          toggleFavorite(idx);
+          const realIdx = Number(e.currentTarget.getAttribute('data-idx'));
+          toggleFavorite(realIdx);
         });
       });
       document.querySelectorAll('.bp-row').forEach(row => {
         row.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          const idx = Number(row.getAttribute('data-idx'));
-          toggleFavorite(idx);
+          const realIdx = Number(row.getAttribute('data-idx'));
+          toggleFavorite(realIdx);
         });
       });
     }
@@ -1285,7 +1635,9 @@
 
     // ---------- Shop ----------
     document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
-    function isSellable(item) { return (item && !item.favorite && (item.type === 'fish' || item.type === 'trash')); }
+    function isSellable(item) {
+      return (item && item.showcased !== true && !item.favorite && (item.type === 'fish' || item.type === 'trash'));
+    }
     function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
     function renderShopMenu() {
       const coins = getCurrentUser()?.coins ?? 0;
@@ -1412,12 +1764,10 @@
             <button id="backToShop">← Back</button>
             <button id="sellAllBtnTop" ${sellable.length ? '' : 'disabled'}>Sell All</button>
           </div>
-          ${sellable.length ? `<div class="sell-list scroll-panel">${list}</div>` : `<p>No sellable items. Favorited fish are protected, and gear can’t be sold.</p>`}
+          ${sellable.length ? `<div class="sell-list scroll-panel">${list}</div>` : `<p>No sellable items. Favorited or Showcased fish are protected, and gear can’t be sold.</p>`}
           <div class="sell-summary">
-            <p>Total (non-favorited, sellable): <strong>${totalGold}g</strong></p>
-            <div class="row">
-              <button id="sellAllBtn" ${sellable.length ? '' : 'disabled'}>Sell All</button>
-            </div>
+            <p>Total (non-favorited, non-showcased, sellable): <strong>${totalGold}g</strong></p>
+            <div class="row"><button id="sellAllBtn" ${sellable.length ? '' : 'disabled'}>Sell All</button></div>
           </div>
         </div>
       `;
@@ -1463,6 +1813,58 @@
       setInventory(remaining);
       addGold(earned);
       showSell();
+    }
+
+    // ---------- Leaderboard (duplicate kept for compatibility) ----------
+    function renderLeaderboard() {
+      const coins = getCurrentUser()?.coins ?? 0;
+      const me = getCurrentUser();
+      const players = getPlayers().slice().sort((a,b)=>{
+        if ((b.level||1)!==(a.level||1)) return (b.level||1)-(a.level||1);
+        if ((b.xp||0)!==(a.xp||0)) return (b.xp||0)-(a.xp||0);
+        if ((b.coins||0)!==(a.coins||0)) return (b.coins||0)-(a.coins||0);
+        return (a.username||'').localeCompare(b.username||'');
+      });
+
+      const rows = players.map((p, i) => {
+        const isMe = me && p.username === me.username;
+        const cls = isMe ? ' class="me-row"' : '';
+        const safeName = p.username || '—';
+        return `
+          <tr${cls}>
+            <td>#${i+1}</td>
+            <td><a href="#" class="lb-player" data-username="${safeName}">${safeName}</a></td>
+            <td>Lv ${p.level ?? 1}</td>
+            <td class="col-xp">${p.xp ?? 0}</td>
+            <td>${p.coins ?? 0}g</td>
+          </tr>
+        `;
+      }).join('');
+
+      mainContent.innerHTML = `
+        <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+        <div class="board-wrap">
+          <h2>🏆 Leaderboard</h2>
+          <p class="small">Sorted by Level → XP → Coins.</p>
+          <table class="board-table" aria-label="Leaderboard">
+            <thead>
+              <tr><th>Rank</th><th>Player</th><th>Level</th><th class="col-xp">XP</th><th>Coins</th></tr>
+            </thead>
+            <tbody>
+              ${rows || `<tr><td colspan="5">No players yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `;
+      updateGoldHud();
+
+      document.querySelectorAll('.lb-player').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const u = e.currentTarget.getAttribute('data-username');
+          if (u && u !== '—') showPlayerProfile(u);
+        });
+      });
     }
   </script>
 </body>
