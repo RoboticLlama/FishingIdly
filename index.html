@@ -72,7 +72,6 @@
 
     .pond-header { position: relative; display:flex; justify-content:center; align-items:center; }
     .back-inline { position:absolute; right:0; top:0; padding:.6rem 1rem; border-radius:10px; }
-    /* allow left placement on Pond/Stream */
     .back-left { left: 0; right: auto; }
 
     .progress {
@@ -94,7 +93,6 @@
     .success { color:#6fffe9; }
     .fail { color:#ff7a7a; }
 
-    /* Centered wrappers (widened) */
     .bp-wrap, .shop-wrap, .board-wrap { width: 880px; max-width: 96vw; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; }
     .bp-row {
       display: grid; grid-template-columns: 1fr auto 120px; gap: 12px; align-items: center; padding: 10px 12px; margin: 6px 0;
@@ -137,7 +135,6 @@
       -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 10px rgba(255,255,255,.15);
     }
 
-    /* Status highlights: 35% opacity */
     .status-frozen{ background: rgba(120,180,255,.35); color:inherit; padding:0 .25em; border-radius:6px; }
     .status-electrocuted{ background: rgba(250,230,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
     .status-burned{ background: rgba(255,120,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
@@ -146,7 +143,6 @@
     .board-table th, .board-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); text-align:center; }
     .me-row { background: rgba(155,201,255,.08); }
 
-    /* Taller list; no horizontal scrollbar */
     .scroll-panel { max-height: 75vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px; width:100%; box-sizing: border-box; }
     .scroll-panel::-webkit-scrollbar { width: 8px; }
     .scroll-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
@@ -162,7 +158,6 @@
     .admin-row .btn-sm{ padding:.4rem .7rem; border-radius:8px; min-width:auto; }
     .admin-title{ font-weight:700; opacity:.9; margin-bottom:4px; }
 
-    /* Showcase-only: manage list with wide action column */
     .showcase-mode .bp-row { grid-template-columns: 1fr auto 120px; }
     .showcase-mode .sc-action { display:flex; justify-content:flex-end; }
     .showcase-mode .sc-btn{
@@ -172,7 +167,6 @@
     .showcase-mode .heart { background: transparent; width:auto; height:auto; box-shadow:none; }
     .showcase-mode .heart-btn { display:none; }
 
-    /* Displayed list rows with right-aligned Remove */
     .displayed-list { width:100%; }
     .displayed-row{
       display:grid; grid-template-columns: 1fr 120px; gap:12px; align-items:center; padding:10px 12px; margin:6px 0;
@@ -183,7 +177,6 @@
     }
     .remove-btn:hover{ background:#8ea8c6; color:#1b2735; }
 
-    /* Player Profile modal */
     .profile-box{ width: 560px; max-width: 95vw; text-align: left; }
     .profile-list{ width:100%; max-height: 60vh; overflow-y:auto; padding-right:6px; }
     .profile-row{
@@ -191,12 +184,10 @@
       background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
     }
 
-    /* Leaderboard links: white & accent on hover */
     .board-table a.lb-player { color:#e0e0e0; text-decoration: underline; }
     .board-table a.lb-player:visited { color:#e0e0e0; }
     .board-table a.lb-player:hover, .board-table a.lb-player:focus { color:#5bc0be; outline:none; }
 
-    /* === Size tiers (icons + font scaling) === */
     .size-wrap { display:inline-flex; align-items:center; gap:6px; }
     .size-tag { display:inline-block; line-height:1; }
     .size-micro .size-tag::before { content:"🤹"; }
@@ -281,8 +272,60 @@
     </div>
   </div>
 
-  <script>
-    // Elements
+  <!-- =============================== -->
+  <!-- Firebase + Game Logic (module)  -->
+  <!-- =============================== -->
+  <script type="module">
+    /* ---------------- Firebase Setup ---------------- */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, getDocs, collection
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
+      authDomain: "fishingidly-c1613.firebaseapp.com",
+      projectId: "fishingidly-c1613",
+      storageBucket: "fishingidly-c1613.firebasestorage.app",
+      messagingSenderId: "531215063717",
+      appId: "1:531215063717:web:dea4ce7aa7a64d3f374b4c",
+      measurementId: "G-SR67MT90SE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch(e) { /* analytics may fail on http */ }
+    const db = getFirestore(app);
+
+    /* --------------- Minimal Firestore adapter --------------- */
+    // We keep a lightweight cache so the rest of your code can remain sync-ish.
+    let playersCache = []; // array of {username,...}
+
+    async function refreshPlayersCache() {
+      const snap = await getDocs(collection(db, "players"));
+      playersCache = snap.docs.map(d => d.data());
+    }
+
+    // Write one player to Firestore, update cache entry
+    function writePlayerToDB(p) {
+      // fire-and-forget: don't await everywhere
+      setDoc(doc(db, "players", p.username), p, { merge: true }).catch(console.error);
+      const i = playersCache.findIndex(x => x.username === p.username);
+      if (i === -1) playersCache.push(p); else playersCache[i] = p;
+    }
+
+    // keep names same as your original code:
+    function getPlayers() { return playersCache.slice(); }
+    function savePlayers(players) {
+      playersCache = players.slice();
+      players.forEach(p => writePlayerToDB(p));
+    }
+    function getCurrentUser() {
+      try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
+    }
+    function setCurrentUser(u) { localStorage.setItem('currentUser', JSON.stringify(u)); }
+
+    /* ------------------ DOM elements ------------------ */
     const overlay = document.getElementById('overlay');
     const signinLink = document.getElementById('signinLink');
     const startButton = document.getElementById('startButton');
@@ -297,7 +340,7 @@
     const adminResetBtn = document.getElementById('adminResetBtn');
     const adminPanel = document.getElementById('adminPanel');
 
-    /* --- Global delegation so Pond/Stream buttons always work --- */
+    /* --- Global delegation for Pond/Stream --- */
     mainContent.addEventListener('click', (e) => {
       const btn = e.target.closest && e.target.closest('button');
       if (!btn) return;
@@ -324,13 +367,7 @@
 
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
 
-    // Storage helpers
-    const getPlayers = () => JSON.parse(localStorage.getItem('players')) || [];
-    const savePlayers = (players) => localStorage.setItem('players', JSON.stringify(players));
-    const getCurrentUser = () => JSON.parse(localStorage.getItem('currentUser'));
-    const setCurrentUser = (u) => localStorage.setItem('currentUser', JSON.stringify(u));
-
-    // --- Per-user flags
+    /* ---------------- Per-user flags ---------------- */
     function getUserFlags() {
       const cu = getCurrentUser();
       if (!cu) return {};
@@ -343,7 +380,10 @@
       setCurrentUser(cu);
       const players = getPlayers();
       const idx = players.findIndex(p => p.username === cu.username);
-      if (idx !== -1) { players[idx].flags = cu.flags; savePlayers(players); }
+      if (idx !== -1) {
+        players[idx].flags = cu.flags;
+        savePlayers(players);
+      }
     }
     function isStreamUnlocked() { return (getStats().level || 1) >= 10; }
 
@@ -400,7 +440,6 @@
         players[idx].xp = cu.xp;
         savePlayers(players);
       }
-      // 🔔 also notify here (covers admin +/- and direct edits)
       maybeNotifyStreamUnlock(prev.level, cu.level);
       updateGoldHud();
       renderAdminPanel();
@@ -420,7 +459,6 @@
         level += 1;
         leveled += 1;
       }
-      // 🔔 Notify exactly when we cross to >= 10
       maybeNotifyStreamUnlock(before.level, level);
       setStats({ ...before, xp, level });
       xpPopup(`+${amount} XP`);
@@ -499,7 +537,6 @@
     const SIZE_TIERS = [
       { key:'micro',  label:'Micro',  chance:0.06,  mult:0.75 },
       { key:'small',  label:'Small',  chance:0.13,  mult:0.90 },
-      // normal is implicit
       { key:'big',    label:'Big',    chance:0.07,  mult:1.15 },
       { key:'queen',  label:'Queen',  chance:0.035, mult:1.35 },
       { key:'king',   label:'King',   chance:0.010, mult:1.60 },
@@ -696,26 +733,28 @@
       return `<span class="size-wrap ${sizeClass}">${sizeTag}${wrappedInner}</span>`;
     }
 
-    // Auth
-    document.getElementById('signupButton').addEventListener('click', () => {
+    // Auth (now backed by Firestore documents)
+    document.getElementById('signupButton').addEventListener('click', async () => {
       const email = document.getElementById('signup-email').value.trim();
       const username = document.getElementById('signup-username').value.trim();
       const password = document.getElementById('signup-password').value.trim();
       if (!email || !username || !password) return alert("Please fill all fields.");
-      let players = getPlayers();
-      if (players.find(p => p.username === username)) return alert("Username already exists!");
-      players.push({ email, username, password, items: [], coins: 0, ...defaultStats() });
-      savePlayers(players);
+      const existing = await getDoc(doc(db, "players", username));
+      if (existing.exists()) return alert("Username already exists!");
+
+      const rec = { email, username, password, items: [], coins: 0, ...defaultStats(), flags:{} };
+      writePlayerToDB(rec);
       alert("Account created!");
       signupForm.style.display = 'none';
       signinForm.style.display = 'block';
+      await refreshPlayersCache();
     });
 
     function ensureMasterRecord() {
-      const players = getPlayers();
+      let players = getPlayers();
       let rec = players.find(p => p.username === "Llama");
       if (!rec) {
-        rec = { email: "llama@test.local", username: "Llama", password: "Helloworld", items: [], coins: 0, testAccount: true, ...defaultStats() };
+        rec = { email: "llama@test.local", username: "Llama", password: "Helloworld", items: [], coins: 0, testAccount: true, ...defaultStats(), flags:{} };
         players.push(rec); savePlayers(players);
       } else {
         rec.password = "Helloworld";
@@ -730,7 +769,7 @@
       return rec;
     }
 
-    document.getElementById('loginButton').addEventListener('click', () => {
+    document.getElementById('loginButton').addEventListener('click', async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
       if (u === "Llama" && p === "Helloworld") {
@@ -739,10 +778,12 @@
         launchGame(rec.username);
         return;
       }
-      const players = getPlayers();
-      const user = players.find(x => x.username === u && x.password === p);
-      if (user) { setCurrentUser(user); launchGame(user.username); }
-      else alert("Invalid credentials!");
+      const snap = await getDoc(doc(db, "players", u));
+      if (!snap.exists()) return alert("Invalid credentials!");
+      const user = snap.data();
+      if (user.password !== p) return alert("Invalid credentials!");
+      setCurrentUser(user);
+      launchGame(user.username);
     });
 
     function adminResetAllData() {
@@ -751,9 +792,10 @@
       if (!sure) return;
       const extra = confirm("Are you absolutely sure? This cannot be undone.");
       if (!extra) return;
-      localStorage.removeItem('players');
+      // Only clears local session (not the whole DB)
+      localStorage.removeItem('players'); // legacy key, harmless
       localStorage.removeItem('currentUser');
-      alert("All saved data has been cleared.");
+      alert("Local session cleared. (Server data remains.)");
       location.reload();
     }
 
@@ -817,13 +859,16 @@
       adminPanel.style.display = 'none';
     });
 
-    (function autoLogin(){
+    // On load: fetch players; auto-login if session exists; show unlock if needed
+    (async function init(){
+      await refreshPlayersCache();
       const saved = getCurrentUser();
       if (saved?.username) {
-        const players = getPlayers();
-        const stored = players.find(p => p.username === saved.username);
-        if (stored) setCurrentUser(stored);
-        launchGame((stored || saved).username);
+        const fresh = await getDoc(doc(db, "players", saved.username));
+        if (fresh.exists()) {
+          setCurrentUser(fresh.data());
+          launchGame(fresh.data().username);
+        }
       }
       const s = getStats();
       const flags = getUserFlags();
@@ -874,7 +919,7 @@
 
       { name: "Waterlogged Branch",   type: "trash", weight: 8, value: 1 },
       { name: "Torn Fishing Net",     type: "trash", weight: 8, value: 1 },
-      { name: "Muddy Bottle",         type: "trash", weight: 9, value: 1 }
+      { name: "Muddy Bottle",         type: "trash", weight: 9, value:  1 }
     ];
 
     // ---------- Navigation ----------
@@ -1114,7 +1159,8 @@
     }
 
     // ---------- Leaderboard ----------
-    function renderLeaderboard() {
+    async function renderLeaderboard() {
+      await refreshPlayersCache(); // pull latest global data
       const coins = getCurrentUser()?.coins ?? 0;
       const me = getCurrentUser();
       const players = getPlayers().slice().sort((a,b)=>{
@@ -1444,7 +1490,6 @@
       zone.style.width = (eff.zoneMax - eff.zoneMin) + '%';
 
       let tension = 50, holding = false, lastTs = performance.now(), timer;
-      // progress (0..eff.timeToLand) is the only win/lose metric
       let progress = Math.round(eff.timeToLand * START_PROGRESS_FRAC);
 
       const onHold = () => { holding = true; };
@@ -1471,7 +1516,6 @@
         const dt = Math.min(50, ts - lastTs);
         lastTs = ts;
 
-        // Bottom meter: influences progress rate only
         const baseDrift = (eff.drift != null ? eff.drift : 0.25);
         let drift = (holding ? baseDrift*2.2 : -baseDrift*1.6);
         const wobble = (Math.sin(ts/140) + Math.cos(ts/310)) * eff.wobble;
@@ -1483,7 +1527,6 @@
 
         const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
 
-        // Top progress bar logic: fill in zone, drain out of zone
         const FILL_RATE = 1.00;
         const DRAIN_RATE = 0.90;
         progress += inZone ? (dt * FILL_RATE) : (-dt * DRAIN_RATE);
