@@ -1367,31 +1367,84 @@ function renderBackpack() {
   const inv = full
     .map((it, original) => ({ ...it, _idx: original }))
     .filter(i => i.showcased !== true);
+
   const coins = getCurrentUser()?.coins ?? 0;
 
-  const rows = inv.map(item => {
-    if (item.type?.startsWith('gear-')) {
-      const isEquipped = item.equipped;
-      return `
-        <div class="bp-row" data-idx="${item._idx}">
-          <div class="bp-name">${item.name}${isEquipped ? ' <span class="equipped-badge">Equipped</span>' : ''}</div>
-          <div class="bp-meta">${friendlyMeta(item)}</div>
-          <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
-        </div>`;
-    } else {
-      const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
-      return `
-        <div class="bp-row" data-idx="${item._idx}">
-          <div class="bp-name">${renderStyledFishName(item)}</div>
-          <div class="bp-meta">${friendlyMeta(item)}</div>
-          <div class="heart">
-            <button class="${heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx="${item._idx}">
-              ${item.favorite ? '♥' : '♡'}
-            </button>
-          </div>
-        </div>`;
-    }
+  // Split into three groups
+  const rods = inv.filter(i => i.type === 'gear-rod');
+  const baits = inv.filter(i => i.type === 'gear-bait');
+  const fish = inv.filter(i => i.type !== 'gear-rod' && i.type !== 'gear-bait');
+
+  // Render rods section
+  const rodRows = rods.map(item => {
+    const isEquipped = item.equipped;
+    return `
+      <div class="bp-row" data-idx="${item._idx}">
+        <div class="bp-name">${item.name}${isEquipped ? ' <span class="equipped-badge">Equipped</span>' : ''}</div>
+        <div class="bp-meta">${friendlyMeta(item)}</div>
+        <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
+      </div>`;
   }).join('');
+
+  // Render baits section
+  const baitRows = baits.map(item => {
+    const isEquipped = item.equipped;
+    return `
+      <div class="bp-row" data-idx="${item._idx}">
+        <div class="bp-name">${item.name}${isEquipped ? ' <span class="equipped-badge">Equipped</span>' : ''}</div>
+        <div class="bp-meta">${friendlyMeta(item)}</div>
+        <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
+      </div>`;
+  }).join('');
+
+  // Render fish section
+  const fishRows = fish.map(item => {
+    const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
+    return `
+      <div class="bp-row" data-idx="${item._idx}">
+        <div class="bp-name">${renderStyledFishName(item)}</div>
+        <div class="bp-meta">${friendlyMeta(item)}</div>
+        <div class="heart">
+          <button class="${heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx="${item._idx}">
+            ${item.favorite ? '♥' : '♡'}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  mainContent.innerHTML = `
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="bp-wrap">
+      <h2>🎒 Backpack</h2>
+
+      <div class="bp-section">
+        <h3>🪝 Rods</h3>
+        <div class="scroll-panel">
+          ${rodRows || '<p class="small" style="opacity:.85;">No rods yet.</p>'}
+        </div>
+      </div>
+
+      <div class="bp-section">
+        <h3>🪱 Baits</h3>
+        <div class="scroll-panel">
+          ${baitRows || '<p class="small" style="opacity:.85;">No baits yet.</p>'}
+        </div>
+      </div>
+
+      <div class="bp-section">
+        <h3>🐟 Fish</h3>
+        <div class="scroll-panel">
+          ${fishRows || '<p class="small" style="opacity:.85;">No fish yet.</p>'}
+        </div>
+      </div>
+
+      <div class="bp-hint">
+        Tip: Showcased fish are hidden here and can’t be sold until you remove them from 🖼 Showcase.
+      </div>
+    </div>`;
+
+  updateGoldHud();
+}
 
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
