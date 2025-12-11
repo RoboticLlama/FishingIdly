@@ -4,6 +4,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebas
 import {
   getFirestore, doc, getDoc, setDoc, getDocs, collection
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
   authDomain: "fishingidly-c1613.firebaseapp.com",
@@ -13,33 +14,37 @@ const firebaseConfig = {
   appId: "1:531215063717:web:dea4ce7aa7a64d3f374b4c",
   measurementId: "G-SR67MT90SE"
 };
+
 const app = initializeApp(firebaseConfig);
 try { getAnalytics(app); } catch(e) { /* analytics may fail on http */ }
 const db = getFirestore(app);
+
 /* --------------- Minimal Firestore adapter --------------- */
-// We keep a lightweight cache so the rest of your code can remain sync-ish.
-let playersCache = []; // array of {username,...}
+let playersCache = [];
+
 async function refreshPlayersCache() {
   const snap = await getDocs(collection(db, "players"));
   playersCache = snap.docs.map(d => d.data());
 }
-// Write one player to Firestore, update cache entry
+
 function writePlayerToDB(p) {
-  // fire-and-forget: don't await everywhere
   setDoc(doc(db, "players", p.username), p, { merge: true }).catch(console.error);
   const i = playersCache.findIndex(x => x.username === p.username);
-  if (i === -1) playersCache.push(p); else playersCache[i] = p;
+  if (i === -1) playersCache.push(p);
+  else playersCache[i] = p;
 }
-// keep names same as your original code:
+
 function getPlayers() { return playersCache.slice(); }
 function savePlayers(players) {
   playersCache = players.slice();
   players.forEach(p => writePlayerToDB(p));
 }
+
 function getCurrentUser() {
   try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
 }
 function setCurrentUser(u) { localStorage.setItem('currentUser', JSON.stringify(u)); }
+
 /* ------------------ DOM elements ------------------ */
 const overlay = document.getElementById('overlay');
 const signinLink = document.getElementById('signinLink');
@@ -54,6 +59,7 @@ const title = document.getElementById('title');
 const logoutBtn = document.getElementById('logoutBtn');
 const adminResetBtn = document.getElementById('adminResetBtn');
 const adminPanel = document.getElementById('adminPanel');
+
 /* --- Global delegation for Pond/Stream --- */
 mainContent.addEventListener('click', (e) => {
   const btn = e.target.closest && e.target.closest('button');
@@ -61,7 +67,8 @@ mainContent.addEventListener('click', (e) => {
   if (btn.id === 'pondBtn') { e.preventDefault(); showPond(); }
   if (btn.id === 'streamBtn') { e.preventDefault(); showStream(); }
 });
-// Unlock modal controls
+
+/* Unlock modal */
 const unlockOverlay = document.getElementById('unlockOverlay');
 function showUnlockModal(areaName = 'Stream') {
   if (!unlockOverlay) return;
@@ -69,14 +76,16 @@ function showUnlockModal(areaName = 'Stream') {
   const btn = document.getElementById('unlockOkBtn');
   if (btn) btn.onclick = () => { unlockOverlay.style.display = 'none'; };
 }
-// Modal behavior
+
+/* Modal behavior */
 const openModal = () => overlay.style.display = 'flex';
 signinLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
 startButton.addEventListener('click', (e) => { e.preventDefault?.(); openModal(); });
 showSignup.addEventListener('click', () => { signinForm.style.display='none'; signupForm.style.display='block'; });
 showSignin.addEventListener('click', () => { signupForm.style.display='none'; signinForm.style.display='block'; });
 overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
-/* ---------------- Per-user flags ---------------- */
+
+/* Per-user flags */
 function getUserFlags() {
   const cu = getCurrentUser();
   if (!cu) return {};
@@ -94,52 +103,44 @@ function setUserFlags(nextFlags) {
     savePlayers(players);
   }
 }
-function isStreamUnlocked() { return (getStats().level || 1) >= 10; }
-// Master check
-function isMasterUser(u = getCurrentUser()) { return !!u && (u.username === 'Llama'); }
-// Stats helpers
-function defaultStats() { return { rodLevel: 1, baitTier: 0, level: 1, xp: 0 }; }
+
+/* Stats */
+function defaultStats() { return { level: 1, xp: 0 }; }
 function xpNeededFor(level) { return 20 + (level - 1) * 10; }
-// 🔔 Notify once when crossing into level >= 10
+
 function maybeNotifyStreamUnlock(prevLevel, nextLevel) {
   if (prevLevel < 10 && nextLevel >= 10 && !getUserFlags().streamUnlockNotified) {
     setUserFlags({ streamUnlockNotified: true });
     showUnlockModal('Stream');
   }
 }
+
 function getStats() {
   const cu = getCurrentUser();
   if (!cu) return defaultStats();
-  cu.rodLevel = cu.rodLevel ?? 1;
-  cu.baitTier = cu.baitTier ?? 0;
   cu.level = cu.level ?? 1;
   cu.xp = cu.xp ?? 0;
   setCurrentUser(cu);
   const players = getPlayers();
   const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) {
-    players[idx].rodLevel = cu.rodLevel;
-    players[idx].baitTier = cu.baitTier;
     players[idx].level = cu.level;
     players[idx].xp = cu.xp;
     savePlayers(players);
   }
-  return { rodLevel: cu.rodLevel, baitTier: cu.baitTier, level: cu.level, xp: cu.xp };
+  return { level: cu.level, xp: cu.xp };
 }
+
 function setStats(stats) {
-  const prev = getStats(); // capture current first
+  const prev = getStats();
   const cu = getCurrentUser();
   if (!cu) return;
-  cu.rodLevel = stats.rodLevel ?? 1;
-  cu.baitTier = stats.baitTier ?? 0;
   cu.level = Math.max(1, stats.level ?? 1);
   cu.xp = stats.xp ?? 0;
   setCurrentUser(cu);
   const players = getPlayers();
   const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) {
-    players[idx].rodLevel = cu.rodLevel;
-    players[idx].baitTier = cu.baitTier;
     players[idx].level = cu.level;
     players[idx].xp = cu.xp;
     savePlayers(players);
@@ -148,9 +149,11 @@ function setStats(stats) {
   updateGoldHud();
   renderAdminPanel();
 }
-// Showcase selection cap
+
+/* Showcase */
 const SHOWCASE_LIMIT = 10;
-// XP / Level
+
+/* XP / Level */
 function addXP(amount) {
   const before = getStats();
   let xp = (before.xp ?? 0) + amount;
@@ -168,7 +171,8 @@ function addXP(amount) {
     goldPopup(`⭐ Level Up! Lv ${before.level} → ${level}`);
   }
 }
-// HUD + currency
+
+/* HUD + currency */
 function goldHudEl() { return document.getElementById('goldHud'); }
 function updateGoldHud() {
   const cu = getCurrentUser();
@@ -213,7 +217,8 @@ function xpPopup(text) {
   mainContent.appendChild(el);
   setTimeout(()=> el.remove(), 1100);
 }
-// ---------- Variant helpers ----------
+
+/* Variant helpers */
 const VALID_VARIANTS = new Set(['none','bronze','silver','gold','diamond','rainbow']);
 function normalizeVariantKey(v){
   if (!v) return 'none';
@@ -231,7 +236,8 @@ function prettyLabelFromKey(k){
     default: return '';
   }
 }
-// === Size tiers ===
+
+/* Size tiers */
 const SIZE_TIERS = [
   { key:'micro', label:'Micro', chance:0.06, mult:0.75 },
   { key:'small', label:'Small', chance:0.13, mult:0.90 },
@@ -250,7 +256,26 @@ function rollSizeTier(){
   }
   return { key:'normal', label:'', mult:1.0 };
 }
-// Inventory
+
+/* NEW: Rod & Bait configurations */
+const ROD_TYPES = [
+  {id: 'starter', name: 'Starter Rod', cost: 0, effects: {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0}},
+  {id: 'bamboo', name: 'Bamboo Rod', cost: 50, effects: {zoneBonus: 3, wobbleMult: 0.95, driftMult: 1.0}},
+  {id: 'fiberglass', name: 'Fiberglass Rod', cost: 150, effects: {zoneBonus: 6, wobbleMult: 0.90, driftMult: 0.97}},
+  {id: 'carbon', name: 'Carbon Fiber Rod', cost: 400, effects: {zoneBonus: 10, wobbleMult: 0.82, driftMult: 0.93}},
+  {id: 'master', name: 'Master Angler Rod', cost: 1200, effects: {zoneBonus: 15, wobbleMult: 0.75, driftMult: 0.88}}
+];
+
+const BAIT_TYPES = [
+  {id: 'none', name: 'No Bait', cost: 0, effects: {searchMult: 1.0, valueMult: 1.0, xpMult: 1.0}},
+  {id: 'worm', name: 'Worms', cost: 5, effects: {searchMult: 0.95, valueMult: 1.0, xpMult: 1.0}},
+  {id: 'dough', name: 'Dough Balls', cost: 15, effects: {searchMult: 0.92, valueMult: 1.05, xpMult: 1.0}},
+  {id: 'minnow', name: 'Live Minnows', cost: 30, effects: {searchMult: 0.88, valueMult: 1.05, xpMult: 1.1}},
+  {id: 'lure', name: 'Spinner Lure', cost: 60, effects: {searchMult: 0.85, valueMult: 1.1, xpMult: 1.1}},
+  {id: 'powerbait', name: 'PowerBait', cost: 120, effects: {searchMult: 0.82, valueMult: 1.15, xpMult: 1.2}}
+];
+
+/* Inventory */
 function getInventory() {
   const cu = getCurrentUser();
   if (!cu) return [];
@@ -276,12 +301,15 @@ function getInventory() {
       statusLabel: it.statusLabel || '',
       showcased: it.showcased === true,
       sizeKey: safeSize,
-      sizeLabel
+      sizeLabel,
+      gearId: it.gearId || undefined,
+      equipped: !!it.equipped
     };
   });
   if (JSON.stringify(raw) !== JSON.stringify(upgraded)) setInventory(upgraded);
   return upgraded;
 }
+
 function setInventory(newInv) {
   const cu = getCurrentUser();
   if (!cu) return;
@@ -291,7 +319,64 @@ function setInventory(newInv) {
   const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) { players[idx].items = newInv; savePlayers(players); }
 }
-// Showcase helpers
+
+/* Gear helpers */
+function getEquippedRod() {
+  const inv = getInventory();
+  return inv.find(i => i.type === 'gear-rod' && i.equipped === true);
+}
+function getEquippedRodEffects() {
+  const rod = getEquippedRod();
+  return rod ? rod.effects : {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0};
+}
+function getEquippedBait() {
+  const inv = getInventory();
+  return inv.find(i => i.type === 'gear-bait' && i.equipped === true);
+}
+function getEquippedBaitEffects() {
+  const bait = getEquippedBait();
+  return bait ? bait.effects : {searchMult: 1.0, valueMult: 1.0, xpMult: 1.0};
+}
+function buyGear(gearType, gearId) {
+  const types = gearType === 'rod' ? ROD_TYPES : BAIT_TYPES;
+  const config = types.find(t => t.id === gearId);
+  if (!config) return alert('Invalid gear.');
+  const inv = getInventory();
+  const existing = inv.find(i => i.gearId === gearId && i.type === `gear-${gearType}`);
+  if (existing) return alert(`You already own ${config.name}!`);
+  if (!canAfford(config.cost)) return alert('Not enough gold!');
+  if (!spendGold(config.cost)) return;
+  const item = {
+    name: config.name,
+    type: `gear-${gearType}`,
+    gearId: gearId,
+    effects: {...config.effects},
+    equipped: false,
+    favorite: false,
+    showcased: false,
+    sizeKey: 'normal',
+    sizeLabel: '',
+    value: 0
+  };
+  const hasEquipped = inv.some(i => i.type === item.type && i.equipped);
+  if (!hasEquipped) item.equipped = true;
+  inv.push(item);
+  setInventory(inv);
+  goldPopup(`Bought ${config.name}!`);
+}
+function equipItem(idx) {
+  const inv = getInventory();
+  const item = inv[idx];
+  if (!item || !item.type?.startsWith('gear-')) return;
+  inv.forEach((it, i) => {
+    if (i !== idx && it.type === item.type && it.equipped) it.equipped = false;
+  });
+  item.equipped = true;
+  setInventory(inv);
+  renderBackpack();
+}
+
+/* Showcase helpers */
 function getShowcaseItems() {
   return getInventory()
     .map((it, idx) => ({ ...it, _idx: idx }))
@@ -303,7 +388,8 @@ function setShowcaseForIndex(index, enabled) {
   inv[index].showcased = !!enabled;
   setInventory(inv);
 }
-/* Save catch helper */
+
+/* Save catch */
 function saveCatchToUser(catchData) {
   if (typeof catchData === 'string') {
     const meta = lookupItemMeta(catchData);
@@ -334,28 +420,44 @@ function saveCatchToUser(catchData) {
   inv.push(item);
   setInventory(inv);
 }
-// Gear
+
+/* Starter gear */
 function ensureStarterGear() {
   let inv = getInventory();
-  if (!inv.some(i => i.type === 'gear-rod'))
-    inv.push({ name: 'Starter Rod (Lv1)', type: 'gear-rod', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
-  if (!inv.some(i => i.type === 'gear-bait'))
-    inv.push({ name: 'No Bait (T0)', type: 'gear-bait', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
+  if (!inv.some(i => i.type === 'gear-rod')) {
+    const config = ROD_TYPES.find(r => r.id === 'starter');
+    inv.push({
+      name: config.name,
+      type: 'gear-rod',
+      gearId: config.id,
+      effects: {...config.effects},
+      equipped: true,
+      favorite: false,
+      showcased: false,
+      sizeKey: 'normal',
+      sizeLabel: '',
+      value: 0
+    });
+  }
+  if (!inv.some(i => i.type === 'gear-bait')) {
+    const config = BAIT_TYPES.find(b => b.id === 'none');
+    inv.push({
+      name: config.name,
+      type: 'gear-bait',
+      gearId: config.id,
+      effects: {...config.effects},
+      equipped: true,
+      favorite: false,
+      showcased: false,
+      sizeKey: 'normal',
+      sizeLabel: '',
+      value: 0
+    });
+  }
   setInventory(inv);
 }
-function equipRod(level) {
-  let inv = getInventory();
-  inv = inv.filter(i => i.type !== 'gear-rod');
-  inv.push({ name: `Rod (Lv${level})`, type: 'gear-rod', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
-  setInventory(inv);
-}
-function equipBait(tier) {
-  let inv = getInventory();
-  inv = inv.filter(i => i.type !== 'gear-bait');
-  inv.push({ name: `Bait (T${tier})`, type: 'gear-bait', value: 0, favorite: false, showcased:false, sizeKey:'normal', sizeLabel:'' });
-  setInventory(inv);
-}
-// Difficulty + minigame params
+
+/* Difficulty + minigame params */
 const rarityConfig = {
   common: { zoneMin: 28, zoneMax: 72, drift: 0.25, wobble: 0.6, timeToLand: 2200 },
   uncommon: { zoneMin: 33, zoneMax: 67, drift: 0.38, wobble: 0.9, timeToLand: 3000 },
@@ -363,6 +465,7 @@ const rarityConfig = {
   epic: { zoneMin: 42, zoneMax: 58, drift: 0.75, wobble: 1.6, timeToLand: 5200 },
   legendary:{ zoneMin: 44, zoneMax: 56, drift: 0.95, wobble: 1.9, timeToLand: 6200 }
 };
+
 function weightedPick(table) {
   const total = table.reduce((a,c)=>a+c.weight,0);
   let roll = Math.random() * total;
@@ -371,7 +474,8 @@ function weightedPick(table) {
   }
   return table[0];
 }
-// Variants + statuses
+
+/* Variants + statuses */
 const VARIANT_BASES = [
   { key:'none', label:'', mult:1.00, chance:null, wobble:0, zoneNarrow:0, timeUp:0, driftUp:0 },
   { key:'bronze', label:'Bronze', mult:1.25, chance:0.050, wobble:0.05, zoneNarrow:0.02, timeUp:0.02, driftUp:0.05 },
@@ -422,7 +526,8 @@ function renderStyledFishName(item) {
   const wrappedInner = sClass ? `<span class="${sClass}">${nameInner}</span>` : nameInner;
   return `<span class="size-wrap ${sizeClass}">${sizeTag}${wrappedInner}</span>`;
 }
-// Auth (now backed by Firestore documents)
+
+/* Auth */
 document.getElementById('signupButton').addEventListener('click', async () => {
   const email = document.getElementById('signup-email').value.trim();
   const username = document.getElementById('signup-username').value.trim();
@@ -437,6 +542,7 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   signinForm.style.display = 'block';
   await refreshPlayersCache();
 });
+
 function ensureMasterRecord() {
   let players = getPlayers();
   let rec = players.find(p => p.username === "Llama");
@@ -447,14 +553,13 @@ function ensureMasterRecord() {
     rec.password = "Helloworld";
     rec.email = rec.email || "llama@test.local";
     rec.testAccount = true;
-    rec.rodLevel = rec.rodLevel ?? 1;
-    rec.baitTier = rec.baitTier ?? 0;
     rec.level = rec.level ?? 1;
     rec.xp = rec.xp ?? 0;
     savePlayers(players);
   }
   return rec;
 }
+
 document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
@@ -471,18 +576,20 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   setCurrentUser(user);
   launchGame(user.username);
 });
+
+/* Admin */
 function adminResetAllData() {
   if (!isMasterUser()) return;
   const sure = confirm("⚠ This will delete ALL saved players, items, coins, and progress on this device. Continue?");
   if (!sure) return;
   const extra = confirm("Are you absolutely sure? This cannot be undone.");
   if (!extra) return;
-  // Only clears local session (not the whole DB)
-  localStorage.removeItem('players'); // legacy key, harmless
+  localStorage.removeItem('players');
   localStorage.removeItem('currentUser');
   alert("Local session cleared. (Server data remains.)");
   location.reload();
 }
+
 function renderAdminPanel() {
   if (!isMasterUser()) {
     adminPanel.style.display = 'none';
@@ -516,6 +623,7 @@ function renderAdminPanel() {
   document.getElementById('goldMinus').onclick = () => setGold((getCurrentUser()?.coins ?? 0) - 100);
   adminResetBtn.onclick = adminResetAllData;
 }
+
 function launchGame(username) {
   overlay.style.display = 'none';
   title.style.display = 'none';
@@ -524,12 +632,13 @@ function launchGame(username) {
   gameContainer.style.display = 'flex';
   ensureStarterGear();
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     Welcome back, ${username}! Choose where to go.
   `;
   updateGoldHud();
   renderAdminPanel();
 }
+
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('currentUser');
   gameContainer.style.display = 'none';
@@ -540,7 +649,8 @@ logoutBtn.addEventListener('click', () => {
   adminResetBtn.style.display = 'none';
   adminPanel.style.display = 'none';
 });
-// On load: fetch players; auto-login if session exists; show unlock if needed
+
+/* Init */
 (async function init(){
   await refreshPlayersCache();
   const saved = getCurrentUser();
@@ -558,7 +668,8 @@ logoutBtn.addEventListener('click', () => {
     showUnlockModal('Stream');
   }
 })();
-// ---------- Pond Table ----------
+
+/* Pond & Stream tables */
 const pondTable = [
   { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4 },
   { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4 },
@@ -575,10 +686,7 @@ const pondTable = [
   { name: "Broken Glass", type: "trash", weight: 5, value: 1 },
   { name: "Rusty Hook", type: "trash", weight: 5, value: 1 }
 ];
-function lookupItemMeta(name) {
-  return pondTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
-}
-// ---------- Stream Table ----------
+
 const streamTable = [
   { name: "Creek Chub", type: "fish", weight: 10, rarity: "common", value: 4 },
   { name: "Fallfish", type: "fish", weight: 10, rarity: "common", value: 4 },
@@ -598,12 +706,17 @@ const streamTable = [
   { name: "Torn Fishing Net", type: "trash", weight: 8, value: 1 },
   { name: "Muddy Bottle", type: "trash", weight: 9, value: 1 }
 ];
-// ---------- Navigation ----------
+
+function lookupItemMeta(name) {
+  return pondTable.find(i => i.name === name) || streamTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
+}
+
+/* Navigation */
 document.getElementById('fishingSpotBtn').addEventListener('click', () => {
   const s = getStats();
   const unlocked = s.level >= 10;
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv $$ {s.level} ( $${s.xp}/${xpNeededFor(s.level)})</div>
+    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${s.level} (${s.xp}/${xpNeededFor(s.level)})</div>
     <div class="pond-wrap">
       <h2>🎣 Fishing Spot</h2>
       <p>Select your location:</p>
@@ -617,14 +730,17 @@ document.getElementById('fishingSpotBtn').addEventListener('click', () => {
     streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
   }
 });
+
 document.getElementById('leaderboardBtn').addEventListener('click', renderLeaderboard);
 document.getElementById('homeBtn').addEventListener('click', renderHome);
 document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
 document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
+
+/* Home */
 function renderHome() {
   const coins = getCurrentUser()?.coins ?? 0;
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="pond-wrap">
       <h2>🏠 Home</h2>
       <p class="small">Your cozy base. Visit the Showcase or tend to your Nursery.</p>
@@ -637,6 +753,8 @@ function renderHome() {
   document.getElementById('showcaseBtn').onclick = renderShowcase;
   document.getElementById('nurseryBtn').onclick = renderNursery;
 }
+
+/* Showcase */
 function renderShowcase() {
   const coins = getCurrentUser()?.coins ?? 0;
   const inv = getInventory();
@@ -672,14 +790,14 @@ function renderShowcase() {
     `;
   }).join('');
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="pond-wrap showcase-mode">
       <div class="pond-header">
         <h2>🖼 Showcase</h2>
         <button id="backHome" class="back-inline">← Back</button>
       </div>
       <p class="small" style="margin-top:8px;">
-        Selected: <b>$$ {showcased.length}</b> / <b> $${SHOWCASE_LIMIT}</b> · Slots left: <b>${remainingSlots}</b>
+        Selected: <b>${showcased.length}</b> / <b>${SHOWCASE_LIMIT}</b> · Slots left: <b>${remainingSlots}</b>
       </p>
       <div style="width:100%; text-align:left; margin-top:8px;">
         <h3 style="margin:8px 0 6px;">Currently Displayed</h3>
@@ -721,6 +839,8 @@ function renderShowcase() {
     };
   });
 }
+
+/* Nursery (placeholder) */
 function renderNursery() {
   const coins = getCurrentUser()?.coins ?? 0;
   const NURSERY_UNLOCK_COST = 2500;
@@ -738,7 +858,7 @@ function renderNursery() {
   if (!hasNurseryAccess()) {
     const canBuy = coins >= NURSERY_UNLOCK_COST;
     mainContent.innerHTML = `
-      <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+      <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
       <div class="pond-wrap">
         <div class="pond-header">
           <h2>🌱 Nursery (Locked)</h2>
@@ -769,9 +889,8 @@ function renderNursery() {
     }
     return;
   }
-  // Unlocked Nursery
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="pond-wrap">
       <div class="pond-header">
         <h2>🌱 Nursery</h2>
@@ -782,7 +901,8 @@ function renderNursery() {
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
 }
-// ---------- Player Profile popup ----------
+
+/* Player Profile */
 function showPlayerProfile(username){
   const p = (getPlayers() || []).find(q => q.username === username);
   if(!p){ alert("Player not found."); return; }
@@ -803,7 +923,7 @@ function showPlayerProfile(username){
   ttl.textContent = username;
   body.innerHTML = `
     <div class="small" style="opacity:.9;margin-bottom:8px;">
-      ⭐ Level ${level} · XP $$ {xp}/ $${xpNeededFor(level)}
+      ⭐ Level ${level} · XP ${xp}/${xpNeededFor(level)}
     </div>
     <h3 style="margin:8px 0 6px;">Showcase</h3>
     <div class="profile-list">${listHTML}</div>`;
@@ -813,9 +933,10 @@ function showPlayerProfile(username){
   const outsideHandler = (e) => { if (e.target === ov) close(); };
   ov.addEventListener('click', outsideHandler, { once: true });
 }
-// ---------- Leaderboard ----------
+
+/* Leaderboard */
 async function renderLeaderboard() {
-  await refreshPlayersCache(); // pull latest global data
+  await refreshPlayersCache();
   const coins = getCurrentUser()?.coins ?? 0;
   const me = getCurrentUser();
   const players = getPlayers().slice().sort((a,b)=>{
@@ -831,14 +952,14 @@ async function renderLeaderboard() {
     return `
       <tr${cls}>
         <td>#${i+1}</td>
-        <td><a href="#" class="lb-player" data-username="$$ {safeName}"> $${safeName}</a></td>
+        <td><a href="#" class="lb-player" data-username="${safeName}">${safeName}</a></td>
         <td>Lv ${p.level ?? 1}</td>
         <td class="col-xp">${p.xp ?? 0}</td>
         <td>${p.coins ?? 0}g</td>
       </tr>`;
   }).join('');
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="board-wrap">
       <h2>🏆 Leaderboard</h2>
       <p class="small">Sorted by Level → XP → Coins.</p>
@@ -860,10 +981,11 @@ async function renderLeaderboard() {
     });
   });
 }
-// ---------- POND ----------
+
+/* Pond */
 function showPond() {
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="pond-wrap">
       <div class="pond-header">
         <h2>🐟 Pond</h2>
@@ -884,6 +1006,7 @@ function showPond() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
   let spaceRecastKeydown = null;
   function setSpaceRecast(handler) {
     if (spaceRecastKeydown) {
@@ -897,6 +1020,7 @@ function showPond() {
       window.addEventListener('keydown', spaceRecastKeydown);
     }
   }
+
   const runCastCycle = async () => {
     setSpaceRecast(null);
     castRow.style.display = 'none';
@@ -904,11 +1028,14 @@ function showPond() {
     status.textContent = "Watching for ripples...";
     searchProg.style.display = 'block';
     searchFill.style.width = '0%';
-    const { baitTier } = getStats();
+
+    const baitEffects = getEquippedBaitEffects();
     const baseWait = 1000 + Math.random()*2000;
-    const waitMs = Math.max(350, baseWait * (1 - 0.1 * baitTier));
+    const waitMs = Math.max(350, baseWait * baitEffects.searchMult);
+
     await animateProgress(searchFill, waitMs);
     searchProg.style.display = 'none';
+
     const hooked = weightedPick(pondTable);
     if (hooked.type === 'trash') {
       status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
@@ -919,9 +1046,12 @@ function showPond() {
       setSpaceRecast(runCastCycle);
       return;
     }
+
     const vr = buildVariantResult();
     const statusLabel = vr.status ? vr.status.label : '';
     const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
+
+    const rodEffects = getEquippedRodEffects();
     const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
     const width = (cfg.zoneMax - cfg.zoneMin);
     const narrow = Math.max(8, width * (1 - vr.diff.zoneNarrow));
@@ -930,12 +1060,14 @@ function showPond() {
     cfg.wobble = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
+
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
+
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
         const sz = rollSizeTier();
         const baseValue = hooked.value || 0;
-        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1)));
+        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1) * baitEffects.valueMult));
         const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
         status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
         saveCatchToUser({
@@ -944,7 +1076,8 @@ function showPond() {
           statusLabel, sizeKey: sz.key, sizeLabel: sz.label
         });
         const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
-        addXP(xpByRarity[hooked.rarity] ?? 2);
+        const xpBase = xpByRarity[hooked.rarity] ?? 2;
+        addXP(Math.round(xpBase * baitEffects.xpMult));
       } else {
         status.innerHTML = `<span class="fail">It got away!</span>`;
       }
@@ -962,16 +1095,18 @@ function showPond() {
       }
     });
   };
+
   if (castBtn) castBtn.onclick = runCastCycle;
 }
-// ---------- STREAM ----------
+
+/* Stream (same as Pond but with streamTable) */
 function showStream() {
   if (!isStreamUnlocked()) {
     alert('Locked: Reach Level 10 to access the Stream.');
     return;
   }
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="pond-wrap">
       <div class="pond-header">
         <h2>🌊 Stream</h2>
@@ -992,6 +1127,7 @@ function showStream() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
   let spaceRecastKeydown = null;
   function setSpaceRecast(handler) {
     if (spaceRecastKeydown) {
@@ -1005,6 +1141,7 @@ function showStream() {
       window.addEventListener('keydown', spaceRecastKeydown);
     }
   }
+
   const runCastCycle = async () => {
     setSpaceRecast(null);
     castRow.style.display = 'none';
@@ -1012,11 +1149,14 @@ function showStream() {
     status.textContent = "Scanning the fast current...";
     searchProg.style.display = 'block';
     searchFill.style.width = '0%';
-    const { baitTier } = getStats();
+
+    const baitEffects = getEquippedBaitEffects();
     const baseWait = 1000 + Math.random()*2000;
-    const waitMs = Math.max(350, baseWait * (1 - 0.1 * baitTier));
+    const waitMs = Math.max(350, baseWait * baitEffects.searchMult);
+
     await animateProgress(searchFill, waitMs);
     searchProg.style.display = 'none';
+
     const hooked = weightedPick(streamTable);
     if (hooked.type === 'trash') {
       status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
@@ -1027,9 +1167,12 @@ function showStream() {
       setSpaceRecast(runCastCycle);
       return;
     }
+
     const vr = buildVariantResult();
     const statusLabel = vr.status ? vr.status.label : '';
     const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
+
+    const rodEffects = getEquippedRodEffects();
     const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
     const width = (cfg.zoneMax - cfg.zoneMin);
     const narrow = Math.max(8, width * (1 - vr.diff.zoneNarrow));
@@ -1038,12 +1181,14 @@ function showStream() {
     cfg.wobble = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
+
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
+
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
         const sz = rollSizeTier();
         const baseValue = hooked.value || 0;
-        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1)));
+        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1) * baitEffects.valueMult));
         const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
         status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
         saveCatchToUser({
@@ -1052,7 +1197,8 @@ function showStream() {
           statusLabel, sizeKey: sz.key, sizeLabel: sz.label
         });
         const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
-        addXP(xpByRarity[hooked.rarity] ?? 2);
+        const xpBase = xpByRarity[hooked.rarity] ?? 2;
+        addXP(Math.round(xpBase * baitEffects.xpMult));
       } else {
         status.innerHTML = `<span class="fail">It got away!</span>`;
       }
@@ -1070,8 +1216,11 @@ function showStream() {
       }
     });
   };
+
   if (castBtn) castBtn.onclick = runCastCycle;
 }
+
+/* Minigame */
 async function animateProgress(fillEl, durationMs){
   const start = performance.now();
   return new Promise(resolve=>{
@@ -1083,18 +1232,20 @@ async function animateProgress(fillEl, durationMs){
     requestAnimationFrame(step);
   });
 }
-// Minigame core (TOP BAR is sole success/fail)
+
 function startReelMinigame(container, fish, onDone) {
   const cfg = rarityConfig[fish.rarity] || rarityConfig.common;
-  const { rodLevel } = getStats();
+  const rodEffects = getEquippedRodEffects();
   const eff = { ...cfg };
-  const widen = Math.min(10, 2 * rodLevel);
+  const widen = rodEffects.zoneBonus || 0;
   const center = (eff.zoneMin + eff.zoneMax) / 2;
   const width = (eff.zoneMax - eff.zoneMin) + widen;
-  eff.zoneMin = Math.max(5, center - width/2);
-  eff.zoneMax = Math.min(95, center + width/2);
-  eff.wobble = Math.max(0.25, eff.wobble * (1 - 0.08 * rodLevel));
-  const START_PROGRESS_FRAC = 0.45; // start 45% filled
+  eff.zoneMin = Math.max(5, center - width / 2);
+  eff.zoneMax = Math.min(95, center + width / 2);
+  eff.wobble = Math.max(0.25, eff.wobble * (rodEffects.wobbleMult || 1));
+  eff.drift *= (rodEffects.driftMult || 1);
+
+  const START_PROGRESS_FRAC = 0.45;
   container.innerHTML = `
     <div class="progress" id="landProg"><div class="progress-fill" id="landFill"></div></div>
     <div class="meter" id="meter">
@@ -1108,8 +1259,10 @@ function startReelMinigame(container, fish, onDone) {
   const landFill = document.getElementById('landFill');
   zone.style.left = eff.zoneMin + '%';
   zone.style.width = (eff.zoneMax - eff.zoneMin) + '%';
+
   let tension = 50, holding = false, lastTs = performance.now(), timer;
   let progress = Math.round(eff.timeToLand * START_PROGRESS_FRAC);
+
   const onHold = () => { holding = true; };
   const onRelease = () => { holding = false; };
   reelBtn.addEventListener('mousedown', onHold);
@@ -1117,15 +1270,18 @@ function startReelMinigame(container, fish, onDone) {
   reelBtn.addEventListener('mouseleave', onRelease);
   reelBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onHold(); }, {passive:false});
   reelBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); onRelease(); }, {passive:false});
+
   const onKeyDown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; } };
   const onKeyUp = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; } };
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
+
   function cleanup() {
     cancelAnimationFrame(timer);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
   }
+
   function step(ts) {
     const dt = Math.min(50, ts - lastTs);
     lastTs = ts;
@@ -1136,25 +1292,31 @@ function startReelMinigame(container, fish, onDone) {
     tension = Math.max(0, Math.min(100, tension));
     fill.style.left = (tension - 10) + '%';
     fill.style.width = '20%';
+
     const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
     const FILL_RATE = 1.00;
     const DRAIN_RATE = 0.90;
     progress += inZone ? (dt * FILL_RATE) : (-dt * DRAIN_RATE);
     if (progress < 0) progress = 0;
     if (progress > eff.timeToLand) progress = eff.timeToLand;
+
     const pct = Math.max(0, Math.min(100, (progress / eff.timeToLand) * 100));
     landFill.style.width = pct.toFixed(1) + '%';
+
     if (progress >= eff.timeToLand) return end(true);
     if (progress <= 0) return end(false);
+
     timer = requestAnimationFrame(step);
   }
   timer = requestAnimationFrame(step);
+
   function end(success) {
     cleanup();
     reelBtn.disabled = true;
     setTimeout(()=>onDone(success, reelBtn), 120);
   }
 }
+
 function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
   const cfgKey = fish.rarity;
   const tempKey = `__temp_${cfgKey}`;
@@ -1165,34 +1327,47 @@ function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
     onDone(ok, btn);
   });
 }
-// ---------- Backpack ----------
+
+/* Backpack */
 function friendlyMeta(item) {
-  if (item.type === 'gear-rod') return 'gear · rod';
-  if (item.type === 'gear-bait') return 'gear · bait';
-  return `${item.type}${item.value ? ' · ' + item.value + 'g' : ''}`;
+  if (item.type === 'gear-rod') return `Rod Gear`;
+  if (item.type === 'gear-bait') return `Bait Gear`;
+  return `${item.type}${item.value ? ` · ${item.value}g` : ''}`;
 }
+
 function renderBackpack() {
   const full = getInventory();
   const inv = full
     .map((it, original) => ({ ...it, _idx: original }))
     .filter(i => i.showcased !== true);
   const coins = getCurrentUser()?.coins ?? 0;
+
   const rows = inv.map(item => {
-    const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
-    return `
-      <div class="bp-row" data-idx="${item._idx}">
-        <div class="bp-name">${renderStyledFishName(item)}</div>
-        <div class="bp-meta">${friendlyMeta(item)}</div>
-        <div class="heart">
-          <button class="$$ {heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx=" $${item._idx}">
-            ${item.favorite ? '♥' : '♡'}
-          </button>
-        </div>
-      </div>
-    `;
+    if (item.type?.startsWith('gear-')) {
+      const isEquipped = item.equipped;
+      return `
+        <div class="bp-row" data-idx="${item._idx}">
+          <div class="bp-name">${item.name}${isEquipped ? ' <span class="equipped-badge">Equipped</span>' : ''}</div>
+          <div class="bp-meta">${friendlyMeta(item)}</div>
+          <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
+        </div>`;
+    } else {
+      const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
+      return `
+        <div class="bp-row" data-idx="${item._idx}">
+          <div class="bp-name">${renderStyledFishName(item)}</div>
+          <div class="bp-meta">${friendlyMeta(item)}</div>
+          <div class="heart">
+            <button class="${heartClass}" title="Favorite (left-click) / Toggle (right-click)" data-idx="${item._idx}">
+              ${item.favorite ? '♥' : '♡'}
+            </button>
+          </div>
+        </div>`;
+    }
   }).join('');
+
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="bp-wrap">
       <h2>🎒 Backpack</h2>
       <div class="scroll-panel">
@@ -1203,20 +1378,28 @@ function renderBackpack() {
       </div>
     </div>`;
   updateGoldHud();
+
   document.querySelectorAll('.heart-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', e => {
       const realIdx = Number(e.currentTarget.getAttribute('data-idx'));
       toggleFavorite(realIdx);
     });
   });
   document.querySelectorAll('.bp-row').forEach(row => {
-    row.addEventListener('contextmenu', (e) => {
+    row.addEventListener('contextmenu', e => {
       e.preventDefault();
       const realIdx = Number(row.getAttribute('data-idx'));
       toggleFavorite(realIdx);
     });
   });
+  document.querySelectorAll('.equip-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = Number(e.currentTarget.getAttribute('data-idx'));
+      equipItem(idx);
+    });
+  });
 }
+
 function toggleFavorite(index) {
   const inv = getInventory();
   if (!inv[index]) return;
@@ -1224,14 +1407,15 @@ function toggleFavorite(index) {
   setInventory(inv);
   renderBackpack();
 }
-// ---------- Shop ----------
-document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
+
+/* Shop */
 function isSellable(item) { return (item && item.showcased !== true && !item.favorite && (item.type === 'fish' || item.type === 'trash')); }
 function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
+
 function renderShopMenu() {
   const coins = getCurrentUser()?.coins ?? 0;
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="shop-wrap">
       <h2>🛒 Shop</h2>
       <p>What would you like to do?</p>
@@ -1244,6 +1428,7 @@ function renderShopMenu() {
   document.getElementById('buyBtn').addEventListener('click', showBuy);
   document.getElementById('sellBtn').addEventListener('click', showSell);
 }
+
 function canAfford(cost){ return (getCurrentUser()?.coins ?? 0) >= cost; }
 function spendGold(amount){
   const cu = getCurrentUser(); if (!cu) return false;
@@ -1253,65 +1438,65 @@ function spendGold(amount){
   if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
   updateGoldHud(); return true;
 }
-const PRICE_RULES = { rodBase1: 50, rodBase2: 100, baitBase1: 25, baitBase2: 50 };
-function seqPrice(base1, base2, n) {
-  if (n <= 1) return base1;
-  if (n === 2) return base2;
-  let a = base1, b = base2;
-  for (let i = 3; i <= n; i++) { const c = a + b; a = b; b = c; }
-  return b;
-}
-function nextRodCost() { const { rodLevel } = getStats(); return seqPrice(PRICE_RULES.rodBase1, PRICE_RULES.rodBase2, Math.max(rodLevel, 1)); }
-function nextBaitCost() { const { baitTier } = getStats(); return seqPrice(PRICE_RULES.baitBase1, PRICE_RULES.baitBase2, Math.max(baitTier + 1, 1)); }
-const SHOP_ITEMS = [
-  { id:'rod', name:'Sturdy Rod (+1 zone / -wobble)', getCost: () => nextRodCost(), apply:(s)=>({ ...s, rodLevel: (s.rodLevel??1)+1 }) },
-  { id:'bait', name:'Basic Bait (+1 bite speed)', getCost: () => nextBaitCost(), apply:(s)=>({ ...s, baitTier: (s.baitTier??0)+1 }) },
-];
+
 function showBuy() {
   const coins = getCurrentUser()?.coins ?? 0;
-  const body = SHOP_ITEMS.map(it => {
-    const cost = it.getCost();
-    const disabled = coins < cost ? 'disabled' : '';
+  const inv = getInventory();
+  const ownedRods = new Set(inv.filter(i => i.type === 'gear-rod').map(i => i.gearId));
+  const ownedBaits = new Set(inv.filter(i => i.type === 'gear-bait').map(i => i.gearId));
+
+  const rodRows = ROD_TYPES.filter(r => r.id !== 'starter').map(r => {
+    const owned = ownedRods.has(r.id);
+    const disabled = owned || coins < r.cost ? 'disabled' : '';
     return `
       <div class="sell-row">
-        <div><strong>${it.name}</strong></div>
-        <div>${cost}g</div>
-        <button data-id="${it.id}" class="buy-btn" ${disabled}>Buy</button>
-      </div>
-    `;
+        <div><strong>${r.name}</strong></div>
+        <div>${r.cost}g</div>
+        <button class="buy-btn" data-type="rod" data-id="${r.id}" ${disabled}>${owned ? 'Owned' : 'Buy'}</button>
+      </div>`;
   }).join('');
+
+  const baitRows = BAIT_TYPES.filter(b => b.id !== 'none').map(b => {
+    const owned = ownedBaits.has(b.id);
+    const disabled = owned || coins < b.cost ? 'disabled' : '';
+    return `
+      <div class="sell-row">
+        <div><strong>${b.name}</strong></div>
+        <div>${b.cost}g</div>
+        <button class="buy-btn" data-type="bait" data-id="${b.id}" ${disabled}>${owned ? 'Owned' : 'Buy'}</button>
+      </div>`;
+  }).join('');
+
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="shop-wrap">
       <h2>🛒 Shop · Buy</h2>
       <div class="row" style="margin-bottom:10px;">
         <button id="backToShop">← Back</button>
       </div>
-      <div class="sell-list scroll-panel">${body}</div>
-      <p class="small" style="opacity:.8;margin-top:8px;">
-        Prices grow by adding the previous two costs (e.g., Rod: 50 → 100 → 150 → 250…). Upgrades stack and auto-equip (replacing old gear).
+      <div class="sell-list scroll-panel">
+        <h3 style="margin:8px 0 6px;">Rods</h3>
+        ${rodRows}
+        <h3 style="margin:20px 0 6px;">Baits</h3>
+        ${baitRows}
+      </div>
+      <p class="small" style="opacity:.8;margin-top:12px;">
+        Each rod and bait can be bought once. You can only equip one rod and one bait at a time.
       </p>
     </div>`;
   updateGoldHud();
   document.getElementById('backToShop').onclick = renderShopMenu;
+
   document.querySelectorAll('.buy-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.currentTarget.getAttribute('data-id');
-      const item = SHOP_ITEMS.find(x => x.id === id);
-      if (!item) return;
-      const cost = item.getCost();
-      if (!canAfford(cost)) { alert("Not enough gold!"); return; }
-      if (!spendGold(cost)) { alert("Purchase failed."); return; }
-      const s = getStats();
-      const after = item.apply(s);
-      setStats(after);
-      if (id === 'rod') equipRod(after.rodLevel);
-      if (id === 'bait') equipBait(after.baitTier);
-      goldPopup(`Purchased: ${item.name}`);
-      showBuy();
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      const id = btn.dataset.id;
+      buyGear(type, id);
+      showBuy(); // refresh
     });
   });
 }
+
 function showSell() {
   const coins = getCurrentUser()?.coins ?? 0;
   const inv = getInventory();
@@ -1324,7 +1509,7 @@ function showSell() {
     </div>`).join('');
   const totalGold = sellable.reduce((a,c)=>a+sellValue(c),0);
   mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv $$ {getStats().level} ( $${getStats().xp}/${xpNeededFor(getStats().level)})</div>
+    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="shop-wrap">
       <h2>🛒 Shop · Sell</h2>
       <div class="row" style="margin-bottom:10px;">
@@ -1352,6 +1537,7 @@ function showSell() {
     });
   });
 }
+
 function sellSingle(indexInInventory) {
   const inv = getInventory();
   const item = inv[indexInInventory];
@@ -1363,6 +1549,7 @@ function sellSingle(indexInInventory) {
   addGold(value);
   showSell();
 }
+
 function sellAll() {
   const inv = getInventory();
   let earned = 0; const remaining = [];
