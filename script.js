@@ -27,7 +27,6 @@ async function refreshPlayersCache() {
   playersCache = snap.docs.map(d => d.data());
 }
 
-// Remove undefined/null values (Firestore doesn't allow them)
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
@@ -1353,7 +1352,7 @@ function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
   });
 }
 
-/* Backpack - now with three sections */
+/* Backpack - three sections */
 function friendlyMeta(item) {
   if (item.type === 'gear-rod') return `Rod Gear`;
   if (item.type === 'gear-bait') return `Bait Gear`;
