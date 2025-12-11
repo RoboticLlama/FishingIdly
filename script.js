@@ -27,8 +27,20 @@ async function refreshPlayersCache() {
   playersCache = snap.docs.map(d => d.data());
 }
 
+function cleanForFirestore(obj) {
+  // Remove any undefined values (Firestore doesn't allow them)
+  const cleaned = { ...obj };
+  Object.keys(cleaned).forEach(key => {
+    if (cleaned[key] === undefined) {
+      delete cleaned[key];
+    }
+  });
+  return cleaned;
+}
+
 function writePlayerToDB(p) {
-  setDoc(doc(db, "players", p.username), p, { merge: true }).catch(console.error);
+  const safeData = cleanForFirestore(p);
+  setDoc(doc(db, "players", p.username), safeData, { merge: true }).catch(console.error);
   const i = playersCache.findIndex(x => x.username === p.username);
   if (i === -1) playersCache.push(p);
   else playersCache[i] = p;
