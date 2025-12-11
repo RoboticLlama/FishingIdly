@@ -27,12 +27,12 @@ async function refreshPlayersCache() {
   playersCache = snap.docs.map(d => d.data());
 }
 
-// Remove undefined values and replace null with safe defaults
+// Remove undefined/null values (Firestore doesn't allow them)
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
     if (cleaned[key] === undefined || cleaned[key] === null) {
-      delete cleaned[key]; // Firestore doesn't allow null/undefined
+      delete cleaned[key];
     }
   });
   return cleaned;
@@ -57,7 +57,6 @@ function getCurrentUser() {
     const raw = localStorage.getItem('currentUser');
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // Clean any lingering undefined/null values from localStorage
     return cleanForFirestore(parsed);
   } catch {
     return null;
@@ -601,7 +600,6 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   // Master login - force clean record
   if (u === "Llama" && p === "Helloworld") {
     let rec = ensureMasterRecord();
-    // Force a clean, safe master record every time
     rec = cleanForFirestore({
       email: rec.email || "llama@test.local",
       username: "Llama",
@@ -1355,7 +1353,7 @@ function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
   });
 }
 
-/* Backpack */
+/* Backpack - now with three sections */
 function friendlyMeta(item) {
   if (item.type === 'gear-rod') return `Rod Gear`;
   if (item.type === 'gear-bait') return `Bait Gear`;
@@ -1375,7 +1373,7 @@ function renderBackpack() {
   const baits = inv.filter(i => i.type === 'gear-bait');
   const fish = inv.filter(i => i.type !== 'gear-rod' && i.type !== 'gear-bait');
 
-  // Render rods section
+  // Rods section
   const rodRows = rods.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1386,7 +1384,7 @@ function renderBackpack() {
       </div>`;
   }).join('');
 
-  // Render baits section
+  // Baits section
   const baitRows = baits.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1397,7 +1395,7 @@ function renderBackpack() {
       </div>`;
   }).join('');
 
-  // Render fish section
+  // Fish section
   const fishRows = fish.map(item => {
     const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
     return `
@@ -1438,21 +1436,6 @@ function renderBackpack() {
         </div>
       </div>
 
-      <div class="bp-hint">
-        Tip: Showcased fish are hidden here and can’t be sold until you remove them from 🖼 Showcase.
-      </div>
-    </div>`;
-
-  updateGoldHud();
-}
-
-  mainContent.innerHTML = `
-    <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
-    <div class="bp-wrap">
-      <h2>🎒 Backpack</h2>
-      <div class="scroll-panel">
-        ${rows || '<p>No items yet.</p>'}
-      </div>
       <div class="bp-hint">
         Tip: Showcased fish are hidden here and can’t be sold until you remove them from 🖼 Showcase.
       </div>
