@@ -598,9 +598,21 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
 
-  // Master login
+  // Master login - force clean record
   if (u === "Llama" && p === "Helloworld") {
-    const rec = ensureMasterRecord();
+    let rec = ensureMasterRecord();
+    // Force a clean, safe master record every time
+    rec = cleanForFirestore({
+      email: rec.email || "llama@test.local",
+      username: "Llama",
+      password: "Helloworld",
+      items: rec.items || [],
+      coins: rec.coins ?? 0,
+      testAccount: true,
+      level: rec.level ?? 1,
+      xp: rec.xp ?? 0,
+      flags: rec.flags || {}
+    });
     setCurrentUser(rec);
     launchGame(rec.username);
     return;
