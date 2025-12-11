@@ -4,6 +4,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebas
 import {
   getFirestore, doc, getDoc, setDoc, getDocs, collection
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
   authDomain: "fishingidly-c1613.firebaseapp.com",
@@ -13,9 +14,11 @@ const firebaseConfig = {
   appId: "1:531215063717:web:dea4ce7aa7a64d3f374b4c",
   measurementId: "G-SR67MT90SE"
 };
+
 const app = initializeApp(firebaseConfig);
 try { getAnalytics(app); } catch(e) { /* analytics may fail on http */ }
 const db = getFirestore(app);
+
 /* --------------- Minimal Firestore adapter --------------- */
 let playersCache = [];
 async function refreshPlayersCache() {
@@ -25,9 +28,7 @@ async function refreshPlayersCache() {
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
-    if (cleaned[key] === undefined || cleaned[key] === null) {
-      delete cleaned[key];
-    }
+    if (cleaned[key] === undefined || cleaned[key] === null) delete cleaned[key];
   });
   return cleaned;
 }
@@ -47,16 +48,14 @@ function getCurrentUser() {
   try {
     const raw = localStorage.getItem('currentUser');
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return cleanForFirestore(parsed);
-  } catch {
-    return null;
-  }
+    return cleanForFirestore(JSON.parse(raw));
+  } catch { return null; }
 }
 function setCurrentUser(u) {
   if (!u) return;
   localStorage.setItem('currentUser', JSON.stringify(cleanForFirestore(u)));
 }
+
 /* ------------------ DOM elements ------------------ */
 const overlay = document.getElementById('overlay');
 const signinLink = document.getElementById('signinLink');
@@ -71,6 +70,7 @@ const title = document.getElementById('title');
 const logoutBtn = document.getElementById('logoutBtn');
 const adminResetBtn = document.getElementById('adminResetBtn');
 const adminPanel = document.getElementById('adminPanel');
+
 /* --- Global delegation for Pond/Stream --- */
 mainContent.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
@@ -78,14 +78,15 @@ mainContent.addEventListener('click', (e) => {
   if (btn.id === 'pondBtn') { e.preventDefault(); showPond(); }
   if (btn.id === 'streamBtn') { e.preventDefault(); showStream(); }
 });
+
 /* Unlock modal */
 const unlockOverlay = document.getElementById('unlockOverlay');
-function showUnlockModal(areaName = 'Stream') {
+function showUnlockModal() {
   if (!unlockOverlay) return;
   unlockOverlay.style.display = 'flex';
-  const btn = document.getElementById('unlockOkBtn');
-  if (btn) btn.onclick = () => { unlockOverlay.style.display = 'none'; };
+  document.getElementById('unlockOkBtn').onclick = () => unlockOverlay.style.display = 'none';
 }
+
 /* Modal behavior */
 const openModal = () => overlay.style.display = 'flex';
 signinLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
@@ -93,11 +94,11 @@ startButton.addEventListener('click', (e) => { e.preventDefault?.(); openModal()
 showSignup.addEventListener('click', () => { signinForm.style.display='none'; signupForm.style.display='block'; });
 showSignin.addEventListener('click', () => { signupForm.style.display='none'; signinForm.style.display='block'; });
 overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+
 /* Per-user flags */
 function getUserFlags() {
   const cu = getCurrentUser();
-  if (!cu) return {};
-  return cu.flags || {};
+  return cu ? (cu.flags || {}) : {};
 }
 function setUserFlags(nextFlags) {
   const cu = getCurrentUser();
@@ -111,13 +112,14 @@ function setUserFlags(nextFlags) {
     savePlayers(players);
   }
 }
+
 /* Stats */
 function defaultStats() { return { level: 1, xp: 0 }; }
 function xpNeededFor(level) { return 20 + (level - 1) * 10; }
 function maybeNotifyStreamUnlock(prevLevel, nextLevel) {
   if (prevLevel < 10 && nextLevel >= 10 && !getUserFlags().streamUnlockNotified) {
     setUserFlags({ streamUnlockNotified: true });
-    showUnlockModal('Stream');
+    showUnlockModal();
   }
 }
 function getStats() {
@@ -153,8 +155,10 @@ function setStats(stats) {
   updateGoldHud();
   renderAdminPanel();
 }
+
 /* Showcase */
 const SHOWCASE_LIMIT = 10;
+
 /* XP / Level */
 function addXP(amount) {
   const before = getStats();
@@ -169,10 +173,9 @@ function addXP(amount) {
   maybeNotifyStreamUnlock(before.level, level);
   setStats({ ...before, xp, level });
   xpPopup(`+${amount} XP`);
-  if (leveled > 0) {
-    goldPopup(`⭐ Level Up! Lv ${before.level} → ${level}`);
-  }
+  if (leveled > 0) goldPopup(`⭐ Level Up! Lv ${before.level} → ${level}`);
 }
+
 /* HUD + currency */
 function goldHudEl() { return document.getElementById('goldHud'); }
 function updateGoldHud() {
@@ -225,6 +228,7 @@ function xpPopup(text) {
   mainContent.appendChild(el);
   setTimeout(()=> el.remove(), 1100);
 }
+
 /* Variant helpers */
 const VALID_VARIANTS = new Set(['none','bronze','silver','gold','diamond','rainbow']);
 function normalizeVariantKey(v){
@@ -243,25 +247,47 @@ function prettyLabelFromKey(k){
     default: return '';
   }
 }
-/* Size tiers */
-const SIZE_TIERS = [
-  { key:'micro', label:'Micro', chance:0.06, mult:0.75 },
-  { key:'small', label:'Small', chance:0.13, mult:0.90 },
-  { key:'big', label:'Big', chance:0.07, mult:1.15 },
-  { key:'queen', label:'Queen', chance:0.035, mult:1.35 },
-  { key:'king', label:'King', chance:0.010, mult:1.60 },
-];
-function rollSizeTier(){
-  const pool = SIZE_TIERS;
-  const total = pool.reduce((a,c)=>a+(c.chance||0),0);
-  const r = Math.random();
-  let acc = 0;
-  for (const s of pool) {
-    acc += (s.chance||0);
-    if (r < acc) return s;
+
+/* New Size Tiers (no icons) */
+function rollSizeTier(fishMeta) {
+  const avgWeight = (fishMeta.minWeight + fishMeta.baseWeight) / 2;
+  let rawWeight = fishMeta.minWeight + Math.random() * (fishMeta.baseWeight - fishMeta.minWeight);
+  let mult = rawWeight / avgWeight;
+
+  // 7% chance of major boost
+  if (Math.random() < 0.07) {
+    const isMinorBoost = Math.random() < 0.5;
+    const boostMax = isMinorBoost ? 1.5 : 2.1;
+    const boost = 1 + Math.random() * (boostMax - 1);
+    rawWeight *= boost;
+    mult *= boost;
   }
-  return { key:'normal', label:'', mult:1.0 };
+
+  let tier = 'normal';
+  let sizeLabel = '';
+
+  if (mult < 0.75) {
+    tier = 'micro'; sizeLabel = 'Micro';
+  } else if (mult < 0.95) {
+    tier = 'small'; sizeLabel = 'Small';
+  } else if (mult < 1.1) {
+    tier = 'normal';
+  } else if (mult < 1.45) {
+    tier = 'big'; sizeLabel = 'Big';
+  } else if (mult < 1.8) {
+    tier = 'colossal'; sizeLabel = 'Colossal';
+  } else {
+    tier = 'monstrous'; sizeLabel = 'Monstrous';
+  }
+
+  return {
+    key: tier,
+    label: sizeLabel,
+    mult,
+    displayWeight: rawWeight.toFixed(1) + ' lb'
+  };
 }
+
 /* Rod & Bait configurations */
 const ROD_TYPES = [
   {id: 'starter', name: 'Starter Rod', cost: 0, effects: {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0}},
@@ -278,6 +304,7 @@ const BAIT_TYPES = [
   {id: 'lure', name: 'Spinner Lure', cost: 60, effects: {searchMult: 0.85, valueMult: 1.1, xpMult: 1.1}},
   {id: 'powerbait', name: 'PowerBait', cost: 120, effects: {searchMult: 0.82, valueMult: 1.15, xpMult: 1.2}}
 ];
+
 /* Inventory */
 function getInventory() {
   const cu = getCurrentUser();
@@ -286,12 +313,12 @@ function getInventory() {
   const upgraded = raw.map(it => {
     if (typeof it === 'string') {
       const meta = lookupItemMeta(it);
-      return { name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false, variantBaseKey: 'none', variantBaseLabel: '', statusLabel: '', showcased:false, sizeKey:'normal', sizeLabel:'' };
+      return { name: meta.name, type: meta.type, value: meta.value ?? 0, favorite: false, variantBaseKey: 'none', variantBaseLabel: '', statusLabel: '', showcased:false, sizeKey:'normal', sizeLabel:'', weight:'' };
     }
     const normKey = normalizeVariantKey(it.variantBaseKey ?? it.variantBase ?? it.variant ?? it.variantBaseLabel);
     const label = it.variantBaseLabel ?? prettyLabelFromKey(normKey);
     const sizeKeyRaw = (it.sizeKey || it.size || '').toString().toLowerCase();
-    const validSizes = ['micro','small','normal','big','queen','king'];
+    const validSizes = ['micro','small','normal','big','colossal','monstrous'];
     const safeSize = validSizes.includes(sizeKeyRaw) ? sizeKeyRaw : 'normal';
     const sizeLabel = it.sizeLabel || (safeSize === 'normal' ? '' : safeSize[0].toUpperCase()+safeSize.slice(1));
     return {
@@ -306,7 +333,8 @@ function getInventory() {
       sizeKey: safeSize,
       sizeLabel,
       gearId: it.gearId || undefined,
-      equipped: !!it.equipped
+      equipped: !!it.equipped,
+      weight: it.weight || ''
     };
   });
   if (JSON.stringify(raw) !== JSON.stringify(upgraded)) setInventory(upgraded);
@@ -321,6 +349,7 @@ function setInventory(newInv) {
   const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) { players[idx].items = newInv; savePlayers(players); }
 }
+
 /* Gear helpers */
 function getEquippedRod() {
   const inv = getInventory();
@@ -357,7 +386,8 @@ function buyGear(gearType, gearId) {
     showcased: false,
     sizeKey: 'normal',
     sizeLabel: '',
-    value: 0
+    value: 0,
+    weight: ''
   };
   const hasEquipped = inv.some(i => i.type === item.type && i.equipped);
   if (!hasEquipped) item.equipped = true;
@@ -376,6 +406,7 @@ function equipItem(idx) {
   setInventory(inv);
   renderBackpack();
 }
+
 /* Showcase helpers */
 function getShowcaseItems() {
   return getInventory()
@@ -388,18 +419,19 @@ function setShowcaseForIndex(index, enabled) {
   inv[index].showcased = !!enabled;
   setInventory(inv);
 }
+
 /* Save catch */
 function saveCatchToUser(catchData) {
   if (typeof catchData === 'string') {
     const meta = lookupItemMeta(catchData);
     if (meta && meta.type === 'trash') {
-      addGold(meta.value || 0); 
-      return; // Trash autosells
+      addGold(meta.value || 0);
+      return;
     }
     const inv = getInventory();
     inv.push({
       name: catchData, type: meta?.type || 'unknown', value: meta?.value || 0,
-      favorite: false, variantBaseKey:'none', variantBaseLabel:'', statusLabel:'', showcased:false, sizeKey:'normal', sizeLabel:''
+      favorite: false, variantBaseKey:'none', variantBaseLabel:'', statusLabel:'', showcased:false, sizeKey:'normal', sizeLabel:'', weight:''
     });
     setInventory(inv);
     return;
@@ -414,12 +446,14 @@ function saveCatchToUser(catchData) {
     statusLabel: catchData.statusLabel || '',
     showcased:false,
     sizeKey: (catchData.sizeKey || 'normal'),
-    sizeLabel: (catchData.sizeLabel || '')
+    sizeLabel: (catchData.sizeLabel || ''),
+    weight: catchData.weight || ''
   };
   const inv = getInventory();
   inv.push(item);
   setInventory(inv);
 }
+
 /* Starter gear */
 function ensureStarterGear() {
   let inv = getInventory();
@@ -435,7 +469,8 @@ function ensureStarterGear() {
       showcased: false,
       sizeKey: 'normal',
       sizeLabel: '',
-      value: 0
+      value: 0,
+      weight: ''
     });
   }
   if (!inv.some(i => i.type === 'gear-bait')) {
@@ -450,11 +485,13 @@ function ensureStarterGear() {
       showcased: false,
       sizeKey: 'normal',
       sizeLabel: '',
-      value: 0
+      value: 0,
+      weight: ''
     });
   }
   setInventory(inv);
 }
+
 /* Difficulty + minigame params */
 const rarityConfig = {
   common: { zoneMin: 28, zoneMax: 72, drift: 0.25, wobble: 0.6, timeToLand: 2200 },
@@ -471,6 +508,7 @@ function weightedPick(table) {
   }
   return table[0];
 }
+
 /* Variants + statuses */
 const VARIANT_BASES = [
   { key:'none', label:'', mult:1.00, chance:null, wobble:0, zoneNarrow:0, timeUp:0, driftUp:0 },
@@ -508,20 +546,30 @@ function buildVariantResult() {
   };
   return { base, status, totalMult, diff };
 }
+
+/* Styled Fish Name – Size before name only when not normal */
 function renderStyledFishName(item) {
   const baseKey = normalizeVariantKey(item.variantBaseKey || item.variantBase || item.variant || item.variantBaseLabel);
   const statusKey = (item.statusLabel ? item.statusLabel.toLowerCase() : '').replace(/\s+/g,'');
   const sizeKey = (item.sizeKey || 'normal').toLowerCase();
-  const validSizes = ['micro','small','normal','big','queen','king'];
+  const validSizes = ['micro','small','normal','big','colossal','monstrous'];
   const safeSize = validSizes.includes(sizeKey) ? sizeKey : 'normal';
+
   const sizeClass = `size-${safeSize}`;
   const vClass = baseKey && baseKey !== 'none' ? `variant-${baseKey}` : '';
   const sClass = statusKey ? `status-${statusKey}` : '';
+
   const nameInner = vClass ? `<span class="${vClass} fish-name">${item.name}</span>` : `<span class="fish-name">${item.name}</span>`;
-  const sizeTag = safeSize !== 'normal' ? `<span class="size-tag" title="${item.sizeLabel||''}"></span>` : '';
   const wrappedInner = sClass ? `<span class="${sClass}">${nameInner}</span>` : nameInner;
-  return `<span class="size-wrap ${sizeClass}">${sizeTag}${wrappedInner}</span>`;
+
+  let sizeLabel = '';
+  if (safeSize !== 'normal') {
+    sizeLabel = `<span class="size-label">${item.sizeLabel}</span> `;
+  }
+
+  return `<span class="size-wrap ${sizeClass}">${sizeLabel}${wrappedInner}</span>`;
 }
+
 /* Auth */
 document.getElementById('signupButton').addEventListener('click', async () => {
   const email = document.getElementById('signup-email').value.trim();
@@ -567,7 +615,6 @@ function ensureMasterRecord() {
 document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
-  // Master login - force clean record
   if (u === "Llama" && p === "Helloworld") {
     let rec = ensureMasterRecord();
     rec = cleanForFirestore({
@@ -585,7 +632,6 @@ document.getElementById('loginButton').addEventListener('click', async () => {
     launchGame(rec.username);
     return;
   }
-  // Normal player login
   const snap = await getDoc(doc(db, "players", u));
   if (!snap.exists()) return alert("Invalid credentials!");
   const user = snap.data();
@@ -593,6 +639,7 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   setCurrentUser(user);
   launchGame(user.username);
 });
+
 /* Admin */
 function isMasterUser(u = getCurrentUser()) { return !!u && (u.username === 'Llama'); }
 function adminResetAllData() {
@@ -664,6 +711,7 @@ logoutBtn.addEventListener('click', () => {
   adminResetBtn.style.display = 'none';
   adminPanel.style.display = 'none';
 });
+
 /* Init */
 (async function init(){
   await refreshPlayersCache();
@@ -679,48 +727,52 @@ logoutBtn.addEventListener('click', () => {
   const flags = getUserFlags();
   if (s.level >= 10 && !flags.streamUnlockNotified) {
     setUserFlags({ streamUnlockNotified: true });
-    showUnlockModal('Stream');
+    showUnlockModal();
   }
 })();
-/* Pond & Stream tables */
+
+/* Pond & Stream tables – now with realistic weights (in lb) */
 const pondTable = [
-  { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4 },
-  { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4 },
-  { name: "Yellow Perch", type: "fish", weight: 12, rarity: "common", value: 4 },
-  { name: "Bluegill", type: "fish", weight: 9, rarity: "uncommon", value: 6 },
-  { name: "Catfish", type: "fish", weight: 7, rarity: "uncommon", value: 8 },
-  { name: "Carp", type: "fish", weight: 4, rarity: "uncommon", value:10 },
-  { name: "Goldfish", type: "fish", weight: 10, rarity: "rare", value:15 },
-  { name: "Largemouth Bass", type: "fish", weight: 4, rarity: "epic", value:20 },
-  { name: "Golden Koi", type: "fish", weight: 1, rarity: "legendary",value:40 },
+  { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.8 },
+  { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.2, baseWeight: 1.0 },
+  { name: "Yellow Perch", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.2 },
+  { name: "Bluegill", type: "fish", weight: 9, rarity: "uncommon", value: 6, minWeight: 0.1, baseWeight: 0.8 },
+  { name: "Catfish", type: "fish", weight: 7, rarity: "uncommon", value: 8, minWeight: 1.0, baseWeight: 6.0 },
+  { name: "Carp", type: "fish", weight: 4, rarity: "uncommon", value:10, minWeight: 2.0, baseWeight: 15.0 },
+  { name: "Goldfish", type: "fish", weight: 10, rarity: "rare", value:15, minWeight: 0.1, baseWeight: 0.6 },
+  { name: "Largemouth Bass", type: "fish", weight: 4, rarity: "epic", value:20, minWeight: 1.0, baseWeight: 4.5 },
+  { name: "Golden Koi", type: "fish", weight: 1, rarity: "legendary", value:40, minWeight: 4.0, baseWeight: 25.0 },
   { name: "Old Boot", type: "trash", weight: 5, value: 1 },
   { name: "Tin Can", type: "trash", weight: 5, value: 1 },
   { name: "Tangled Line", type: "trash", weight: 5, value: 1 },
   { name: "Broken Glass", type: "trash", weight: 5, value: 1 },
   { name: "Rusty Hook", type: "trash", weight: 5, value: 1 }
 ];
+
 const streamTable = [
-  { name: "Creek Chub", type: "fish", weight: 10, rarity: "common", value: 4 },
-  { name: "Fallfish", type: "fish", weight: 10, rarity: "common", value: 4 },
-  { name: "White Sucker", type: "fish", weight: 8, rarity: "common", value: 5 },
-  { name: "Common Shiner", type: "fish", weight: 6, rarity: "common", value: 4 },
-  { name: "Redbreast Sunfish", type: "fish", weight: 6, rarity: "common", value: 4 },
-  { name: "Smallmouth Bass", type: "fish", weight: 7, rarity: "uncommon", value:10 },
-  { name: "Rock Bass", type: "fish", weight: 5, rarity: "uncommon", value: 7 },
-  { name: "Rainbow Darter", type: "fish", weight: 4, rarity: "uncommon", value: 8 },
-  { name: "Brook Stickleback", type: "fish", weight: 4, rarity: "uncommon", value: 6 },
-  { name: "Brook Trout", type: "fish", weight: 4, rarity: "rare", value:16 },
-  { name: "Brown Trout", type: "fish", weight: 3, rarity: "rare", value:18 },
-  { name: "Tiger Trout", type: "fish", weight: 3, rarity: "rare", value:19 },
-  { name: "Atlantic Salmon", type: "fish", weight: 4, rarity: "epic", value:28 },
-  { name: "Ancient River Sturgeon", type: "fish", weight: 1, rarity: "legendary", value:45 },
+  { name: "Creek Chub", type: "fish", weight: 10, rarity: "common", value: 4, minWeight: 0.05, baseWeight: 0.3 },
+  { name: "Fallfish", type: "fish", weight: 10, rarity: "common", value: 4, minWeight: 0.1, baseWeight: 0.5 },
+  { name: "White Sucker", type: "fish", weight: 8, rarity: "common", value: 5, minWeight: 0.5, baseWeight: 3.0 },
+  { name: "Common Shiner", type: "fish", weight: 6, rarity: "common", value: 4, minWeight: 0.1, baseWeight: 0.5 },
+  { name: "Redbreast Sunfish", type: "fish", weight: 6, rarity: "common", value: 4, minWeight: 0.2, baseWeight: 1.0 },
+  { name: "Smallmouth Bass", type: "fish", weight: 7, rarity: "uncommon", value:10, minWeight: 0.8, baseWeight: 4.0 },
+  { name: "Rock Bass", type: "fish", weight: 5, rarity: "uncommon", value: 7, minWeight: 0.3, baseWeight: 1.5 },
+  { name: "Rainbow Darter", type: "fish", weight: 4, rarity: "uncommon", value: 8, minWeight: 0.02, baseWeight: 0.15 },
+  { name: "Brook Stickleback", type: "fish", weight: 4, rarity: "uncommon", value: 6, minWeight: 0.02, baseWeight: 0.15 },
+  { name: "Brook Trout", type: "fish", weight: 4, rarity: "rare", value:16, minWeight: 0.5, baseWeight: 3.0 },
+  { name: "Brown Trout", type: "fish", weight: 3, rarity: "rare", value:18, minWeight: 0.5, baseWeight: 3.0 },
+  { name: "Tiger Trout", type: "fish", weight: 3, rarity: "rare", value:19, minWeight: 0.5, baseWeight: 3.0 },
+  { name: "Atlantic Salmon", type: "fish", weight: 4, rarity: "epic", value:28, minWeight: 4.0, baseWeight: 15.0 },
+  { name: "Ancient River Sturgeon", type: "fish", weight: 1, rarity: "legendary", value:45, minWeight: 12.0, baseWeight: 50.0 },
   { name: "Waterlogged Branch", type: "trash", weight: 8, value: 1 },
   { name: "Torn Fishing Net", type: "trash", weight: 8, value: 1 },
   { name: "Muddy Bottle", type: "trash", weight: 9, value: 1 }
 ];
+
 function lookupItemMeta(name) {
   return pondTable.find(i => i.name === name) || streamTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
 }
+
 /* Navigation */
 document.getElementById('fishingSpotBtn').addEventListener('click', () => {
   const s = getStats();
@@ -744,6 +796,7 @@ document.getElementById('leaderboardBtn').addEventListener('click', renderLeader
 document.getElementById('homeBtn').addEventListener('click', renderHome);
 document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
 document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
+
 /* Home */
 function renderHome() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -761,6 +814,7 @@ function renderHome() {
   document.getElementById('showcaseBtn').onclick = renderShowcase;
   document.getElementById('nurseryBtn').onclick = renderNursery;
 }
+
 /* Showcase */
 function renderShowcase() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -825,6 +879,7 @@ function renderShowcase() {
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
 }
+
 /* Nursery (placeholder) */
 function renderNursery() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -886,6 +941,7 @@ function renderNursery() {
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
 }
+
 /* Player Profile */
 function showPlayerProfile(username){
   const p = (getPlayers() || []).find(q => q.username === username);
@@ -917,6 +973,7 @@ function showPlayerProfile(username){
   const outsideHandler = (e) => { if (e.target === ov) close(); };
   ov.addEventListener('click', outsideHandler, { once: true });
 }
+
 /* Leaderboard */
 async function renderLeaderboard() {
   await refreshPlayersCache();
@@ -957,6 +1014,7 @@ async function renderLeaderboard() {
     </div>`;
   updateGoldHud();
 }
+
 /* Pond */
 function showPond() {
   mainContent.innerHTML = `
@@ -1031,15 +1089,22 @@ function showPond() {
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
-        const sz = rollSizeTier();
+        const sz = rollSizeTier(hooked);
         const baseValue = hooked.value || 0;
-        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1) * baitEffects.valueMult));
+        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * sz.mult * baitEffects.valueMult));
         const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
         status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
         saveCatchToUser({
-          name: hooked.name, type: hooked.type, value: finalValue, favorite: false,
-          variantBaseKey: normalizeVariantKey(vr.base.key), variantBaseLabel: prettyLabelFromKey(vr.base.key),
-          statusLabel, sizeKey: sz.key, sizeLabel: sz.label
+          name: hooked.name,
+          type: hooked.type,
+          value: finalValue,
+          favorite: false,
+          variantBaseKey: normalizeVariantKey(vr.base.key),
+          variantBaseLabel: prettyLabelFromKey(vr.base.key),
+          statusLabel,
+          sizeKey: sz.key,
+          sizeLabel: sz.label,
+          weight: sz.displayWeight
         });
         const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
         const xpBase = xpByRarity[hooked.rarity] ?? 2;
@@ -1063,6 +1128,7 @@ function showPond() {
   };
   if (castBtn) castBtn.onclick = runCastCycle;
 }
+
 /* Stream */
 function isStreamUnlocked() {
   return getStats().level >= 10;
@@ -1144,15 +1210,22 @@ function showStream() {
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
-        const sz = rollSizeTier();
+        const sz = rollSizeTier(hooked);
         const baseValue = hooked.value || 0;
-        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * (sz.mult || 1) * baitEffects.valueMult));
+        const finalValue = Math.max(0, Math.round(baseValue * vr.totalMult * sz.mult * baitEffects.valueMult));
         const tempItemForStyle = { name: hooked.name, variantBaseKey: normalizeVariantKey(vr.base.key), statusLabel, sizeKey: sz.key, sizeLabel: sz.label };
         status.innerHTML = `<span class="success">Success!</span> You caught a <b>${renderStyledFishName(tempItemForStyle)}</b>!`;
         saveCatchToUser({
-          name: hooked.name, type: hooked.type, value: finalValue, favorite: false,
-          variantBaseKey: normalizeVariantKey(vr.base.key), variantBaseLabel: prettyLabelFromKey(vr.base.key),
-          statusLabel, sizeKey: sz.key, sizeLabel: sz.label
+          name: hooked.name,
+          type: hooked.type,
+          value: finalValue,
+          favorite: false,
+          variantBaseKey: normalizeVariantKey(vr.base.key),
+          variantBaseLabel: prettyLabelFromKey(vr.base.key),
+          statusLabel,
+          sizeKey: sz.key,
+          sizeLabel: sz.label,
+          weight: sz.displayWeight
         });
         const xpByRarity = { common: 2, uncommon: 4, rare: 8, epic: 12, legendary: 20 };
         const xpBase = xpByRarity[hooked.rarity] ?? 2;
@@ -1176,6 +1249,7 @@ function showStream() {
   };
   if (castBtn) castBtn.onclick = runCastCycle;
 }
+
 /* Minigame */
 async function animateProgress(fillEl, durationMs){
   const start = performance.now();
@@ -1270,11 +1344,13 @@ function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
     onDone(ok, btn);
   });
 }
-/* Backpack - three sections */
+
+/* Backpack – three sections */
 function friendlyMeta(item) {
   if (item.type === 'gear-rod') return `Rod Gear`;
   if (item.type === 'gear-bait') return `Bait Gear`;
-  return `${item.type}${item.value ? ` · ${item.value}g` : ''}`;
+  const weightStr = item.weight ? ` – ${item.weight}` : '';
+  return `${item.type}${weightStr} · ${item.value}g`;
 }
 function renderBackpack() {
   const full = getInventory();
@@ -1282,11 +1358,10 @@ function renderBackpack() {
     .map((it, original) => ({ ...it, _idx: original }))
     .filter(i => i.showcased !== true);
   const coins = getCurrentUser()?.coins ?? 0;
-  // Split into three groups
   const rods = inv.filter(i => i.type === 'gear-rod');
   const baits = inv.filter(i => i.type === 'gear-bait');
   const fish = inv.filter(i => i.type !== 'gear-rod' && i.type !== 'gear-bait');
-  // Rods section
+
   const rodRows = rods.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1296,7 +1371,7 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-  // Baits section
+
   const baitRows = baits.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1306,7 +1381,7 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-  // Fish section
+
   const fishRows = fish.map(item => {
     const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
     return `
@@ -1320,6 +1395,7 @@ function renderBackpack() {
         </div>
       </div>`;
   }).join('');
+
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="bp-wrap">
@@ -1348,17 +1424,18 @@ function renderBackpack() {
     </div>`;
   updateGoldHud();
 }
+
 /* Shop */
 function isSellable(item) { 
   return (item && item.showcased !== true && !item.favorite && 
-          (item.type === 'fish' || (item.type === 'trash' && item.name))); // Trash must have name to be valid
+          (item.type === 'fish' || (item.type === 'trash' && item.name)));
 }
 function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
 function canAfford(cost){ return (getCurrentUser()?.coins ?? 0) >= cost; }
 function spendGold(amount){
   const cu = getCurrentUser(); if (!cu) return false;
   if ((cu.coins ?? 0) < amount) return false;
-  cu.coins = Math.max(0, (cu.coins ?? 0) - amount); // Prevent negative
+  cu.coins = Math.max(0, (cu.coins ?? 0) - amount);
   setCurrentUser(cu);
   const players = getPlayers(); const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
@@ -1459,6 +1536,7 @@ function showSell() {
   if (sellAllTop) sellAllTop.onclick = sellAllHandler;
   if (sellAllBottom) sellAllBottom.onclick = sellAllHandler;
 }
+
 /* Sell functions */
 function sellSingle(indexInInventory) {
   const inv = getInventory();
@@ -1483,6 +1561,7 @@ function sellAll() {
   addGold(earned);
   showSell();
 }
+
 /* Favorite toggle */
 function toggleFavorite(indexInInventory) {
   const inv = getInventory();
@@ -1490,9 +1569,10 @@ function toggleFavorite(indexInInventory) {
   if (!item) return;
   item.favorite = !item.favorite;
   setInventory(inv);
-  renderBackpack(); // refresh the backpack view
+  renderBackpack();
 }
-/* EVENT DELEGATION - fixes all button issues */
+
+/* EVENT DELEGATION */
 document.addEventListener('click', (e) => {
   const target = e.target;
   if (target.classList.contains('heart-btn')) {
@@ -1551,7 +1631,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
-// Right-click favorite toggle
 document.addEventListener('contextmenu', (e) => {
   const row = e.target.closest('.bp-row');
   if (row) {
