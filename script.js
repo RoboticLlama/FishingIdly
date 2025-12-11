@@ -4,7 +4,6 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebas
 import {
   getFirestore, doc, getDoc, setDoc, getDocs, collection
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
   authDomain: "fishingidly-c1613.firebaseapp.com",
@@ -14,19 +13,15 @@ const firebaseConfig = {
   appId: "1:531215063717:web:dea4ce7aa7a64d3f374b4c",
   measurementId: "G-SR67MT90SE"
 };
-
 const app = initializeApp(firebaseConfig);
 try { getAnalytics(app); } catch(e) { /* analytics may fail on http */ }
 const db = getFirestore(app);
-
 /* --------------- Minimal Firestore adapter --------------- */
 let playersCache = [];
-
 async function refreshPlayersCache() {
   const snap = await getDocs(collection(db, "players"));
   playersCache = snap.docs.map(d => d.data());
 }
-
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
@@ -36,7 +31,6 @@ function cleanForFirestore(obj) {
   });
   return cleaned;
 }
-
 function writePlayerToDB(p) {
   const safeData = cleanForFirestore(p);
   setDoc(doc(db, "players", p.username), safeData, { merge: true }).catch(console.error);
@@ -44,13 +38,11 @@ function writePlayerToDB(p) {
   if (i === -1) playersCache.push(p);
   else playersCache[i] = p;
 }
-
 function getPlayers() { return playersCache.slice(); }
 function savePlayers(players) {
   playersCache = players.slice();
   players.forEach(p => writePlayerToDB(p));
 }
-
 function getCurrentUser() {
   try {
     const raw = localStorage.getItem('currentUser');
@@ -65,7 +57,6 @@ function setCurrentUser(u) {
   if (!u) return;
   localStorage.setItem('currentUser', JSON.stringify(cleanForFirestore(u)));
 }
-
 /* ------------------ DOM elements ------------------ */
 const overlay = document.getElementById('overlay');
 const signinLink = document.getElementById('signinLink');
@@ -80,7 +71,6 @@ const title = document.getElementById('title');
 const logoutBtn = document.getElementById('logoutBtn');
 const adminResetBtn = document.getElementById('adminResetBtn');
 const adminPanel = document.getElementById('adminPanel');
-
 /* --- Global delegation for Pond/Stream --- */
 mainContent.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
@@ -88,7 +78,6 @@ mainContent.addEventListener('click', (e) => {
   if (btn.id === 'pondBtn') { e.preventDefault(); showPond(); }
   if (btn.id === 'streamBtn') { e.preventDefault(); showStream(); }
 });
-
 /* Unlock modal */
 const unlockOverlay = document.getElementById('unlockOverlay');
 function showUnlockModal(areaName = 'Stream') {
@@ -97,7 +86,6 @@ function showUnlockModal(areaName = 'Stream') {
   const btn = document.getElementById('unlockOkBtn');
   if (btn) btn.onclick = () => { unlockOverlay.style.display = 'none'; };
 }
-
 /* Modal behavior */
 const openModal = () => overlay.style.display = 'flex';
 signinLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
@@ -105,7 +93,6 @@ startButton.addEventListener('click', (e) => { e.preventDefault?.(); openModal()
 showSignup.addEventListener('click', () => { signinForm.style.display='none'; signupForm.style.display='block'; });
 showSignin.addEventListener('click', () => { signupForm.style.display='none'; signinForm.style.display='block'; });
 overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
-
 /* Per-user flags */
 function getUserFlags() {
   const cu = getCurrentUser();
@@ -124,18 +111,15 @@ function setUserFlags(nextFlags) {
     savePlayers(players);
   }
 }
-
 /* Stats */
 function defaultStats() { return { level: 1, xp: 0 }; }
 function xpNeededFor(level) { return 20 + (level - 1) * 10; }
-
 function maybeNotifyStreamUnlock(prevLevel, nextLevel) {
   if (prevLevel < 10 && nextLevel >= 10 && !getUserFlags().streamUnlockNotified) {
     setUserFlags({ streamUnlockNotified: true });
     showUnlockModal('Stream');
   }
 }
-
 function getStats() {
   const cu = getCurrentUser();
   if (!cu) return defaultStats();
@@ -151,7 +135,6 @@ function getStats() {
   }
   return { level: cu.level, xp: cu.xp };
 }
-
 function setStats(stats) {
   const prev = getStats();
   const cu = getCurrentUser();
@@ -170,10 +153,8 @@ function setStats(stats) {
   updateGoldHud();
   renderAdminPanel();
 }
-
 /* Showcase */
 const SHOWCASE_LIMIT = 10;
-
 /* XP / Level */
 function addXP(amount) {
   const before = getStats();
@@ -192,19 +173,25 @@ function addXP(amount) {
     goldPopup(`⭐ Level Up! Lv ${before.level} → ${level}`);
   }
 }
-
 /* HUD + currency */
 function goldHudEl() { return document.getElementById('goldHud'); }
 function updateGoldHud() {
   const cu = getCurrentUser();
   const s = getStats();
+  const rod = getEquippedRod()?.name || 'Starter Rod';
+  const bait = getEquippedBait()?.name || 'No Bait';
   const el = goldHudEl();
-  if (el) el.textContent = `💰 ${cu?.coins ?? 0} · ⭐ Lv ${s.level} (${s.xp}/${xpNeededFor(s.level)})`;
+  if (el) {
+    el.innerHTML = `
+      💰 ${cu?.coins ?? 0} · ⭐ Lv ${s.level} (${s.xp}/${xpNeededFor(s.level)})<br>
+      <span class="small">Rod: ${rod} · Bait: ${bait}</span>
+    `;
+  }
 }
 function addGold(amount) {
   const cu = getCurrentUser();
   if (!cu) return;
-  cu.coins = (cu.coins ?? 0) + amount;
+  cu.coins = Math.max(0, (cu.coins ?? 0) + amount);
   setCurrentUser(cu);
   const players = getPlayers();
   const idx = players.findIndex(p => p.username === cu.username);
@@ -238,7 +225,6 @@ function xpPopup(text) {
   mainContent.appendChild(el);
   setTimeout(()=> el.remove(), 1100);
 }
-
 /* Variant helpers */
 const VALID_VARIANTS = new Set(['none','bronze','silver','gold','diamond','rainbow']);
 function normalizeVariantKey(v){
@@ -257,7 +243,6 @@ function prettyLabelFromKey(k){
     default: return '';
   }
 }
-
 /* Size tiers */
 const SIZE_TIERS = [
   { key:'micro', label:'Micro', chance:0.06, mult:0.75 },
@@ -277,7 +262,6 @@ function rollSizeTier(){
   }
   return { key:'normal', label:'', mult:1.0 };
 }
-
 /* Rod & Bait configurations */
 const ROD_TYPES = [
   {id: 'starter', name: 'Starter Rod', cost: 0, effects: {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0}},
@@ -286,7 +270,6 @@ const ROD_TYPES = [
   {id: 'carbon', name: 'Carbon Fiber Rod', cost: 400, effects: {zoneBonus: 10, wobbleMult: 0.82, driftMult: 0.93}},
   {id: 'master', name: 'Master Angler Rod', cost: 1200, effects: {zoneBonus: 15, wobbleMult: 0.75, driftMult: 0.88}}
 ];
-
 const BAIT_TYPES = [
   {id: 'none', name: 'No Bait', cost: 0, effects: {searchMult: 1.0, valueMult: 1.0, xpMult: 1.0}},
   {id: 'worm', name: 'Worms', cost: 5, effects: {searchMult: 0.95, valueMult: 1.0, xpMult: 1.0}},
@@ -295,7 +278,6 @@ const BAIT_TYPES = [
   {id: 'lure', name: 'Spinner Lure', cost: 60, effects: {searchMult: 0.85, valueMult: 1.1, xpMult: 1.1}},
   {id: 'powerbait', name: 'PowerBait', cost: 120, effects: {searchMult: 0.82, valueMult: 1.15, xpMult: 1.2}}
 ];
-
 /* Inventory */
 function getInventory() {
   const cu = getCurrentUser();
@@ -330,7 +312,6 @@ function getInventory() {
   if (JSON.stringify(raw) !== JSON.stringify(upgraded)) setInventory(upgraded);
   return upgraded;
 }
-
 function setInventory(newInv) {
   const cu = getCurrentUser();
   if (!cu) return;
@@ -340,7 +321,6 @@ function setInventory(newInv) {
   const idx = players.findIndex(p => p.username === cu.username);
   if (idx !== -1) { players[idx].items = newInv; savePlayers(players); }
 }
-
 /* Gear helpers */
 function getEquippedRod() {
   const inv = getInventory();
@@ -396,7 +376,6 @@ function equipItem(idx) {
   setInventory(inv);
   renderBackpack();
 }
-
 /* Showcase helpers */
 function getShowcaseItems() {
   return getInventory()
@@ -409,13 +388,13 @@ function setShowcaseForIndex(index, enabled) {
   inv[index].showcased = !!enabled;
   setInventory(inv);
 }
-
 /* Save catch */
 function saveCatchToUser(catchData) {
   if (typeof catchData === 'string') {
     const meta = lookupItemMeta(catchData);
     if (meta && meta.type === 'trash') {
-      addGold(meta.value || 0); return;
+      addGold(meta.value || 0); 
+      return; // Trash autosells
     }
     const inv = getInventory();
     inv.push({
@@ -441,7 +420,6 @@ function saveCatchToUser(catchData) {
   inv.push(item);
   setInventory(inv);
 }
-
 /* Starter gear */
 function ensureStarterGear() {
   let inv = getInventory();
@@ -477,7 +455,6 @@ function ensureStarterGear() {
   }
   setInventory(inv);
 }
-
 /* Difficulty + minigame params */
 const rarityConfig = {
   common: { zoneMin: 28, zoneMax: 72, drift: 0.25, wobble: 0.6, timeToLand: 2200 },
@@ -486,7 +463,6 @@ const rarityConfig = {
   epic: { zoneMin: 42, zoneMax: 58, drift: 0.75, wobble: 1.6, timeToLand: 5200 },
   legendary:{ zoneMin: 44, zoneMax: 56, drift: 0.95, wobble: 1.9, timeToLand: 6200 }
 };
-
 function weightedPick(table) {
   const total = table.reduce((a,c)=>a+c.weight,0);
   let roll = Math.random() * total;
@@ -495,7 +471,6 @@ function weightedPick(table) {
   }
   return table[0];
 }
-
 /* Variants + statuses */
 const VARIANT_BASES = [
   { key:'none', label:'', mult:1.00, chance:null, wobble:0, zoneNarrow:0, timeUp:0, driftUp:0 },
@@ -547,7 +522,6 @@ function renderStyledFishName(item) {
   const wrappedInner = sClass ? `<span class="${sClass}">${nameInner}</span>` : nameInner;
   return `<span class="size-wrap ${sizeClass}">${sizeTag}${wrappedInner}</span>`;
 }
-
 /* Auth */
 document.getElementById('signupButton').addEventListener('click', async () => {
   const email = document.getElementById('signup-email').value.trim();
@@ -563,7 +537,6 @@ document.getElementById('signupButton').addEventListener('click', async () => {
   signinForm.style.display = 'block';
   await refreshPlayersCache();
 });
-
 function ensureMasterRecord() {
   let players = getPlayers();
   let rec = players.find(p => p.username === "Llama");
@@ -591,11 +564,9 @@ function ensureMasterRecord() {
   }
   return rec;
 }
-
 document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
-
   // Master login - force clean record
   if (u === "Llama" && p === "Helloworld") {
     let rec = ensureMasterRecord();
@@ -614,7 +585,6 @@ document.getElementById('loginButton').addEventListener('click', async () => {
     launchGame(rec.username);
     return;
   }
-
   // Normal player login
   const snap = await getDoc(doc(db, "players", u));
   if (!snap.exists()) return alert("Invalid credentials!");
@@ -623,10 +593,8 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   setCurrentUser(user);
   launchGame(user.username);
 });
-
 /* Admin */
 function isMasterUser(u = getCurrentUser()) { return !!u && (u.username === 'Llama'); }
-
 function adminResetAllData() {
   if (!isMasterUser()) return;
   const sure = confirm("⚠ This will delete ALL saved players, items, coins, and progress on this device. Continue?");
@@ -638,7 +606,6 @@ function adminResetAllData() {
   alert("Local session cleared. (Server data remains.)");
   location.reload();
 }
-
 function renderAdminPanel() {
   const cu = getCurrentUser();
   if (!isMasterUser(cu)) {
@@ -646,10 +613,8 @@ function renderAdminPanel() {
     adminResetBtn.style.display = 'none';
     return;
   }
-
   const s = getStats();
   const coins = cu?.coins ?? 0;
-
   adminPanel.style.display = 'block';
   adminResetBtn.style.display = 'block';
   adminPanel.className = 'admin-panel';
@@ -675,7 +640,6 @@ function renderAdminPanel() {
   document.getElementById('goldMinus').onclick = () => setGold((cu?.coins ?? 0) - 100);
   adminResetBtn.onclick = adminResetAllData;
 }
-
 function launchGame(username) {
   overlay.style.display = 'none';
   title.style.display = 'none';
@@ -690,7 +654,6 @@ function launchGame(username) {
   updateGoldHud();
   renderAdminPanel();
 }
-
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('currentUser');
   gameContainer.style.display = 'none';
@@ -701,7 +664,6 @@ logoutBtn.addEventListener('click', () => {
   adminResetBtn.style.display = 'none';
   adminPanel.style.display = 'none';
 });
-
 /* Init */
 (async function init(){
   await refreshPlayersCache();
@@ -720,7 +682,6 @@ logoutBtn.addEventListener('click', () => {
     showUnlockModal('Stream');
   }
 })();
-
 /* Pond & Stream tables */
 const pondTable = [
   { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4 },
@@ -738,7 +699,6 @@ const pondTable = [
   { name: "Broken Glass", type: "trash", weight: 5, value: 1 },
   { name: "Rusty Hook", type: "trash", weight: 5, value: 1 }
 ];
-
 const streamTable = [
   { name: "Creek Chub", type: "fish", weight: 10, rarity: "common", value: 4 },
   { name: "Fallfish", type: "fish", weight: 10, rarity: "common", value: 4 },
@@ -758,11 +718,9 @@ const streamTable = [
   { name: "Torn Fishing Net", type: "trash", weight: 8, value: 1 },
   { name: "Muddy Bottle", type: "trash", weight: 9, value: 1 }
 ];
-
 function lookupItemMeta(name) {
   return pondTable.find(i => i.name === name) || streamTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
 }
-
 /* Navigation */
 document.getElementById('fishingSpotBtn').addEventListener('click', () => {
   const s = getStats();
@@ -782,12 +740,10 @@ document.getElementById('fishingSpotBtn').addEventListener('click', () => {
     streamBtn.addEventListener('click', () => alert('Locked: Reach Level 10 to access the Stream.'));
   }
 });
-
 document.getElementById('leaderboardBtn').addEventListener('click', renderLeaderboard);
 document.getElementById('homeBtn').addEventListener('click', renderHome);
 document.getElementById('backpackBtn').addEventListener('click', renderBackpack);
 document.getElementById('shopBtn').addEventListener('click', renderShopMenu);
-
 /* Home */
 function renderHome() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -805,7 +761,6 @@ function renderHome() {
   document.getElementById('showcaseBtn').onclick = renderShowcase;
   document.getElementById('nurseryBtn').onclick = renderNursery;
 }
-
 /* Showcase */
 function renderShowcase() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -870,7 +825,6 @@ function renderShowcase() {
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
 }
-
 /* Nursery (placeholder) */
 function renderNursery() {
   const coins = getCurrentUser()?.coins ?? 0;
@@ -932,7 +886,6 @@ function renderNursery() {
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
 }
-
 /* Player Profile */
 function showPlayerProfile(username){
   const p = (getPlayers() || []).find(q => q.username === username);
@@ -964,7 +917,6 @@ function showPlayerProfile(username){
   const outsideHandler = (e) => { if (e.target === ov) close(); };
   ov.addEventListener('click', outsideHandler, { once: true });
 }
-
 /* Leaderboard */
 async function renderLeaderboard() {
   await refreshPlayersCache();
@@ -1005,7 +957,6 @@ async function renderLeaderboard() {
     </div>`;
   updateGoldHud();
 }
-
 /* Pond */
 function showPond() {
   mainContent.innerHTML = `
@@ -1030,7 +981,6 @@ function showPond() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-
   let spaceRecastKeydown = null;
   function setSpaceRecast(handler) {
     if (spaceRecastKeydown) {
@@ -1044,7 +994,6 @@ function showPond() {
       window.addEventListener('keydown', spaceRecastKeydown);
     }
   }
-
   const runCastCycle = async () => {
     setSpaceRecast(null);
     castRow.style.display = 'none';
@@ -1052,14 +1001,11 @@ function showPond() {
     status.textContent = "Watching for ripples...";
     searchProg.style.display = 'block';
     searchFill.style.width = '0%';
-
     const baitEffects = getEquippedBaitEffects();
     const baseWait = 1000 + Math.random()*2000;
     const waitMs = Math.max(350, baseWait * baitEffects.searchMult);
-
     await animateProgress(searchFill, waitMs);
     searchProg.style.display = 'none';
-
     const hooked = weightedPick(pondTable);
     if (hooked.type === 'trash') {
       status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
@@ -1070,11 +1016,9 @@ function showPond() {
       setSpaceRecast(runCastCycle);
       return;
     }
-
     const vr = buildVariantResult();
     const statusLabel = vr.status ? vr.status.label : '';
     const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
-
     const rodEffects = getEquippedRodEffects();
     const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
     const width = (cfg.zoneMax - cfg.zoneMin);
@@ -1084,9 +1028,7 @@ function showPond() {
     cfg.wobble = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
-
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
-
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
         const sz = rollSizeTier();
@@ -1119,11 +1061,12 @@ function showPond() {
       }
     });
   };
-
   if (castBtn) castBtn.onclick = runCastCycle;
 }
-
 /* Stream */
+function isStreamUnlocked() {
+  return getStats().level >= 10;
+}
 function showStream() {
   if (!isStreamUnlocked()) {
     alert('Locked: Reach Level 10 to access the Stream.');
@@ -1151,7 +1094,6 @@ function showStream() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-
   let spaceRecastKeydown = null;
   function setSpaceRecast(handler) {
     if (spaceRecastKeydown) {
@@ -1165,7 +1107,6 @@ function showStream() {
       window.addEventListener('keydown', spaceRecastKeydown);
     }
   }
-
   const runCastCycle = async () => {
     setSpaceRecast(null);
     castRow.style.display = 'none';
@@ -1173,14 +1114,11 @@ function showStream() {
     status.textContent = "Scanning the fast current...";
     searchProg.style.display = 'block';
     searchFill.style.width = '0%';
-
     const baitEffects = getEquippedBaitEffects();
     const baseWait = 1000 + Math.random()*2000;
     const waitMs = Math.max(350, baseWait * baitEffects.searchMult);
-
     await animateProgress(searchFill, waitMs);
     searchProg.style.display = 'none';
-
     const hooked = weightedPick(streamTable);
     if (hooked.type === 'trash') {
       status.innerHTML = `You snagged <b>${hooked.name}</b> (+${hooked.value}g).`;
@@ -1191,11 +1129,9 @@ function showStream() {
       setSpaceRecast(runCastCycle);
       return;
     }
-
     const vr = buildVariantResult();
     const statusLabel = vr.status ? vr.status.label : '';
     const cfg = { ...(rarityConfig[hooked.rarity] || rarityConfig.common) };
-
     const rodEffects = getEquippedRodEffects();
     const zoneCenter = (cfg.zoneMin + cfg.zoneMax)/2;
     const width = (cfg.zoneMax - cfg.zoneMin);
@@ -1205,9 +1141,7 @@ function showStream() {
     cfg.wobble = cfg.wobble * (1 + vr.diff.wobble) * 1.10;
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
-
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
-
     startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
       if (success) {
         const sz = rollSizeTier();
@@ -1240,10 +1174,8 @@ function showStream() {
       }
     });
   };
-
   if (castBtn) castBtn.onclick = runCastCycle;
 }
-
 /* Minigame */
 async function animateProgress(fillEl, durationMs){
   const start = performance.now();
@@ -1256,7 +1188,6 @@ async function animateProgress(fillEl, durationMs){
     requestAnimationFrame(step);
   });
 }
-
 function startReelMinigame(container, fish, onDone) {
   const cfg = rarityConfig[fish.rarity] || rarityConfig.common;
   const rodEffects = getEquippedRodEffects();
@@ -1268,7 +1199,6 @@ function startReelMinigame(container, fish, onDone) {
   eff.zoneMax = Math.min(95, center + width / 2);
   eff.wobble = Math.max(0.25, eff.wobble * (rodEffects.wobbleMult || 1));
   eff.drift *= (rodEffects.driftMult || 1);
-
   const START_PROGRESS_FRAC = 0.45;
   container.innerHTML = `
     <div class="progress" id="landProg"><div class="progress-fill" id="landFill"></div></div>
@@ -1283,10 +1213,8 @@ function startReelMinigame(container, fish, onDone) {
   const landFill = document.getElementById('landFill');
   zone.style.left = eff.zoneMin + '%';
   zone.style.width = (eff.zoneMax - eff.zoneMin) + '%';
-
   let tension = 50, holding = false, lastTs = performance.now(), timer;
   let progress = Math.round(eff.timeToLand * START_PROGRESS_FRAC);
-
   const onHold = () => { holding = true; };
   const onRelease = () => { holding = false; };
   reelBtn.addEventListener('mousedown', onHold);
@@ -1294,18 +1222,15 @@ function startReelMinigame(container, fish, onDone) {
   reelBtn.addEventListener('mouseleave', onRelease);
   reelBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onHold(); }, {passive:false});
   reelBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); onRelease(); }, {passive:false});
-
   const onKeyDown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; } };
   const onKeyUp = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; } };
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
-
   function cleanup() {
     cancelAnimationFrame(timer);
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
   }
-
   function step(ts) {
     const dt = Math.min(50, ts - lastTs);
     lastTs = ts;
@@ -1316,31 +1241,25 @@ function startReelMinigame(container, fish, onDone) {
     tension = Math.max(0, Math.min(100, tension));
     fill.style.left = (tension - 10) + '%';
     fill.style.width = '20%';
-
     const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
     const FILL_RATE = 1.00;
     const DRAIN_RATE = 0.90;
     progress += inZone ? (dt * FILL_RATE) : (-dt * DRAIN_RATE);
     if (progress < 0) progress = 0;
     if (progress > eff.timeToLand) progress = eff.timeToLand;
-
     const pct = Math.max(0, Math.min(100, (progress / eff.timeToLand) * 100));
     landFill.style.width = pct.toFixed(1) + '%';
-
     if (progress >= eff.timeToLand) return end(true);
     if (progress <= 0) return end(false);
-
     timer = requestAnimationFrame(step);
   }
   timer = requestAnimationFrame(step);
-
   function end(success) {
     cleanup();
     reelBtn.disabled = true;
     setTimeout(()=>onDone(success, reelBtn), 120);
   }
 }
-
 function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
   const cfgKey = fish.rarity;
   const tempKey = `__temp_${cfgKey}`;
@@ -1351,27 +1270,22 @@ function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
     onDone(ok, btn);
   });
 }
-
 /* Backpack - three sections */
 function friendlyMeta(item) {
   if (item.type === 'gear-rod') return `Rod Gear`;
   if (item.type === 'gear-bait') return `Bait Gear`;
   return `${item.type}${item.value ? ` · ${item.value}g` : ''}`;
 }
-
 function renderBackpack() {
   const full = getInventory();
   const inv = full
     .map((it, original) => ({ ...it, _idx: original }))
     .filter(i => i.showcased !== true);
-
   const coins = getCurrentUser()?.coins ?? 0;
-
   // Split into three groups
   const rods = inv.filter(i => i.type === 'gear-rod');
   const baits = inv.filter(i => i.type === 'gear-bait');
   const fish = inv.filter(i => i.type !== 'gear-rod' && i.type !== 'gear-bait');
-
   // Rods section
   const rodRows = rods.map(item => {
     const isEquipped = item.equipped;
@@ -1382,7 +1296,6 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-
   // Baits section
   const baitRows = baits.map(item => {
     const isEquipped = item.equipped;
@@ -1393,7 +1306,6 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-
   // Fish section
   const fishRows = fish.map(item => {
     const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
@@ -1408,44 +1320,50 @@ function renderBackpack() {
         </div>
       </div>`;
   }).join('');
-
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="bp-wrap">
       <h2>🎒 Backpack</h2>
-
       <div class="bp-section">
         <h3>🪝 Rods</h3>
         <div class="scroll-panel">
           ${rodRows || '<p class="small" style="opacity:.85;">No rods yet.</p>'}
         </div>
       </div>
-
       <div class="bp-section">
         <h3>🪱 Baits</h3>
         <div class="scroll-panel">
           ${baitRows || '<p class="small" style="opacity:.85;">No baits yet.</p>'}
         </div>
       </div>
-
       <div class="bp-section">
         <h3>🐟 Fish</h3>
         <div class="scroll-panel">
           ${fishRows || '<p class="small" style="opacity:.85;">No fish yet.</p>'}
         </div>
       </div>
-
       <div class="bp-hint">
-        Tip: Showcased fish are hidden here and can’t be sold until you remove them from 🖼 Showcase.
+        Tip: Showcased fish are hidden here and can't be sold until you remove them from 🖼 Showcase.
       </div>
     </div>`;
   updateGoldHud();
 }
-
 /* Shop */
-function isSellable(item) { return (item && item.showcased !== true && !item.favorite && (item.type === 'fish' || item.type === 'trash')); }
+function isSellable(item) { 
+  return (item && item.showcased !== true && !item.favorite && 
+          (item.type === 'fish' || (item.type === 'trash' && item.name))); // Trash must have name to be valid
+}
 function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
-
+function canAfford(cost){ return (getCurrentUser()?.coins ?? 0) >= cost; }
+function spendGold(amount){
+  const cu = getCurrentUser(); if (!cu) return false;
+  if ((cu.coins ?? 0) < amount) return false;
+  cu.coins = Math.max(0, (cu.coins ?? 0) - amount); // Prevent negative
+  setCurrentUser(cu);
+  const players = getPlayers(); const idx = players.findIndex(p => p.username === cu.username);
+  if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
+  updateGoldHud(); return true;
+}
 function renderShopMenu() {
   const coins = getCurrentUser()?.coins ?? 0;
   mainContent.innerHTML = `
@@ -1462,23 +1380,11 @@ function renderShopMenu() {
   document.getElementById('buyBtn').addEventListener('click', showBuy);
   document.getElementById('sellBtn').addEventListener('click', showSell);
 }
-
-function canAfford(cost){ return (getCurrentUser()?.coins ?? 0) >= cost; }
-function spendGold(amount){
-  const cu = getCurrentUser(); if (!cu) return false;
-  if ((cu.coins ?? 0) < amount) return false;
-  cu.coins -= amount; setCurrentUser(cu);
-  const players = getPlayers(); const idx = players.findIndex(p => p.username === cu.username);
-  if (idx !== -1) { players[idx].coins = cu.coins; savePlayers(players); }
-  updateGoldHud(); return true;
-}
-
 function showBuy() {
   const coins = getCurrentUser()?.coins ?? 0;
   const inv = getInventory();
   const ownedRods = new Set(inv.filter(i => i.type === 'gear-rod').map(i => i.gearId));
   const ownedBaits = new Set(inv.filter(i => i.type === 'gear-bait').map(i => i.gearId));
-
   const rodRows = ROD_TYPES.filter(r => r.id !== 'starter').map(r => {
     const owned = ownedRods.has(r.id);
     const disabled = owned || coins < r.cost ? 'disabled' : '';
@@ -1489,7 +1395,6 @@ function showBuy() {
         <button class="buy-btn" data-type="rod" data-id="${r.id}" ${disabled}>${owned ? 'Owned' : 'Buy'}</button>
       </div>`;
   }).join('');
-
   const baitRows = BAIT_TYPES.filter(b => b.id !== 'none').map(b => {
     const owned = ownedBaits.has(b.id);
     const disabled = owned || coins < b.cost ? 'disabled' : '';
@@ -1500,7 +1405,6 @@ function showBuy() {
         <button class="buy-btn" data-type="bait" data-id="${b.id}" ${disabled}>${owned ? 'Owned' : 'Buy'}</button>
       </div>`;
   }).join('');
-
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="shop-wrap">
@@ -1521,16 +1425,15 @@ function showBuy() {
   updateGoldHud();
   document.getElementById('backToShop').onclick = renderShopMenu;
 }
-
 function showSell() {
   const coins = getCurrentUser()?.coins ?? 0;
   const inv = getInventory();
   const sellable = inv.map((it, idx) => ({...it, _idx: idx})).filter(it => isSellable(it));
   const list = sellable.map(it => `
-    <div class="sell-row">
+    <div class="sell-row" data-idx="${it._idx}">
       <div><strong>${renderStyledFishName(it)}</strong> <span style="opacity:.85">· ${it.type}</span></div>
       <div>${sellValue(it)}g</div>
-      <button data-idx="${it._idx}" class="sell-one-btn">Sell</button>
+      <button class="sell-one-btn">Sell</button>
     </div>`).join('');
   const totalGold = sellable.reduce((a,c)=>a+sellValue(c),0);
   mainContent.innerHTML = `
@@ -1542,7 +1445,7 @@ function showSell() {
         <button id="sellAllBtnTop" ${sellable.length ? '' : 'disabled'}>Sell All</button>
       </div>
       ${sellable.length ? `<div class="sell-list scroll-panel">${list}</div>`
-                        : `<p>No sellable items. Favorited or Showcased fish are protected, and gear can’t be sold.</p>`}
+                        : `<p>No sellable items. Favorited or Showcased fish are protected, and gear can't be sold.</p>`}
       <div class="sell-summary">
         <p>Total (non-favorited, non-showcased, sellable): <strong>${totalGold}g</strong></p>
         <div class="row"><button id="sellAllBtn" ${sellable.length ? '' : 'disabled'}>Sell All</button></div>
@@ -1556,7 +1459,6 @@ function showSell() {
   if (sellAllTop) sellAllTop.onclick = sellAllHandler;
   if (sellAllBottom) sellAllBottom.onclick = sellAllHandler;
 }
-
 /* Sell functions */
 function sellSingle(indexInInventory) {
   const inv = getInventory();
@@ -1569,7 +1471,6 @@ function sellSingle(indexInInventory) {
   addGold(value);
   showSell();
 }
-
 function sellAll() {
   const inv = getInventory();
   let earned = 0; const remaining = [];
@@ -1582,32 +1483,36 @@ function sellAll() {
   addGold(earned);
   showSell();
 }
-
+/* Favorite toggle */
+function toggleFavorite(indexInInventory) {
+  const inv = getInventory();
+  const item = inv[indexInInventory];
+  if (!item) return;
+  item.favorite = !item.favorite;
+  setInventory(inv);
+  renderBackpack(); // refresh the backpack view
+}
 /* EVENT DELEGATION - fixes all button issues */
 document.addEventListener('click', (e) => {
   const target = e.target;
-
   if (target.classList.contains('heart-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
     if (!isNaN(idx)) toggleFavorite(idx);
     return;
   }
-
   if (target.classList.contains('equip-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
     if (!isNaN(idx)) equipItem(idx);
     return;
   }
-
   if (target.classList.contains('sell-one-btn')) {
     const row = target.closest('.sell-row');
     const idx = Number(row?.dataset.idx);
     if (!isNaN(idx)) sellSingle(idx);
     return;
   }
-
   if (target.classList.contains('sc-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1621,7 +1526,6 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
-
   if (target.classList.contains('remove-btn')) {
     const row = target.closest('.displayed-row');
     const idx = Number(row?.dataset.idx);
@@ -1631,7 +1535,6 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
-
   if (target.classList.contains('buy-btn')) {
     const type = target.dataset.type;
     const id = target.dataset.id;
@@ -1641,7 +1544,6 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
-
   if (target.classList.contains('lb-player')) {
     e.preventDefault();
     const username = target.dataset.username;
@@ -1649,7 +1551,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
-
 // Right-click favorite toggle
 document.addEventListener('contextmenu', (e) => {
   const row = e.target.closest('.bp-row');
