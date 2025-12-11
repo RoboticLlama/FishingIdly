@@ -165,3 +165,33 @@ thead .col-xp { display:none; }
 .size-big .fish-name { font-size:1.05em; }
 .size-queen .fish-name { font-size:1.08em; }
 .size-king .fish-name { font-size:1.12em; }
+.equip-btn {
+  padding: .3rem .6rem;
+  background: #5bc0be;
+  color: #1b2735;
+  border: none;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: auto;
+  transition: all .2s;
+}
+.equip-btn:hover:not(:disabled) {
+  background: #3a506b;
+  color: #e0e0e0;
+}
+.equip-btn:disabled {
+  background: #2b394d;
+  color: #9aa7b7;
+  cursor: not-allowed;
+}
+.equipped-badge {
+  background: rgba(91,192,190,.4);
+  color: #5bc0be;
+  padding: .15em .4em;
+  border-radius: 4px;
+  font-size: .8rem;
+  font-weight: 600;
+  margin-left: .5em;
+}
