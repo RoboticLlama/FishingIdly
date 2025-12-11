@@ -155,16 +155,17 @@ thead .col-xp { display:none; }
 .board-table a.lb-player:visited { color:#e0e0e0; }
 .board-table a.lb-player:hover, .board-table a.lb-player:focus { color:#5bc0be; outline:none; }
 .size-wrap { display:inline-flex; align-items:center; gap:6px; }
-.size-tag { display:inline-block; line-height:1; }
-.size-micro .size-tag::before { content:"🤹"; }
-.size-queen .size-tag::before { content:"♛"; color:#c0c0c0; }
-.size-king .size-tag::before { content:"👑"; }
-.size-micro .fish-name { font-size:0.90em; }
-.size-small .fish-name { font-size:0.95em; }
-.size-normal .fish-name { font-size:1.00em; }
-.size-big .fish-name { font-size:1.05em; }
-.size-queen .fish-name { font-size:1.08em; }
-.size-king .fish-name { font-size:1.12em; }
+.size-label {
+  font-size: 0.85em;
+  opacity: 0.75;
+  margin-right: 4px;
+  vertical-align: middle;
+  font-weight: normal;
+}
+.size-big .fish-name     { font-size: 1.05em; }
+.size-colossal .fish-name { font-size: 1.10em; }
+.size-monstrous .fish-name{ font-size: 1.20em; }
+.size-normal .fish-name { font-size: 1.00em; }
 .equip-btn {
   padding: .3rem .6rem;
   background: #5bc0be;
