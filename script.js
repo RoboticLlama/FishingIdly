@@ -27,10 +27,13 @@ async function refreshPlayersCache() {
   playersCache = snap.docs.map(d => d.data());
 }
 
+// Remove undefined values (Firestore does NOT allow them)
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
-    if (cleaned[key] === undefined) delete cleaned[key];
+    if (cleaned[key] === undefined) {
+      delete cleaned[key];
+    }
   });
   return cleaned;
 }
@@ -584,7 +587,7 @@ document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
 
-  // Master login check
+  // Master login
   if (u === "Llama" && p === "Helloworld") {
     const rec = ensureMasterRecord();
     setCurrentUser(rec);
