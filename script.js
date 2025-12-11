@@ -248,7 +248,7 @@ function prettyLabelFromKey(k){
   }
 }
 
-/* New Size Tiers */
+/* Size Tiers */
 function rollSizeTier(fishMeta) {
   const avgWeight = (fishMeta.minWeight + fishMeta.baseWeight) / 2;
   let rawWeight = fishMeta.minWeight + Math.random() * (fishMeta.baseWeight - fishMeta.minWeight);
@@ -276,7 +276,7 @@ function rollSizeTier(fishMeta) {
   };
 }
 
-/* Rod & Bait configurations */
+/* Rod & Bait */
 const ROD_TYPES = [
   {id: 'starter', name: 'Starter Rod', cost: 0, effects: {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0}},
   {id: 'bamboo', name: 'Bamboo Rod', cost: 50, effects: {zoneBonus: 3, wobbleMult: 0.95, driftMult: 1.0}},
@@ -353,7 +353,7 @@ function getEquippedBait() {
 }
 function getEquippedBaitEffects() {
   const bait = getEquippedBait();
-  return bait ? bait.effects : {searchMult: 1.0, valueMult: 1.0, xpMult: 1.0};
+  return bait ? bait.effects : { searchMult: 1.0, valueMult: 1.0, xpMult: 1.0 };
 }
 function buyGear(gearType, gearId) {
   const types = gearType === 'rod' ? ROD_TYPES : BAIT_TYPES;
@@ -1016,11 +1016,12 @@ function showPond() {
   const backBtn = document.getElementById('backToSpots');
   const status = document.getElementById('pondStatus');
   const area = document.getElementById('minigameArea');
-  const searchProg= document.getElementById('searchProg');
-  const searchFill= document.getElementById('searchFill');
+  const searchProg = document.getElementById('searchProg');
+  const searchFill = document.getElementById('searchFill');
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
   const runCastCycle = async () => {
     castRow.style.display = 'none';
     area.innerHTML = '';
@@ -1112,11 +1113,12 @@ function showStream() {
   const backBtn = document.getElementById('backToSpots');
   const status = document.getElementById('streamStatus');
   const area = document.getElementById('minigameArea');
-  const searchProg= document.getElementById('searchProg');
-  const searchFill= document.getElementById('searchFill');
+  const searchProg = document.getElementById('searchProg');
+  const searchFill = document.getElementById('searchFill');
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
+
   const runCastCycle = async () => {
     castRow.style.display = 'none';
     area.innerHTML = '';
@@ -1203,8 +1205,8 @@ function startReelMinigame(container, fish, onDone) {
   const width = (eff.zoneMax - eff.zoneMin) + (rodEffects.zoneBonus || 0);
   eff.zoneMin = Math.max(5, center - width / 2);
   eff.zoneMax = Math.min(95, center + width / 2);
-  eff.wobble *= (rodEffects.wobbleMult || 1);
-  eff.drift *= (rodEffects.driftMult || 1);
+  eff.wobble *= (rodEffects.wobbleMult ?? 1);
+  eff.drift *= (rodEffects.driftMult ?? 1);
   eff.wobble = Math.max(0.25, eff.wobble);
 
   container.innerHTML = `
