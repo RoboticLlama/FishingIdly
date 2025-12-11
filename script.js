@@ -248,13 +248,11 @@ function prettyLabelFromKey(k){
   }
 }
 
-/* New Size Tiers (no icons) */
+/* New Size Tiers */
 function rollSizeTier(fishMeta) {
   const avgWeight = (fishMeta.minWeight + fishMeta.baseWeight) / 2;
   let rawWeight = fishMeta.minWeight + Math.random() * (fishMeta.baseWeight - fishMeta.minWeight);
   let mult = rawWeight / avgWeight;
-
-  // 7% chance of major boost
   if (Math.random() < 0.07) {
     const isMinorBoost = Math.random() < 0.5;
     const boostMax = isMinorBoost ? 1.5 : 2.1;
@@ -262,24 +260,14 @@ function rollSizeTier(fishMeta) {
     rawWeight *= boost;
     mult *= boost;
   }
-
   let tier = 'normal';
   let sizeLabel = '';
-
-  if (mult < 0.75) {
-    tier = 'micro'; sizeLabel = 'Micro';
-  } else if (mult < 0.95) {
-    tier = 'small'; sizeLabel = 'Small';
-  } else if (mult < 1.1) {
-    tier = 'normal';
-  } else if (mult < 1.45) {
-    tier = 'big'; sizeLabel = 'Big';
-  } else if (mult < 1.8) {
-    tier = 'colossal'; sizeLabel = 'Colossal';
-  } else {
-    tier = 'monstrous'; sizeLabel = 'Monstrous';
-  }
-
+  if (mult < 0.75) { tier = 'micro'; sizeLabel = 'Micro'; }
+  else if (mult < 0.95) { tier = 'small'; sizeLabel = 'Small'; }
+  else if (mult < 1.1) { tier = 'normal'; }
+  else if (mult < 1.45) { tier = 'big'; sizeLabel = 'Big'; }
+  else if (mult < 1.8) { tier = 'colossal'; sizeLabel = 'Colossal'; }
+  else { tier = 'monstrous'; sizeLabel = 'Monstrous'; }
   return {
     key: tier,
     label: sizeLabel,
@@ -547,26 +535,22 @@ function buildVariantResult() {
   return { base, status, totalMult, diff };
 }
 
-/* Styled Fish Name – Size before name only when not normal */
+/* Styled Fish Name */
 function renderStyledFishName(item) {
   const baseKey = normalizeVariantKey(item.variantBaseKey || item.variantBase || item.variant || item.variantBaseLabel);
   const statusKey = (item.statusLabel ? item.statusLabel.toLowerCase() : '').replace(/\s+/g,'');
   const sizeKey = (item.sizeKey || 'normal').toLowerCase();
   const validSizes = ['micro','small','normal','big','colossal','monstrous'];
   const safeSize = validSizes.includes(sizeKey) ? sizeKey : 'normal';
-
   const sizeClass = `size-${safeSize}`;
   const vClass = baseKey && baseKey !== 'none' ? `variant-${baseKey}` : '';
   const sClass = statusKey ? `status-${statusKey}` : '';
-
   const nameInner = vClass ? `<span class="${vClass} fish-name">${item.name}</span>` : `<span class="fish-name">${item.name}</span>`;
   const wrappedInner = sClass ? `<span class="${sClass}">${nameInner}</span>` : nameInner;
-
   let sizeLabel = '';
   if (safeSize !== 'normal') {
     sizeLabel = `<span class="size-label">${item.sizeLabel}</span> `;
   }
-
   return `<span class="size-wrap ${sizeClass}">${sizeLabel}${wrappedInner}</span>`;
 }
 
@@ -731,7 +715,7 @@ logoutBtn.addEventListener('click', () => {
   }
 })();
 
-/* Pond & Stream tables – now with realistic weights (in lb) */
+/* Pond & Stream tables */
 const pondTable = [
   { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.8 },
   { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.2, baseWeight: 1.0 },
@@ -748,7 +732,6 @@ const pondTable = [
   { name: "Broken Glass", type: "trash", weight: 5, value: 1 },
   { name: "Rusty Hook", type: "trash", weight: 5, value: 1 }
 ];
-
 const streamTable = [
   { name: "Creek Chub", type: "fish", weight: 10, rarity: "common", value: 4, minWeight: 0.05, baseWeight: 0.3 },
   { name: "Fallfish", type: "fish", weight: 10, rarity: "common", value: 4, minWeight: 0.1, baseWeight: 0.5 },
@@ -768,7 +751,6 @@ const streamTable = [
   { name: "Torn Fishing Net", type: "trash", weight: 8, value: 1 },
   { name: "Muddy Bottle", type: "trash", weight: 9, value: 1 }
 ];
-
 function lookupItemMeta(name) {
   return pondTable.find(i => i.name === name) || streamTable.find(i => i.name === name) || { name, type:'unknown', value:0, rarity:'common' };
 }
@@ -1028,7 +1010,7 @@ function showPond() {
       <div class="progress" id="searchProg" style="display:none;"><div class="progress-fill" id="searchFill"></div></div>
       <div class="row" id="castRow"><button id="castBtn">Cast</button></div>
       <div id="minigameArea" style="margin-top:14px;"></div>
-      <div class="small" style="margin-top:10px;">Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.</div>
+      <div class="small" style="margin-top:10px;">Drag on the meter (or ← → arrows) to keep the blue bar in the green zone!</div>
     </div>`;
   updateGoldHud();
   const backBtn = document.getElementById('backToSpots');
@@ -1039,21 +1021,7 @@ function showPond() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-  let spaceRecastKeydown = null;
-  function setSpaceRecast(handler) {
-    if (spaceRecastKeydown) {
-      window.removeEventListener('keydown', spaceRecastKeydown);
-      spaceRecastKeydown = null;
-    }
-    if (handler) {
-      spaceRecastKeydown = (e) => {
-        if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); }
-      };
-      window.addEventListener('keydown', spaceRecastKeydown);
-    }
-  }
   const runCastCycle = async () => {
-    setSpaceRecast(null);
     castRow.style.display = 'none';
     area.innerHTML = '';
     status.textContent = "Watching for ripples...";
@@ -1071,7 +1039,6 @@ function showPond() {
       addXP(1);
       area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
       document.getElementById('recastBtn').onclick = runCastCycle;
-      setSpaceRecast(runCastCycle);
       return;
     }
     const vr = buildVariantResult();
@@ -1087,7 +1054,7 @@ function showPond() {
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
-    startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
+    startReelMinigameWithConfig(area, hooked, cfg, (success) => {
       if (success) {
         const sz = rollSizeTier(hooked);
         const baseValue = hooked.value || 0;
@@ -1112,18 +1079,8 @@ function showPond() {
       } else {
         status.innerHTML = `<span class="fail">It got away!</span>`;
       }
-      if (reelBtnRef) {
-        reelBtnRef.textContent = 'Recast';
-        reelBtnRef.disabled = false;
-        reelBtnRef.onmousedown = null; reelBtnRef.onmouseup = null; reelBtnRef.onmouseleave = null;
-        reelBtnRef.ontouchstart = null; reelBtnRef.ontouchend = null;
-        reelBtnRef.onclick = () => runCastCycle();
-        setSpaceRecast(runCastCycle);
-      } else {
-        area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
-        document.getElementById('recastBtn').onclick = runCastCycle;
-        setSpaceRecast(runCastCycle);
-      }
+      area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+      document.getElementById('recastBtn').onclick = runCastCycle;
     });
   };
   if (castBtn) castBtn.onclick = runCastCycle;
@@ -1149,7 +1106,7 @@ function showStream() {
       <div class="progress" id="searchProg" style="display:none;"><div class="progress-fill" id="searchFill"></div></div>
       <div class="row" id="castRow"><button id="castBtn">Cast</button></div>
       <div id="minigameArea" style="margin-top:14px;"></div>
-      <div class="small" style="margin-top:10px;">Tip: Hold <b>Reel</b> (or <b>Space</b>) to raise tension; release to let it fall.</div>
+      <div class="small" style="margin-top:10px;">Drag on the meter (or ← → arrows) to keep the blue bar in the green zone!</div>
     </div>`;
   updateGoldHud();
   const backBtn = document.getElementById('backToSpots');
@@ -1160,21 +1117,7 @@ function showStream() {
   const castRow = document.getElementById('castRow');
   const castBtn = document.getElementById('castBtn');
   if (backBtn) backBtn.onclick = () => document.getElementById('fishingSpotBtn').click();
-  let spaceRecastKeydown = null;
-  function setSpaceRecast(handler) {
-    if (spaceRecastKeydown) {
-      window.removeEventListener('keydown', spaceRecastKeydown);
-      spaceRecastKeydown = null;
-    }
-    if (handler) {
-      spaceRecastKeydown = (e) => {
-        if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); handler(); }
-      };
-      window.addEventListener('keydown', spaceRecastKeydown);
-    }
-  }
   const runCastCycle = async () => {
-    setSpaceRecast(null);
     castRow.style.display = 'none';
     area.innerHTML = '';
     status.textContent = "Scanning the fast current...";
@@ -1192,7 +1135,6 @@ function showStream() {
       addXP(1);
       area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
       document.getElementById('recastBtn').onclick = runCastCycle;
-      setSpaceRecast(runCastCycle);
       return;
     }
     const vr = buildVariantResult();
@@ -1208,7 +1150,7 @@ function showStream() {
     cfg.drift = (cfg.drift || 0.35) * (1 + vr.diff.driftUp) * 1.10;
     cfg.timeToLand = Math.round(cfg.timeToLand * (1 + vr.diff.timeUp));
     status.innerHTML = `Bite! Keep the tension in the zone to land it!`;
-    startReelMinigameWithConfig(area, hooked, cfg, (success, reelBtnRef) => {
+    startReelMinigameWithConfig(area, hooked, cfg, (success) => {
       if (success) {
         const sz = rollSizeTier(hooked);
         const baseValue = hooked.value || 0;
@@ -1233,18 +1175,8 @@ function showStream() {
       } else {
         status.innerHTML = `<span class="fail">It got away!</span>`;
       }
-      if (reelBtnRef) {
-        reelBtnRef.textContent = 'Recast';
-        reelBtnRef.disabled = false;
-        reelBtnRef.onmousedown = null; reelBtnRef.onmouseup = null; reelBtnRef.onmouseleave = null;
-        reelBtnRef.ontouchstart = null; reelBtnRef.ontouchend = null;
-        reelBtnRef.onclick = () => runCastCycle();
-        setSpaceRecast(runCastCycle);
-      } else {
-        area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
-        document.getElementById('recastBtn').onclick = runCastCycle;
-        setSpaceRecast(runCastCycle);
-      }
+      area.innerHTML = `<div class="row"><button id="recastBtn">Recast</button></div>`;
+      document.getElementById('recastBtn').onclick = runCastCycle;
     });
   };
   if (castBtn) castBtn.onclick = runCastCycle;
@@ -1262,90 +1194,140 @@ async function animateProgress(fillEl, durationMs){
     requestAnimationFrame(step);
   });
 }
+
 function startReelMinigame(container, fish, onDone) {
   const cfg = rarityConfig[fish.rarity] || rarityConfig.common;
   const rodEffects = getEquippedRodEffects();
   const eff = { ...cfg };
-  const widen = rodEffects.zoneBonus || 0;
   const center = (eff.zoneMin + eff.zoneMax) / 2;
-  const width = (eff.zoneMax - eff.zoneMin) + widen;
+  const width = (eff.zoneMax - eff.zoneMin) + (rodEffects.zoneBonus || 0);
   eff.zoneMin = Math.max(5, center - width / 2);
   eff.zoneMax = Math.min(95, center + width / 2);
-  eff.wobble = Math.max(0.25, eff.wobble * (rodEffects.wobbleMult || 1));
+  eff.wobble *= (rodEffects.wobbleMult || 1);
   eff.drift *= (rodEffects.driftMult || 1);
-  const START_PROGRESS_FRAC = 0.45;
+  eff.wobble = Math.max(0.25, eff.wobble);
+
   container.innerHTML = `
     <div class="progress" id="landProg"><div class="progress-fill" id="landFill"></div></div>
     <div class="meter" id="meter">
       <div class="meter-zone" id="zone"></div>
       <div class="meter-fill" id="fill"></div>
     </div>
-    <div class="row"><button id="reelBtn">Reel</button></div>`;
-  const reelBtn = document.getElementById('reelBtn');
+    <div id="controlHint" class="small">Drag on meter or ← → arrows to keep blue bar in green zone</div>
+    <div class="progress" id="timeProg" style="margin-top:12px;"><div class="progress-fill" id="timeFill"></div></div>
+  `;
+  const meterEl = document.getElementById('meter');
   const fill = document.getElementById('fill');
   const zone = document.getElementById('zone');
   const landFill = document.getElementById('landFill');
+  const timeFill = document.getElementById('timeFill');
   zone.style.left = eff.zoneMin + '%';
   zone.style.width = (eff.zoneMax - eff.zoneMin) + '%';
-  let tension = 50, holding = false, lastTs = performance.now(), timer;
-  let progress = Math.round(eff.timeToLand * START_PROGRESS_FRAC);
-  const onHold = () => { holding = true; };
-  const onRelease = () => { holding = false; };
-  reelBtn.addEventListener('mousedown', onHold);
-  reelBtn.addEventListener('mouseup', onRelease);
-  reelBtn.addEventListener('mouseleave', onRelease);
-  reelBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); onHold(); }, {passive:false});
-  reelBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); onRelease(); }, {passive:false});
-  const onKeyDown = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = true; } };
-  const onKeyUp = (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); holding = false; } };
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
+
+  let tension = 50;
+  let dragging = false;
+  let currentPointerId = null;
+  let lastTs = performance.now();
+  let progress = 0;
+  let timeLeft = eff.timeToLand;
+  const FILL_RATE = 1.2;
+  const DRAIN_RATE = 0.8;
+  const TIME_DRAIN_RATE = 0.45;
+  let timer;
+  let keyHandler = null;
+
+  function updateFromPointer(e) {
+    e.preventDefault();
+    const rect = meterEl.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    tension = Math.max(0, Math.min(100, (x / rect.width) * 100));
+  }
+
+  meterEl.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    dragging = true;
+    currentPointerId = e.pointerId;
+    meterEl.setPointerCapture(e.pointerId);
+    updateFromPointer(e);
+  });
+  meterEl.addEventListener('pointermove', (e) => {
+    if (dragging && e.pointerId === currentPointerId) {
+      updateFromPointer(e);
+    }
+  });
+  meterEl.addEventListener('pointerup', (e) => {
+    if (dragging && e.pointerId === currentPointerId) dragging = false;
+  });
+  meterEl.addEventListener('pointerleave', (e) => {
+    if (dragging && e.pointerId === currentPointerId) dragging = false;
+  });
+
+  keyHandler = (e) => {
+    const step = e.shiftKey ? 5 : 15;
+    if (e.code === 'ArrowLeft') {
+      tension = Math.max(0, tension - step);
+      e.preventDefault();
+    } else if (e.code === 'ArrowRight') {
+      tension = Math.min(100, tension + step);
+      e.preventDefault();
+    }
+  };
+  window.addEventListener('keydown', keyHandler);
+
   function cleanup() {
     cancelAnimationFrame(timer);
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
+    if (keyHandler) window.removeEventListener('keydown', keyHandler);
   }
+
   function step(ts) {
     const dt = Math.min(50, ts - lastTs);
     lastTs = ts;
-    const baseDrift = (eff.drift != null ? eff.drift : 0.25);
-    let drift = (holding ? baseDrift*2.2 : -baseDrift*1.6);
-    const wobble = (Math.sin(ts/140) + Math.cos(ts/310)) * eff.wobble;
-    tension += (drift + wobble) * (dt/16.7);
-    tension = Math.max(0, Math.min(100, tension));
+
+    if (!dragging) {
+      const pull = eff.drift;
+      const wobble = (Math.sin(ts / 140) + Math.cos(ts / 310)) * eff.wobble;
+      tension += (-pull + wobble) * (dt / 16.7);
+      tension = Math.max(0, Math.min(100, tension));
+    }
+
     fill.style.left = (tension - 10) + '%';
     fill.style.width = '20%';
+
     const inZone = tension >= eff.zoneMin && tension <= eff.zoneMax;
-    const FILL_RATE = 1.00;
-    const DRAIN_RATE = 0.90;
     progress += inZone ? (dt * FILL_RATE) : (-dt * DRAIN_RATE);
-    if (progress < 0) progress = 0;
-    if (progress > eff.timeToLand) progress = eff.timeToLand;
-    const pct = Math.max(0, Math.min(100, (progress / eff.timeToLand) * 100));
-    landFill.style.width = pct.toFixed(1) + '%';
-    if (progress >= eff.timeToLand) return end(true);
-    if (progress <= 0) return end(false);
+    progress = Math.max(0, Math.min(eff.timeToLand, progress));
+    landFill.style.width = (progress / eff.timeToLand * 100).toFixed(1) + '%';
+
+    timeLeft -= dt * TIME_DRAIN_RATE;
+    timeFill.style.width = Math.max(0, (timeLeft / eff.timeToLand * 100)).toFixed(1) + '%';
+
+    if (progress >= eff.timeToLand) {
+      cleanup();
+      setTimeout(() => onDone(true), 200);
+      return;
+    }
+    if (progress <= 0 || timeLeft <= 0) {
+      cleanup();
+      setTimeout(() => onDone(false), 100);
+      return;
+    }
+
     timer = requestAnimationFrame(step);
   }
   timer = requestAnimationFrame(step);
-  function end(success) {
-    cleanup();
-    reelBtn.disabled = true;
-    setTimeout(()=>onDone(success, reelBtn), 120);
-  }
 }
+
 function startReelMinigameWithConfig(container, fish, customCfg, onDone) {
-  const cfgKey = fish.rarity;
-  const tempKey = `__temp_${cfgKey}`;
+  const tempKey = `__temp_${fish.rarity}`;
   rarityConfig[tempKey] = customCfg;
   const tempFish = { ...fish, rarity: tempKey };
-  startReelMinigame(container, tempFish, (ok, btn) => {
+  startReelMinigame(container, tempFish, (ok) => {
     delete rarityConfig[tempKey];
-    onDone(ok, btn);
+    onDone(ok);
   });
 }
 
-/* Backpack – three sections */
+/* Backpack */
 function friendlyMeta(item) {
   if (item.type === 'gear-rod') return `Rod Gear`;
   if (item.type === 'gear-bait') return `Bait Gear`;
@@ -1354,14 +1336,11 @@ function friendlyMeta(item) {
 }
 function renderBackpack() {
   const full = getInventory();
-  const inv = full
-    .map((it, original) => ({ ...it, _idx: original }))
-    .filter(i => i.showcased !== true);
+  const inv = full.map((it, original) => ({ ...it, _idx: original })).filter(i => i.showcased !== true);
   const coins = getCurrentUser()?.coins ?? 0;
   const rods = inv.filter(i => i.type === 'gear-rod');
   const baits = inv.filter(i => i.type === 'gear-bait');
   const fish = inv.filter(i => i.type !== 'gear-rod' && i.type !== 'gear-bait');
-
   const rodRows = rods.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1371,7 +1350,6 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-
   const baitRows = baits.map(item => {
     const isEquipped = item.equipped;
     return `
@@ -1381,7 +1359,6 @@ function renderBackpack() {
         <div style="padding: 8px 0;">${isEquipped ? '—' : `<button class="equip-btn" data-idx="${item._idx}">Equip</button>`}</div>
       </div>`;
   }).join('');
-
   const fishRows = fish.map(item => {
     const heartClass = item.favorite ? 'heart-btn fav' : 'heart-btn';
     return `
@@ -1395,7 +1372,6 @@ function renderBackpack() {
         </div>
       </div>`;
   }).join('');
-
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${coins} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
     <div class="bp-wrap">
@@ -1426,8 +1402,8 @@ function renderBackpack() {
 }
 
 /* Shop */
-function isSellable(item) { 
-  return (item && item.showcased !== true && !item.favorite && 
+function isSellable(item) {
+  return (item && item.showcased !== true && !item.favorite &&
           (item.type === 'fish' || (item.type === 'trash' && item.name)));
 }
 function sellValue(item) { return typeof item.value === 'number' ? item.value : 0; }
