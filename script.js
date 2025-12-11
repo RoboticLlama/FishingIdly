@@ -28,12 +28,9 @@ async function refreshPlayersCache() {
 }
 
 function cleanForFirestore(obj) {
-  // Remove any undefined values (Firestore doesn't allow them)
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
-    if (cleaned[key] === undefined) {
-      delete cleaned[key];
-    }
+    if (cleaned[key] === undefined) delete cleaned[key];
   });
   return cleaned;
 }
@@ -620,13 +617,16 @@ function adminResetAllData() {
 }
 
 function renderAdminPanel() {
-  if (!isMasterUser()) {
+  const cu = getCurrentUser();
+  if (!isMasterUser(cu)) {
     adminPanel.style.display = 'none';
     adminResetBtn.style.display = 'none';
     return;
   }
+
   const s = getStats();
-  const coins = getCurrentUser()?.coins ?? 0;
+  const coins = cu?.coins ?? 0;
+
   adminPanel.style.display = 'block';
   adminResetBtn.style.display = 'block';
   adminPanel.className = 'admin-panel';
@@ -649,7 +649,7 @@ function renderAdminPanel() {
   document.getElementById('lvlPlus').onclick = () => { const s = getStats(); setStats({ ...s, level: s.level + 1 }); };
   document.getElementById('lvlMinus').onclick = () => { const s = getStats(); setStats({ ...s, level: Math.max(1, s.level - 1) }); };
   document.getElementById('goldPlus').onclick = () => addGold(100);
-  document.getElementById('goldMinus').onclick = () => setGold((getCurrentUser()?.coins ?? 0) - 100);
+  document.getElementById('goldMinus').onclick = () => setGold((cu?.coins ?? 0) - 100);
   adminResetBtn.onclick = adminResetAllData;
 }
 
@@ -662,7 +662,7 @@ function launchGame(username) {
   ensureStarterGear();
   mainContent.innerHTML = `
     <div class="hud" id="goldHud">💰 ${(getCurrentUser()?.coins ?? 0)} · ⭐ Lv ${getStats().level} (${getStats().xp}/${xpNeededFor(getStats().level)})</div>
-    Welcome back, ${username}! Choose where to go.
+    Welcome back, <strong>${username}</strong>! Choose where to go.
   `;
   updateGoldHud();
   renderAdminPanel();
@@ -1526,7 +1526,6 @@ function sellAll() {
 document.addEventListener('click', (e) => {
   const target = e.target;
 
-  // Favorite toggle
   if (target.classList.contains('heart-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1534,7 +1533,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Equip gear
   if (target.classList.contains('equip-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1542,7 +1540,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Sell single
   if (target.classList.contains('sell-one-btn')) {
     const row = target.closest('.sell-row');
     const idx = Number(row?.dataset.idx);
@@ -1550,7 +1547,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Showcase add
   if (target.classList.contains('sc-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1565,7 +1561,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Showcase remove
   if (target.classList.contains('remove-btn')) {
     const row = target.closest('.displayed-row');
     const idx = Number(row?.dataset.idx);
@@ -1576,7 +1571,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Buy gear
   if (target.classList.contains('buy-btn')) {
     const type = target.dataset.type;
     const id = target.dataset.id;
@@ -1587,7 +1581,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Leaderboard profile
   if (target.classList.contains('lb-player')) {
     e.preventDefault();
     const username = target.dataset.username;
