@@ -25,6 +25,7 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
 }
 .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
 @keyframes pop { to { transform: scale(1); opacity: 1; } }
+
 /* --- Game Layout --- */
 .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; }
 .sidebar {
@@ -37,42 +38,53 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
 .logout-btn { background:#b0413e; color:#fff; width:88%; margin-top:8px; white-space:nowrap; }
 .logout-btn:hover { background:#e24e4b; }
 .main-content { flex:1; display:flex; justify-content:center; align-items:center; text-align:center; padding: 30px; position: relative; }
+
 /* Admin reset button */
 .admin-reset-btn { background:#7a1f1b; color:#fff; width:88%; margin-top:8px; }
 .admin-reset-btn:hover { background:#a52b25; color:#fff; }
+
 /* HUD */
 .hud {
   position: absolute; top: 12px; right: 16px;
   background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
   box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
 }
+
 /* Area buttons */
 .location-btn { margin: 10px; padding: 1rem 2rem; border-radius: 10px; background:#3a506b; color:#fff; font-size:1.05rem; }
 .location-btn:hover { background:#5bc0be; color:#1b2735; }
 .location-btn.locked { background: #2b394d; color: #9aa7b7; cursor: not-allowed; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
 .location-btn.locked:hover { background: #2b394d; color: #9aa7b7; }
 .lock-note { font-size: .9rem; opacity: .85; margin-top: 6px; }
+
 .pond-wrap { max-width: 640px; width: 100%; margin: 0 auto; position: relative; }
 .status { margin: 10px 0 16px; opacity: .9; min-height: 1.2em; }
 .pond-header { position: relative; display:flex; justify-content:center; align-items:center; }
 .back-inline { position:absolute; right:0; top:0; padding:.6rem 1rem; border-radius:10px; }
 .back-left { left: 0; right: auto; }
+
 .progress {
   position: relative; height: 10px; width: 100%; max-width: 560px; background:#0f1824;
   border-radius: 8px; overflow: hidden; margin: 10px auto 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
 }
 .progress-fill { height: 100%; width: 0%; transition: width .06s linear; background: linear-gradient(90deg, #2e86ab, #6fffe9); }
+
 .meter {
   position: relative; height: 20px; width: 100%; max-width: 560px; background:#0f1824; border-radius: 12px;
   overflow: hidden; margin: 8px auto 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  cursor: grab; user-select: none;
 }
+.meter:active { cursor: grabbing; }
+
 .meter-zone { position: absolute; top:0; bottom:0; border-left: 2px solid rgba(91,192,190,.9); border-right: 2px solid rgba(91,192,190,.9); background: rgba(91,192,190,.18); }
 .meter-fill { position: absolute; top:0; bottom:0; left:0; width: 20%; box-shadow: 0 0 10px rgba(111,255,233,.35); background: linear-gradient(90deg, #58a, #6fffe9); transition: left .03s linear, width .03s linear; }
+
 .row { display:flex; gap: 10px; justify-content:center; align-items:center; margin-top: 12px; flex-wrap: wrap; }
 .row button { min-width: 120px; }
 .small { font-size: .9rem; opacity: .8; }
 .success { color:#6fffe9; }
 .fail { color:#ff7a7a; }
+
 .bp-wrap, .shop-wrap, .board-wrap { width: 880px; max-width: 96vw; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .bp-row {
   display: grid; grid-template-columns: 1fr auto 120px; gap: 12px; align-items: center; padding: 10px 12px; margin: 6px 0;
@@ -89,6 +101,7 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
 .heart-btn.fav { color: #ff7aa2; }
 .heart-btn:focus-visible { outline: 2px solid #5bc0be; outline-offset: 2px; }
 .bp-hint { margin-top: 8px; font-size: .9rem; opacity: .8; }
+
 .gold-pop { position: absolute; right: 24px; top: 36px; font-weight: bold; animation: floatUp 1s ease forwards; }
 .xp-pop { position: absolute; right: 24px; top: 64px; font-weight: bold; animation: floatUp 1s ease forwards; color: #9ad4d6; }
 @keyframes floatUp {
@@ -97,11 +110,13 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
   85%{opacity:1;}
   100%{opacity:0; transform: translateY(-12px);}
 }
+
 .sell-list .sell-row {
   display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center; padding:10px 12px; margin:6px 0;
   background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; width: 100%;
 }
 .sell-summary { margin-top: 10px; opacity:.9; }
+
 .variant-bronze{ color:#b87333; font-weight:600; }
 .variant-silver{ color:#c0c0c0; font-weight:600; }
 .variant-gold{ color:#ffd700; font-weight:700; text-shadow:0 0 6px rgba(255,215,0,.25); }
@@ -113,6 +128,7 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
 .status-frozen{ background: rgba(120,180,255,.35); color:inherit; padding:0 .25em; border-radius:6px; }
 .status-electrocuted{ background: rgba(250,230,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
 .status-burned{ background: rgba(255,120,90,.35); color:inherit; padding:0 .25em; border-radius:6px; }
+
 .board-table { width:100%; border-collapse: collapse; table-layout:fixed; }
 .board-table th, .board-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); text-align:center; }
 .me-row { background: rgba(155,201,255,.08); }
@@ -120,14 +136,17 @@ button:hover { background-color: #5bc0be; color:#1b2735; }
 .scroll-panel::-webkit-scrollbar { width: 8px; }
 .scroll-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
 .scroll-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+
 .col-xp { display:none; }
 thead .col-xp { display:none; }
+
 .admin-panel{
   width:88%; background: rgba(0,0,0,.18); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; padding:10px; margin-top:8px; font-size:.9rem;
 }
 .admin-row{ display:flex; justify-content:space-between; align-items:center; margin:6px 0; gap:8px; }
 .admin-row .btn-sm{ padding:.4rem .7rem; border-radius:8px; min-width:auto; }
 .admin-title{ font-weight:700; opacity:.9; margin-bottom:4px; }
+
 .showcase-mode .bp-row { grid-template-columns: 1fr auto 120px; }
 .showcase-mode .sc-action { display:flex; justify-content:flex-end; }
 .showcase-mode .sc-btn{
@@ -136,6 +155,7 @@ thead .col-xp { display:none; }
 .showcase-mode .sc-btn:hover{ background:#5bc0be; color:#1b2735; }
 .showcase-mode .heart { background: transparent; width:auto; height:auto; box-shadow:none; }
 .showcase-mode .heart-btn { display:none; }
+
 .displayed-list { width:100%; }
 .displayed-row{
   display:grid; grid-template-columns: 1fr 120px; gap:12px; align-items:center; padding:10px 12px; margin:6px 0;
@@ -145,15 +165,18 @@ thead .col-xp { display:none; }
   padding:.48rem 1rem; border-radius:10px; background:#5b6d86; color:#fff; border:none; font-weight:600; cursor:pointer;
 }
 .remove-btn:hover{ background:#8ea8c6; color:#1b2735; }
+
 .profile-box{ width: 560px; max-width: 95vw; text-align: left; }
 .profile-list{ width:100%; max-height: 60vh; overflow-y:auto; padding-right:6px; }
 .profile-row{
   display:grid; grid-template-columns: 1fr; gap:12px; align-items:center; padding:10px 12px; margin:6px 0;
   background: rgba(0,0,0,.25); border-radius:10px; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
 }
+
 .board-table a.lb-player { color:#e0e0e0; text-decoration: underline; }
 .board-table a.lb-player:visited { color:#e0e0e0; }
 .board-table a.lb-player:hover, .board-table a.lb-player:focus { color:#5bc0be; outline:none; }
+
 .size-wrap { display:inline-flex; align-items:center; gap:6px; }
 .size-label {
   font-size: 0.85em;
@@ -162,10 +185,11 @@ thead .col-xp { display:none; }
   vertical-align: middle;
   font-weight: normal;
 }
-.size-big .fish-name     { font-size: 1.05em; }
+.size-big .fish-name { font-size: 1.05em; }
 .size-colossal .fish-name { font-size: 1.10em; }
 .size-monstrous .fish-name{ font-size: 1.20em; }
 .size-normal .fish-name { font-size: 1.00em; }
+
 .equip-btn {
   padding: .3rem .6rem;
   background: #5bc0be;
@@ -196,6 +220,7 @@ thead .col-xp { display:none; }
   font-weight: 600;
   margin-left: .5em;
 }
+
 .bp-section {
   margin-bottom: 28px;
   width: 100%;
@@ -209,5 +234,19 @@ thead .col-xp { display:none; }
   padding-bottom: 6px;
 }
 .bp-section .scroll-panel {
-  max-height: 40vh; /* adjust as needed */
+  max-height: 40vh;
+}
+
+/* NEW: Minigame-specific styles */
+#controlHint {
+  text-align: center;
+  opacity: 0.9;
+  margin: 8px 0;
+}
+#timeProg {
+  max-width: 560px;
+  margin: 8px auto 0;
+}
+#timeProg .progress-fill {
+  background: linear-gradient(90deg, #ff7a7a, #ffaa88);
 }
