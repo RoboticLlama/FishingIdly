@@ -27,12 +27,12 @@ async function refreshPlayersCache() {
   playersCache = snap.docs.map(d => d.data());
 }
 
-// Remove undefined values (Firestore does NOT allow them)
+// Remove undefined values and replace null with safe defaults
 function cleanForFirestore(obj) {
   const cleaned = { ...obj };
   Object.keys(cleaned).forEach(key => {
-    if (cleaned[key] === undefined) {
-      delete cleaned[key];
+    if (cleaned[key] === undefined || cleaned[key] === null) {
+      delete cleaned[key]; // Firestore doesn't allow null/undefined
     }
   });
   return cleaned;
@@ -53,9 +53,20 @@ function savePlayers(players) {
 }
 
 function getCurrentUser() {
-  try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
+  try {
+    const raw = localStorage.getItem('currentUser');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Clean any lingering undefined/null values from localStorage
+    return cleanForFirestore(parsed);
+  } catch {
+    return null;
+  }
 }
-function setCurrentUser(u) { localStorage.setItem('currentUser', JSON.stringify(u)); }
+function setCurrentUser(u) {
+  if (!u) return;
+  localStorage.setItem('currentUser', JSON.stringify(cleanForFirestore(u)));
+}
 
 /* ------------------ DOM elements ------------------ */
 const overlay = document.getElementById('overlay');
