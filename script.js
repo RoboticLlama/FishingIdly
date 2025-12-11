@@ -62,7 +62,7 @@ const adminPanel = document.getElementById('adminPanel');
 
 /* --- Global delegation for Pond/Stream --- */
 mainContent.addEventListener('click', (e) => {
-  const btn = e.target.closest && e.target.closest('button');
+  const btn = e.target.closest('button');
   if (!btn) return;
   if (btn.id === 'pondBtn') { e.preventDefault(); showPond(); }
   if (btn.id === 'streamBtn') { e.preventDefault(); showStream(); }
@@ -257,7 +257,7 @@ function rollSizeTier(){
   return { key:'normal', label:'', mult:1.0 };
 }
 
-/* NEW: Rod & Bait configurations */
+/* Rod & Bait configurations */
 const ROD_TYPES = [
   {id: 'starter', name: 'Starter Rod', cost: 0, effects: {zoneBonus: 0, wobbleMult: 1.0, driftMult: 1.0}},
   {id: 'bamboo', name: 'Bamboo Rod', cost: 50, effects: {zoneBonus: 3, wobbleMult: 0.95, driftMult: 1.0}},
@@ -547,8 +547,19 @@ function ensureMasterRecord() {
   let players = getPlayers();
   let rec = players.find(p => p.username === "Llama");
   if (!rec) {
-    rec = { email: "llama@test.local", username: "Llama", password: "Helloworld", items: [], coins: 0, testAccount: true, ...defaultStats(), flags:{} };
-    players.push(rec); savePlayers(players);
+    rec = {
+      email: "llama@test.local",
+      username: "Llama",
+      password: "Helloworld",
+      items: [],
+      coins: 0,
+      testAccount: true,
+      level: 1,
+      xp: 0,
+      flags: {}
+    };
+    players.push(rec);
+    savePlayers(players);
   } else {
     rec.password = "Helloworld";
     rec.email = rec.email || "llama@test.local";
@@ -563,12 +574,16 @@ function ensureMasterRecord() {
 document.getElementById('loginButton').addEventListener('click', async () => {
   const u = document.getElementById('signin-username').value.trim();
   const p = document.getElementById('signin-password').value.trim();
+
+  // Master login check
   if (u === "Llama" && p === "Helloworld") {
     const rec = ensureMasterRecord();
     setCurrentUser(rec);
     launchGame(rec.username);
     return;
   }
+
+  // Normal player login
   const snap = await getDoc(doc(db, "players", u));
   if (!snap.exists()) return alert("Invalid credentials!");
   const user = snap.data();
@@ -578,6 +593,8 @@ document.getElementById('loginButton').addEventListener('click', async () => {
 });
 
 /* Admin */
+function isMasterUser(u = getCurrentUser()) { return !!u && (u.username === 'Llama'); }
+
 function adminResetAllData() {
   if (!isMasterUser()) return;
   const sure = confirm("⚠ This will delete ALL saved players, items, coins, and progress on this device. Continue?");
@@ -817,27 +834,6 @@ function renderShowcase() {
     </div>`;
   updateGoldHud();
   document.getElementById('backHome').onclick = renderHome;
-  inv.forEach((it, idx) => {
-    if (it?.type !== 'fish' || it.showcased === true) return;
-    const btn = document.getElementById(`sc-btn-${idx}`);
-    if (!btn) return;
-    btn.onclick = () => {
-      if (getShowcaseItems().length >= SHOWCASE_LIMIT) {
-        alert('Showcase is full. Remove one first.');
-        return;
-      }
-      setShowcaseForIndex(idx, true);
-      renderShowcase();
-    };
-  });
-  showcased.forEach(it => {
-    const rbtn = document.getElementById(`sc-rem-${it._idx}`);
-    if (!rbtn) return;
-    rbtn.onclick = () => {
-      setShowcaseForIndex(it._idx, false);
-      renderShowcase();
-    };
-  });
 }
 
 /* Nursery (placeholder) */
@@ -973,13 +969,6 @@ async function renderLeaderboard() {
       </table>
     </div>`;
   updateGoldHud();
-  document.querySelectorAll('.lb-player').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const u = e.currentTarget.getAttribute('data-username');
-      if (u && u !== '—') showPlayerProfile(u);
-    });
-  });
 }
 
 /* Pond */
@@ -1099,7 +1088,7 @@ function showPond() {
   if (castBtn) castBtn.onclick = runCastCycle;
 }
 
-/* Stream (same as Pond but with streamTable) */
+/* Stream */
 function showStream() {
   if (!isStreamUnlocked()) {
     alert('Locked: Reach Level 10 to access the Stream.');
@@ -1378,34 +1367,6 @@ function renderBackpack() {
       </div>
     </div>`;
   updateGoldHud();
-
-  document.querySelectorAll('.heart-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const realIdx = Number(e.currentTarget.getAttribute('data-idx'));
-      toggleFavorite(realIdx);
-    });
-  });
-  document.querySelectorAll('.bp-row').forEach(row => {
-    row.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      const realIdx = Number(row.getAttribute('data-idx'));
-      toggleFavorite(realIdx);
-    });
-  });
-  document.querySelectorAll('.equip-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const idx = Number(e.currentTarget.getAttribute('data-idx'));
-      equipItem(idx);
-    });
-  });
-}
-
-function toggleFavorite(index) {
-  const inv = getInventory();
-  if (!inv[index]) return;
-  inv[index].favorite = !inv[index].favorite;
-  setInventory(inv);
-  renderBackpack();
 }
 
 /* Shop */
@@ -1486,15 +1447,6 @@ function showBuy() {
     </div>`;
   updateGoldHud();
   document.getElementById('backToShop').onclick = renderShopMenu;
-
-  document.querySelectorAll('.buy-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      const id = btn.dataset.id;
-      buyGear(type, id);
-      showBuy(); // refresh
-    });
-  });
 }
 
 function showSell() {
@@ -1530,14 +1482,9 @@ function showSell() {
   const sellAllBottom = document.getElementById('sellAllBtn');
   if (sellAllTop) sellAllTop.onclick = sellAllHandler;
   if (sellAllBottom) sellAllBottom.onclick = sellAllHandler;
-  document.querySelectorAll('.sell-one-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = Number(e.currentTarget.getAttribute('data-idx'));
-      sellSingle(idx);
-    });
-  });
 }
 
+/* Sell functions */
 function sellSingle(indexInInventory) {
   const inv = getInventory();
   const item = inv[indexInInventory];
@@ -1562,13 +1509,12 @@ function sellAll() {
   addGold(earned);
   showSell();
 }
-// === EVENT DELEGATION - add this once, at the bottom of the file ===
-// (after all functions, just before the closing </script> or at the very end)
 
+/* EVENT DELEGATION - fixes all button issues */
 document.addEventListener('click', (e) => {
   const target = e.target;
 
-  // Favorite toggle (click or right-click)
+  // Favorite toggle
   if (target.classList.contains('heart-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1576,7 +1522,7 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Equip gear button
+  // Equip gear
   if (target.classList.contains('equip-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1584,7 +1530,7 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Sell single item
+  // Sell single
   if (target.classList.contains('sell-one-btn')) {
     const row = target.closest('.sell-row');
     const idx = Number(row?.dataset.idx);
@@ -1592,7 +1538,7 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Showcase add/remove
+  // Showcase add
   if (target.classList.contains('sc-btn')) {
     const row = target.closest('.bp-row');
     const idx = Number(row?.dataset.idx);
@@ -1606,6 +1552,8 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
+
+  // Showcase remove
   if (target.classList.contains('remove-btn')) {
     const row = target.closest('.displayed-row');
     const idx = Number(row?.dataset.idx);
@@ -1616,18 +1564,18 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Buy gear (in shop)
+  // Buy gear
   if (target.classList.contains('buy-btn')) {
     const type = target.dataset.type;
     const id = target.dataset.id;
     if (type && id) {
       buyGear(type, id);
-      showBuy(); // refresh shop
+      showBuy();
     }
     return;
   }
 
-  // Leaderboard player profile
+  // Leaderboard profile
   if (target.classList.contains('lb-player')) {
     e.preventDefault();
     const username = target.dataset.username;
@@ -1636,7 +1584,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Right-click favorite toggle (still works on any .bp-row)
+// Right-click favorite toggle
 document.addEventListener('contextmenu', (e) => {
   const row = e.target.closest('.bp-row');
   if (row) {
