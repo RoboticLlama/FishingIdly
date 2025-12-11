@@ -1562,3 +1562,86 @@ function sellAll() {
   addGold(earned);
   showSell();
 }
+// === EVENT DELEGATION - add this once, at the bottom of the file ===
+// (after all functions, just before the closing </script> or at the very end)
+
+document.addEventListener('click', (e) => {
+  const target = e.target;
+
+  // Favorite toggle (click or right-click)
+  if (target.classList.contains('heart-btn')) {
+    const row = target.closest('.bp-row');
+    const idx = Number(row?.dataset.idx);
+    if (!isNaN(idx)) toggleFavorite(idx);
+    return;
+  }
+
+  // Equip gear button
+  if (target.classList.contains('equip-btn')) {
+    const row = target.closest('.bp-row');
+    const idx = Number(row?.dataset.idx);
+    if (!isNaN(idx)) equipItem(idx);
+    return;
+  }
+
+  // Sell single item
+  if (target.classList.contains('sell-one-btn')) {
+    const row = target.closest('.sell-row');
+    const idx = Number(row?.dataset.idx);
+    if (!isNaN(idx)) sellSingle(idx);
+    return;
+  }
+
+  // Showcase add/remove
+  if (target.classList.contains('sc-btn')) {
+    const row = target.closest('.bp-row');
+    const idx = Number(row?.dataset.idx);
+    if (!isNaN(idx)) {
+      if (getShowcaseItems().length >= SHOWCASE_LIMIT) {
+        alert('Showcase is full. Remove one first.');
+        return;
+      }
+      setShowcaseForIndex(idx, true);
+      renderShowcase();
+    }
+    return;
+  }
+  if (target.classList.contains('remove-btn')) {
+    const row = target.closest('.displayed-row');
+    const idx = Number(row?.dataset.idx);
+    if (!isNaN(idx)) {
+      setShowcaseForIndex(idx, false);
+      renderShowcase();
+    }
+    return;
+  }
+
+  // Buy gear (in shop)
+  if (target.classList.contains('buy-btn')) {
+    const type = target.dataset.type;
+    const id = target.dataset.id;
+    if (type && id) {
+      buyGear(type, id);
+      showBuy(); // refresh shop
+    }
+    return;
+  }
+
+  // Leaderboard player profile
+  if (target.classList.contains('lb-player')) {
+    e.preventDefault();
+    const username = target.dataset.username;
+    if (username && username !== '—') showPlayerProfile(username);
+    return;
+  }
+});
+
+// Right-click favorite toggle (still works on any .bp-row)
+document.addEventListener('contextmenu', (e) => {
+  const row = e.target.closest('.bp-row');
+  if (row) {
+    e.preventDefault();
+    const idx = Number(row.dataset.idx);
+    if (!isNaN(idx)) toggleFavorite(idx);
+  }
+});
