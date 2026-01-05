@@ -93,6 +93,14 @@
     }
     .progress-fill { height: 100%; width: 0%; background: #5bc0be; transition: width 0.1s linear; }
 
+    /* Rarity Colors for Text */
+    .rarity-common { color: #e0e0e0; }
+    .rarity-uncommon { color: #5bc0be; font-weight: bold; }
+    .rarity-rare { color: #5084cc; font-weight: bold; }
+    .rarity-epic { color: #b850cc; font-weight: bold; }
+    .rarity-legendary { color: #ffd700; font-weight: bold; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    .rarity-trash { color: #888; }
+
   </style>
 </head>
 <body>
@@ -162,7 +170,6 @@
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-      <!-- HUD injected dynamically via JS -->
       <div id="viewArea"></div>
     </div>
 
@@ -208,17 +215,38 @@
       return snap.docs.map(d => d.data());
     }
 
-    /* --- Fish Data (The Pond) --- */
+    /* --- POND FISH DATA --- */
+    /* Updated with full list from original game */
     const pondTable = [
-      { name: "Old Boot", type: "trash", value: 1, weight: 10 },
-      { name: "Tin Can", type: "trash", value: 1, weight: 10 },
-      { name: "Minnow", type: "fish", value: 3, weight: 30 },
-      { name: "Goldfish", type: "fish", value: 5, weight: 20 },
-      { name: "Carp", type: "fish", value: 10, weight: 10 },
-      { name: "Bass", type: "fish", value: 25, weight: 5 }
+      // Common
+      { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.8 },
+      { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.2, baseWeight: 1.0 },
+      { name: "Yellow Perch", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.2 },
+      
+      // Uncommon
+      { name: "Bluegill", type: "fish", weight: 9, rarity: "uncommon", value: 6, minWeight: 0.1, baseWeight: 0.8 },
+      { name: "Catfish", type: "fish", weight: 7, rarity: "uncommon", value: 8, minWeight: 1.0, baseWeight: 6.0 },
+      { name: "Carp", type: "fish", weight: 4, rarity: "uncommon", value:10, minWeight: 2.0, baseWeight: 15.0 },
+      
+      // Rare
+      { name: "Goldfish", type: "fish", weight: 10, rarity: "rare", value:15, minWeight: 0.1, baseWeight: 0.6 },
+      
+      // Epic
+      { name: "Largemouth Bass", type: "fish", weight: 4, rarity: "epic", value:20, minWeight: 1.0, baseWeight: 4.5 },
+      
+      // Legendary
+      { name: "Golden Koi", type: "fish", weight: 1, rarity: "legendary", value:40, minWeight: 4.0, baseWeight: 25.0 },
+      
+      // Trash (Weight 5 each)
+      { name: "Old Boot", type: "trash", weight: 5, value: 1, rarity: "trash" },
+      { name: "Tin Can", type: "trash", weight: 5, value: 1, rarity: "trash" },
+      { name: "Tangled Line", type: "trash", weight: 5, value: 1, rarity: "trash" },
+      { name: "Broken Glass", type: "trash", weight: 5, value: 1, rarity: "trash" },
+      { name: "Rusty Hook", type: "trash", weight: 5, value: 1, rarity: "trash" }
     ];
 
     function pickRandomFish() {
+      // Calculate total weight
       const totalWeight = pondTable.reduce((sum, item) => sum + item.weight, 0);
       let random = Math.random() * totalWeight;
       for (const item of pondTable) {
@@ -252,7 +280,7 @@
 
     /* --- HUD Logic --- */
     function renderHudHTML() {
-      // Always returns the HTML string for the HUD.
+      // Returns HTML for the HUD
       return `<div class="hud" id="hudEl">Loading...</div>`;
     }
 
@@ -277,7 +305,6 @@
     }
 
     function renderFishingSpot() {
-      const u = getCurrentUser();
       mainContent.innerHTML = `
         ${renderHudHTML()}
         <h2>🎣 Fishing Spot</h2>
@@ -384,7 +411,12 @@
         
         // Update UI
         updateHud();
-        statusEl.innerHTML = `You caught a <b>${catchItem.name}</b>! (+${catchItem.value}g)`;
+        
+        // Formatting display name with Rarity color
+        const rarityClass = `rarity-${catchItem.rarity || 'common'}`;
+        const rarityLabel = catchItem.rarity ? `[${catchItem.rarity.charAt(0).toUpperCase() + catchItem.rarity.slice(1)}]` : '';
+        
+        statusEl.innerHTML = `You caught: <span class="${rarityClass}">${rarityLabel} ${catchItem.name}</span>! (+${catchItem.value}g)`;
         
         // Reset controls
         progEl.style.display = 'none';
