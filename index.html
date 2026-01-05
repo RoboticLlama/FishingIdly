@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Home Update</title>
+  <title>Fishing Idly - Home Fix</title>
   <style>
     /* --- 1. Global Reset & Theme --- */
     body {
@@ -166,10 +166,10 @@
     .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .slot-fish-val { font-size: 0.7rem; opacity: 0.8; color: #ffd700; }
 
-    /* Fish Selector Modal (In-place) */
+    /* Fish Selector Modal */
     .selector-overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(27, 39, 53, 0.95); z-index: 20;
+      background: rgba(27, 39, 53, 0.95); z-index: 50;
       display: flex; flex-direction: column; align-items: center; padding-top: 40px;
     }
     .selector-close { position: absolute; top: 20px; right: 20px; }
@@ -184,6 +184,14 @@
     .txt-Sparkling { color: #00ccff; }
     .txt-Mythical { color: #ff00ff; }
     .txt-Albino { color: #fff; }
+
+    .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
+    .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lb-rank { width: 30px; font-weight: bold; }
+    .lb-name { flex: 1; margin-left: 10px; }
+    .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
+    .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
 
   </style>
 </head>
@@ -279,7 +287,6 @@
       return snap.docs.map(d => d.data());
     }
 
-    /* --- FISH CONFIG --- */
     const pondTable = [
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 25 },
@@ -298,9 +305,6 @@
     ];
 
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
-
-    /* --- HOME SLOTS CONFIG --- */
-    // Slot 0 (1st) is free (cost 0), others cost gold
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
 
     function generateFish() {
@@ -361,18 +365,19 @@
 
     /* --- HOME LOGIC --- */
     function initHomeData(user) {
-      if (!user.home) {
+      if (!user.home || !user.home.slots) {
         user.home = {
           lastClaim: Date.now(),
           slots: Array(10).fill(null).map((_, i) => ({
             id: i,
-            unlocked: i === 0, // First slot free
+            unlocked: i === 0,
             fish: null
           }))
         };
+        // FORCE SAVE HERE to prevent the "Issue 1 & 2" bugs
+        setCurrentUser(user);
+        savePlayerToCloud(user);
       }
-      // Ensure data integrity if saved previously
-      if(!user.home.slots) user.home.slots = Array(10).fill(null).map((_, i) => ({ id: i, unlocked: i === 0, fish: null }));
       return user;
     }
 
@@ -384,21 +389,18 @@
       let ratePerMin = 0;
       user.home.slots.forEach(slot => {
         if (slot.unlocked && slot.fish) {
-          // 5% of value per minute, min 1g
           ratePerMin += Math.max(1, Math.floor(slot.fish.value * 0.05));
         }
       });
-      
       return { rate: ratePerMin, pending: Math.floor(ratePerMin * diffMins) };
     }
 
     function renderHome() {
       let u = getCurrentUser();
-      u = initHomeData(u); // Ensure structure exists
+      u = initHomeData(u); 
       
       const passive = calculatePassive(u);
       
-      // Generate Grid HTML
       const slotsHTML = u.home.slots.map(slot => {
         if (!slot.unlocked) {
           const cost = SLOT_COSTS[slot.id];
@@ -471,7 +473,7 @@
         u.home.lastClaim = Date.now();
         setCurrentUser(u);
         savePlayerToCloud(u);
-        renderHome(); // Refresh
+        renderHome();
       }
     }
 
@@ -479,11 +481,8 @@
       const u = getCurrentUser();
       const fish = u.home.slots[slotId].fish;
       if (!fish) return;
-      
-      // Move back to items
       u.items.push(fish);
       u.home.slots[slotId].fish = null;
-      
       setCurrentUser(u);
       savePlayerToCloud(u);
       renderHome();
@@ -491,52 +490,46 @@
 
     function renderFishSelector(slotId) {
       const u = getCurrentUser();
-      // Filter items: only fish (not trash)
       const validFish = u.items.map((item, idx) => ({...item, originalIdx: idx}))
                                .filter(i => i.type === 'fish');
 
       let listHTML = "";
       if (validFish.length === 0) {
-        listHTML = "<p>No fish in backpack.</p>";
+        listHTML = "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>";
       } else {
         listHTML = validFish.map(f => {
           return `
-            <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px;">
-              <div><b>${f.name}</b> <small>(${f.value}g)</small></div>
+            <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
+              <div style="text-align:left;"><b>${f.name}</b> <small>(${f.value}g)</small></div>
               <button class="btn-sm" style="background:#5bc0be" onclick="placeFish(${slotId}, ${f.originalIdx})">Select</button>
             </div>`;
         }).join('');
       }
 
-      // Overlay
       const selOverlay = document.createElement('div');
       selOverlay.className = "selector-overlay";
       selOverlay.innerHTML = `
         <button class="selector-close" id="closeSel">Close</button>
         <h3>Select a Fish</h3>
-        <div style="overflow-y:auto; max-height:400px;">${listHTML}</div>
+        <div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>
       `;
       mainContent.appendChild(selOverlay);
       
       document.getElementById('closeSel').onclick = () => renderHome();
       window.placeFish = (sId, itemIdx) => {
-        // Move from items to slot
-        const fishToMove = u.items[itemIdx];
-        u.items.splice(itemIdx, 1); // Remove from backpack
-        u.home.slots[sId].fish = fishToMove; // Add to home
-        setCurrentUser(u);
-        savePlayerToCloud(u);
+        const currentUser = getCurrentUser(); 
+        const fishToMove = currentUser.items[itemIdx];
+        if(!fishToMove) { renderHome(); return; } 
+        
+        currentUser.items.splice(itemIdx, 1);
+        currentUser.home.slots[sId].fish = fishToMove;
+        setCurrentUser(currentUser);
+        savePlayerToCloud(currentUser);
         renderHome();
       };
     }
 
-    function renderFishingSpot() {
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Select a location:</p><button class="location-btn" id="enterPondBtn">🐟 Pond</button><button class="location-btn" disabled>🌊 Stream (Locked)</button>`;
-      updateHud();
-      document.getElementById('enterPondBtn').onclick = renderPond;
-    }
-
-    /* --- BACKPACK RENDER --- */
+    /* --- BACKPACK --- */
     function renderBackpack() {
       const u = getCurrentUser();
       const items = u.items || [];
@@ -579,7 +572,6 @@
       if(view === 'backpack') renderBackpack();
     }
 
-    /* --- MARKET RENDER --- */
     function renderMarket() {
       const u = getCurrentUser();
       const items = u.items || [];
@@ -594,14 +586,12 @@
           const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
           const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
           const sizeText = item.size ? `<b>${item.size}</b> ` : "";
-          
           let actionBtn = "";
           if (item.favorite) {
             actionBtn = `<button class="market-sell-btn" disabled style="background:#444; color:#888;">Favorite ★</button>`;
           } else {
             actionBtn = `<button class="market-sell-btn action-sell-one" data-index="${idx}">Sell ${item.value}g</button>`;
           }
-
           return `
           <div class="bp-item ${mutClass}">
             <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
@@ -660,12 +650,17 @@
       updateHud();
       const players = await getAllPlayers();
       players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
-      const rows = players.slice(0, 10).map((p, i) => `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">${rows || 'No players.'}</div>`;
+      const rows = players.slice(0, 10).map((p, i) => {
+        let rankClass = "";
+        if (i === 0) rankClass = "rank-1";
+        else if (i === 1) rankClass = "rank-2";
+        else if (i === 2) rankClass = "rank-3";
+        return `<div class="lb-row"><div class="lb-rank ${rankClass}">#${i+1}</div><div class="lb-name ${rankClass}">${p.username}</div><div class="lb-stats">Lv ${p.level} · ${p.coins}g</div></div>`;
+      }).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
       updateHud();
     }
 
-    /* --- POND & MINIGAME --- */
     function renderPond() {
       mainContent.innerHTML = `
         ${renderHudHTML()}
@@ -691,15 +686,12 @@
       const waitBar = document.getElementById('waitBar');
       const waitFill = document.getElementById('waitFill');
       const btn = document.getElementById('castBtn');
-
       btn.disabled = true;
       btn.textContent = "Waiting for bite...";
       statusEl.textContent = "Scanning the water...";
-      
       waitBar.style.display = 'block';
       waitFill.style.width = '0%';
       setTimeout(() => waitFill.style.width = '100%', 50);
-
       const waitTime = 1000 + Math.random() * 2000;
       setTimeout(() => {
         waitBar.style.display = 'none';
@@ -719,26 +711,20 @@
       const barFill = document.getElementById('gameBarFill');
       const statusEl = document.getElementById('pondStatus');
       const btn = document.getElementById('castBtn');
-
       area.style.display = 'block';
       barContainer.style.display = 'block';
       btn.style.display = 'none';
-      
       statusEl.innerHTML = `HOOKED! Something is on the line...`;
-      
       minigameActive = true;
       minigameProgress = 35;
       updateBar(barFill);
       area.innerHTML = ''; 
-
       const shrinkDuration = difficultyMap[fish.rarity] || 2000;
       const spawnRate = 800;
-
       spawnTimer = setInterval(() => {
         if(!minigameActive) return;
         spawnCircle(area, shrinkDuration);
       }, spawnRate);
-
       gameLoop = requestAnimationFrame(function step() {
         if (!minigameActive) return;
         if (minigameProgress <= 0) { endMinigame(false, fish); return; }
@@ -753,36 +739,29 @@
       const maxY = container.clientHeight - size - 20;
       const x = 10 + Math.random() * maxX;
       const y = 10 + Math.random() * maxY;
-
       const target = document.createElement('div');
       target.className = 'target-circle';
       target.style.left = x + 'px';
       target.style.top = y + 'px';
-
       const ring = document.createElement('div');
       ring.className = 'target-ring';
       ring.style.left = x + 'px';
       ring.style.top = y + 'px';
       ring.style.transition = `width ${duration}ms linear, height ${duration}ms linear`;
-      
       container.appendChild(target);
       container.appendChild(ring);
-
       requestAnimationFrame(() => {
         ring.style.width = '50px'; 
         ring.style.height = '50px';
       });
-
       const startTime = performance.now();
       let clicked = false;
-
       target.onmousedown = (e) => {
         e.stopPropagation();
         if(clicked) return;
         clicked = true;
         const timeElapsed = performance.now() - startTime;
         const progress = timeElapsed / duration;
-        
         if (progress < 0.5) {
           modifyProgress(-5);
           showFloatText(x, y, "Too Early!", "red");
@@ -792,14 +771,12 @@
         }
         removeElements();
       };
-
       setTimeout(() => {
         if (!clicked && document.body.contains(target)) {
           modifyProgress(-10);
           removeElements();
         }
       }, duration);
-
       function removeElements() {
         if(target.parentNode) target.parentNode.removeChild(target);
         if(ring.parentNode) ring.parentNode.removeChild(ring);
@@ -836,43 +813,30 @@
       minigameActive = false;
       clearInterval(spawnTimer);
       cancelAnimationFrame(gameLoop);
-      
       const area = document.getElementById('minigameArea');
       const barContainer = document.getElementById('gameBarContainer');
       const statusEl = document.getElementById('pondStatus');
       const btn = document.getElementById('castBtn');
-
       area.style.display = 'none';
       barContainer.style.display = 'none';
       btn.style.display = 'block';
       btn.disabled = false;
       btn.textContent = "Cast Again";
-
       if (won) {
-        // SUCCESS
         const u = getCurrentUser();
-        // REMOVED COIN ADDITION HERE
-        // u.coins += fish.value; 
-        
-        // Add to items
         u.items.push(fish);
-        
         setCurrentUser(u);
         savePlayerToCloud(u);
         updateHud();
-
         const nameHTML = fish.mutation !== "Normal" 
           ? `<b class="txt-${fish.mutation}">${fish.mutation} ${fish.name}</b>` 
           : `<b>${fish.name}</b>`;
-        
         statusEl.innerHTML = `<span style="color:#5bc0be">SUCCESS!</span> You caught a ${nameHTML}! Added to Backpack.`;
       } else {
-        // FAIL
         statusEl.innerHTML = `<span style="color:#ff7a7a">FAILED!</span> It got away...`;
       }
     }
 
-    /* --- Admin & Auth --- */
     function renderAdminControls(user) {
       if (user.username === "Llama") { adminPanel.style.display = 'block'; adminResetBtn.style.display = 'block'; }
       else { adminPanel.style.display = 'none'; adminResetBtn.style.display = 'none'; }
