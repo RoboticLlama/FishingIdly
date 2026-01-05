@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Home Fix</title>
+  <title>Fishing Idly - Fixed</title>
   <style>
-    /* --- 1. Global Reset & Theme --- */
+    /* --- Global & Layout --- */
     body {
       background-color: #1b2735;
       color: #e0e0e0;
@@ -26,9 +26,9 @@
     button:hover { background-color: #5bc0be; color:#1b2735; }
     button:disabled { background-color: #2b394d; color: #9aa7b7; cursor: not-allowed; }
 
-    /* --- 2. Landing Page --- */
+    /* --- Landing --- */
     .signin-top { position: absolute; top: 20px; right: 30px; background: #3a506b; color:#e0e0e0; padding:.5rem 1rem; border-radius:8px; text-decoration:none; }
-    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.65); display:flex; justify-content:center; align-items:center; z-index: 20; }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.65); display:flex; justify-content:center; align-items:center; z-index: 50; }
     .signin-box {
       background: linear-gradient(135deg, #2a3d56, #3a506b);
       padding: 2rem; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,.4);
@@ -38,7 +38,7 @@
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
-    /* --- 3. Game Layout --- */
+    /* --- Game UI --- */
     .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; background-color: #1b2735; }
 
     .sidebar {
@@ -266,6 +266,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // --- DATA HELPERS ---
     function cleanForFirestore(obj) {
       const cleaned = { ...obj };
       Object.keys(cleaned).forEach(key => { if (cleaned[key] === undefined || cleaned[key] === null) delete cleaned[key]; });
@@ -279,14 +280,17 @@
       try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
     }
     async function savePlayerToCloud(user) {
+      // FIX: Ensure username exists before saving to prevent "segments" error
       if (!user || !user.username) return;
       await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
     }
     async function getAllPlayers() {
+      // FIX: Ensure using collection() not doc()
       const snap = await getDocs(collection(db, "players"));
       return snap.docs.map(d => d.data());
     }
 
+    // --- GAME CONFIG ---
     const pondTable = [
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 25 },
@@ -307,6 +311,7 @@
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
 
+    // --- GENERATOR ---
     function generateFish() {
       const totalW = pondTable.reduce((sum, item) => sum + item.chanceWeight, 0);
       let r = Math.random() * totalW;
@@ -338,7 +343,7 @@
       };
     }
 
-    /* --- UI & Logic --- */
+    /* --- GLOBAL UI ELEMENTS --- */
     const overlay = document.getElementById('overlay');
     const startButton = document.getElementById('startButton');
     const signinLink = document.getElementById('signinLink');
@@ -363,7 +368,10 @@
       if (u && el) el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
     }
 
-    /* --- HOME LOGIC --- */
+    /* =========================================================================
+       SECTION: HOME (AQUARIUM)
+       ========================================================================= */
+    
     function initHomeData(user) {
       if (!user.home || !user.home.slots) {
         user.home = {
@@ -374,7 +382,7 @@
             fish: null
           }))
         };
-        // FORCE SAVE HERE to prevent the "Issue 1 & 2" bugs
+        // FIX: Force immediate save so DB matches local structure
         setCurrentUser(user);
         savePlayerToCloud(user);
       }
@@ -405,7 +413,7 @@
         if (!slot.unlocked) {
           const cost = SLOT_COSTS[slot.id];
           return `
-            <div class="home-slot slot-locked" onclick="unlockSlot(${slot.id})">
+            <div class="home-slot slot-locked" onclick="window.unlockHomeSlot(${slot.id})">
               <div class="lock-icon">🔒</div>
               <div class="lock-cost">${cost}g</div>
             </div>`;
@@ -414,14 +422,14 @@
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
           return `
-            <div class="home-slot slot-occupied ${mutClass}" onclick="removeFishFromSlot(${slot.id})">
+            <div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">
               <div class="slot-fish-icon">🐟</div>
               <div class="slot-fish-name ${txtClass}">${fish.name}</div>
               <div class="slot-fish-val">${Math.max(1, Math.floor(fish.value * 0.05))}g/min</div>
             </div>`;
         } else {
           return `
-            <div class="home-slot" onclick="openFishSelector(${slot.id})">
+            <div class="home-slot" onclick="window.openFishSelector(${slot.id})">
               <div style="font-size:1.5rem; opacity:0.5;">+</div>
               <div style="font-size:0.8rem; opacity:0.7;">Empty</div>
             </div>`;
@@ -444,12 +452,10 @@
       updateHud();
 
       document.getElementById('claimBtn').onclick = claimPassiveGold;
-      window.unlockSlot = (id) => unlockHomeSlot(id);
-      window.openFishSelector = (id) => renderFishSelector(id);
-      window.removeFishFromSlot = (id) => removeFish(id);
     }
 
-    function unlockHomeSlot(id) {
+    // Attach these to window so HTML onclicks find them easily
+    window.unlockHomeSlot = function(id) {
       const u = getCurrentUser();
       const cost = SLOT_COSTS[id];
       if (u.coins >= cost) {
@@ -463,21 +469,9 @@
       } else {
         alert("Not enough gold!");
       }
-    }
+    };
 
-    function claimPassiveGold() {
-      const u = getCurrentUser();
-      const passive = calculatePassive(u);
-      if (passive.pending > 0) {
-        u.coins += passive.pending;
-        u.home.lastClaim = Date.now();
-        setCurrentUser(u);
-        savePlayerToCloud(u);
-        renderHome();
-      }
-    }
-
-    function removeFish(slotId) {
+    window.removeFishFromSlot = function(slotId) {
       const u = getCurrentUser();
       const fish = u.home.slots[slotId].fish;
       if (!fish) return;
@@ -486,9 +480,9 @@
       setCurrentUser(u);
       savePlayerToCloud(u);
       renderHome();
-    }
+    };
 
-    function renderFishSelector(slotId) {
+    window.openFishSelector = function(slotId) {
       const u = getCurrentUser();
       const validFish = u.items.map((item, idx) => ({...item, originalIdx: idx}))
                                .filter(i => i.type === 'fish');
@@ -501,7 +495,7 @@
           return `
             <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
               <div style="text-align:left;"><b>${f.name}</b> <small>(${f.value}g)</small></div>
-              <button class="btn-sm" style="background:#5bc0be" onclick="placeFish(${slotId}, ${f.originalIdx})">Select</button>
+              <button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button>
             </div>`;
         }).join('');
       }
@@ -516,149 +510,40 @@
       mainContent.appendChild(selOverlay);
       
       document.getElementById('closeSel').onclick = () => renderHome();
-      window.placeFish = (sId, itemIdx) => {
-        const currentUser = getCurrentUser(); 
-        const fishToMove = currentUser.items[itemIdx];
-        if(!fishToMove) { renderHome(); return; } 
-        
-        currentUser.items.splice(itemIdx, 1);
-        currentUser.home.slots[sId].fish = fishToMove;
-        setCurrentUser(currentUser);
-        savePlayerToCloud(currentUser);
+    };
+
+    window.placeFish = function(sId, itemIdx) {
+      const u = getCurrentUser(); 
+      const fishToMove = u.items[itemIdx];
+      if(!fishToMove) { renderHome(); return; } 
+      
+      u.items.splice(itemIdx, 1);
+      u.home.slots[sId].fish = fishToMove;
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      renderHome();
+    };
+
+    function claimPassiveGold() {
+      const u = getCurrentUser();
+      const passive = calculatePassive(u);
+      if (passive.pending > 0) {
+        u.coins += passive.pending;
+        u.home.lastClaim = Date.now();
+        setCurrentUser(u);
+        savePlayerToCloud(u);
         renderHome();
-      };
-    }
-
-    /* --- BACKPACK --- */
-    function renderBackpack() {
-      const u = getCurrentUser();
-      const items = u.items || [];
-      let gridHTML = "";
-      if (items.length === 0) {
-        gridHTML = "<p>Your backpack is empty.</p>";
-      } else {
-        const list = items.map((item, idx) => {
-          const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
-          const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
-          const sizeText = item.size ? `<b>${item.size}</b> ` : "";
-          const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : "";
-          const favClass = item.favorite ? "fav-active" : "";
-          const starIcon = item.favorite ? "★" : "☆";
-          return `
-          <div class="bp-item ${mutClass}">
-            <button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button>
-            <div style="font-size:1.5rem">🐟</div>
-            <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
-            <div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>
-            ${mutLabel}
-          </div>
-        `;
-        }).join('');
-        gridHTML = `<div class="bp-grid">${list}</div>`;
       }
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack</h2><p>Items caught: ${items.length}</p>${gridHTML}`;
+    }
+
+    /* =========================================================================
+       SECTION: FISHING
+       ========================================================================= */
+
+    function renderFishingSpot() {
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Select a location:</p><button class="location-btn" id="enterPondBtn">🐟 Pond</button><button class="location-btn" disabled>🌊 Stream (Locked)</button>`;
       updateHud();
-      document.querySelectorAll('.star-btn').forEach(btn => {
-        btn.onclick = (e) => { e.stopPropagation(); toggleFavorite(parseInt(btn.dataset.index), 'backpack'); };
-      });
-    }
-
-    function toggleFavorite(index, view) {
-      const u = getCurrentUser();
-      if (!u || !u.items[index]) return;
-      u.items[index].favorite = !u.items[index].favorite;
-      setCurrentUser(u);
-      savePlayerToCloud(u);
-      if(view === 'backpack') renderBackpack();
-    }
-
-    function renderMarket() {
-      const u = getCurrentUser();
-      const items = u.items || [];
-      const sellableCount = items.filter(i => !i.favorite).length;
-      const totalSellValue = items.reduce((sum, item) => item.favorite ? sum : sum + item.value, 0);
-
-      let gridHTML = "";
-      if (items.length === 0) {
-        gridHTML = "<p>You have nothing to sell.</p>";
-      } else {
-        const list = items.map((item, idx) => {
-          const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
-          const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
-          const sizeText = item.size ? `<b>${item.size}</b> ` : "";
-          let actionBtn = "";
-          if (item.favorite) {
-            actionBtn = `<button class="market-sell-btn" disabled style="background:#444; color:#888;">Favorite ★</button>`;
-          } else {
-            actionBtn = `<button class="market-sell-btn action-sell-one" data-index="${idx}">Sell ${item.value}g</button>`;
-          }
-          return `
-          <div class="bp-item ${mutClass}">
-            <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
-            <div class="bp-stats">${item.weight} kg</div>
-            ${actionBtn}
-          </div>
-        `;
-        }).join('');
-        gridHTML = `<div class="bp-grid">${list}</div>`;
-      }
-
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🏪 Market</h2>
-        <div class="market-header">
-          <button class="sell-all-btn" id="sellAllBtn" ${sellableCount === 0 ? 'disabled' : ''}>
-            Sell All (${totalSellValue}g)
-          </button>
-        </div>
-        ${gridHTML}
-      `;
-      updateHud();
-
-      if(sellableCount > 0) document.getElementById('sellAllBtn').onclick = sellAllItems;
-      document.querySelectorAll('.action-sell-one').forEach(btn => {
-        btn.onclick = () => sellOneItem(parseInt(btn.dataset.index));
-      });
-    }
-
-    function sellOneItem(index) {
-      const u = getCurrentUser();
-      const item = u.items[index];
-      if (!item || item.favorite) return;
-      u.coins += item.value;
-      u.items.splice(index, 1); 
-      setCurrentUser(u);
-      savePlayerToCloud(u);
-      renderMarket(); 
-    }
-
-    function sellAllItems() {
-      const u = getCurrentUser();
-      const keptItems = u.items.filter(i => i.favorite);
-      const soldItems = u.items.filter(i => !i.favorite);
-      if (soldItems.length === 0) return;
-      const profit = soldItems.reduce((sum, i) => sum + i.value, 0);
-      u.coins += profit;
-      u.items = keptItems; 
-      setCurrentUser(u);
-      savePlayerToCloud(u);
-      renderMarket();
-    }
-
-    async function renderLeaderboard() {
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading...</p>`;
-      updateHud();
-      const players = await getAllPlayers();
-      players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
-      const rows = players.slice(0, 10).map((p, i) => {
-        let rankClass = "";
-        if (i === 0) rankClass = "rank-1";
-        else if (i === 1) rankClass = "rank-2";
-        else if (i === 2) rankClass = "rank-3";
-        return `<div class="lb-row"><div class="lb-rank ${rankClass}">#${i+1}</div><div class="lb-name ${rankClass}">${p.username}</div><div class="lb-stats">Lv ${p.level} · ${p.coins}g</div></div>`;
-      }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
-      updateHud();
+      document.getElementById('enterPondBtn').onclick = renderPond;
     }
 
     function renderPond() {
@@ -837,6 +722,142 @@
       }
     }
 
+    /* =========================================================================
+       SECTION: BACKPACK, MARKET, LEADERBOARD
+       ========================================================================= */
+
+    function renderBackpack() {
+      const u = getCurrentUser();
+      const items = u.items || [];
+      let gridHTML = "";
+      if (items.length === 0) {
+        gridHTML = "<p>Your backpack is empty.</p>";
+      } else {
+        const list = items.map((item, idx) => {
+          const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
+          const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
+          const sizeText = item.size ? `<b>${item.size}</b> ` : "";
+          const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : "";
+          const favClass = item.favorite ? "fav-active" : "";
+          const starIcon = item.favorite ? "★" : "☆";
+          return `
+          <div class="bp-item ${mutClass}">
+            <button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button>
+            <div style="font-size:1.5rem">🐟</div>
+            <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
+            <div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>
+            ${mutLabel}
+          </div>
+        `;
+        }).join('');
+        gridHTML = `<div class="bp-grid">${list}</div>`;
+      }
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack</h2><p>Items caught: ${items.length}</p>${gridHTML}`;
+      updateHud();
+      document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.onclick = (e) => { e.stopPropagation(); toggleFavorite(parseInt(btn.dataset.index), 'backpack'); };
+      });
+    }
+
+    function toggleFavorite(index, view) {
+      const u = getCurrentUser();
+      if (!u || !u.items[index]) return;
+      u.items[index].favorite = !u.items[index].favorite;
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      if(view === 'backpack') renderBackpack();
+    }
+
+    function renderMarket() {
+      const u = getCurrentUser();
+      const items = u.items || [];
+      const sellableCount = items.filter(i => !i.favorite).length;
+      const totalSellValue = items.reduce((sum, item) => item.favorite ? sum : sum + item.value, 0);
+
+      let gridHTML = "";
+      if (items.length === 0) {
+        gridHTML = "<p>You have nothing to sell.</p>";
+      } else {
+        const list = items.map((item, idx) => {
+          const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
+          const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
+          const sizeText = item.size ? `<b>${item.size}</b> ` : "";
+          let actionBtn = "";
+          if (item.favorite) {
+            actionBtn = `<button class="market-sell-btn" disabled style="background:#444; color:#888;">Favorite ★</button>`;
+          } else {
+            actionBtn = `<button class="market-sell-btn action-sell-one" data-index="${idx}">Sell ${item.value}g</button>`;
+          }
+          return `
+          <div class="bp-item ${mutClass}">
+            <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
+            <div class="bp-stats">${item.weight} kg</div>
+            ${actionBtn}
+          </div>
+        `;
+        }).join('');
+        gridHTML = `<div class="bp-grid">${list}</div>`;
+      }
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🏪 Market</h2>
+        <div class="market-header">
+          <button class="sell-all-btn" id="sellAllBtn" ${sellableCount === 0 ? 'disabled' : ''}>
+            Sell All (${totalSellValue}g)
+          </button>
+        </div>
+        ${gridHTML}
+      `;
+      updateHud();
+
+      if(sellableCount > 0) document.getElementById('sellAllBtn').onclick = sellAllItems;
+      document.querySelectorAll('.action-sell-one').forEach(btn => {
+        btn.onclick = () => sellOneItem(parseInt(btn.dataset.index));
+      });
+    }
+
+    function sellOneItem(index) {
+      const u = getCurrentUser();
+      const item = u.items[index];
+      if (!item || item.favorite) return;
+      u.coins += item.value;
+      u.items.splice(index, 1); 
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      renderMarket(); 
+    }
+
+    function sellAllItems() {
+      const u = getCurrentUser();
+      const keptItems = u.items.filter(i => i.favorite);
+      const soldItems = u.items.filter(i => !i.favorite);
+      if (soldItems.length === 0) return;
+      const profit = soldItems.reduce((sum, i) => sum + i.value, 0);
+      u.coins += profit;
+      u.items = keptItems; 
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      renderMarket();
+    }
+
+    async function renderLeaderboard() {
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading...</p>`;
+      updateHud();
+      const players = await getAllPlayers();
+      players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
+      const rows = players.slice(0, 10).map((p, i) => {
+        let rankClass = "";
+        if (i === 0) rankClass = "rank-1";
+        else if (i === 1) rankClass = "rank-2";
+        else if (i === 2) rankClass = "rank-3";
+        return `<div class="lb-row"><div class="lb-rank ${rankClass}">#${i+1}</div><div class="lb-name ${rankClass}">${p.username}</div><div class="lb-stats">Lv ${p.level} · ${p.coins}g</div></div>`;
+      }).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
+      updateHud();
+    }
+
+    /* --- AUTH --- */
     function renderAdminControls(user) {
       if (user.username === "Llama") { adminPanel.style.display = 'block'; adminResetBtn.style.display = 'block'; }
       else { adminPanel.style.display = 'none'; adminResetBtn.style.display = 'none'; }
@@ -854,14 +875,18 @@
     document.getElementById('admGoldUp').onclick = () => modifyUser('coins', 100);
     document.getElementById('admGoldDown').onclick = () => modifyUser('coins', -100);
     document.getElementById('adminResetBtn').onclick = () => { if(confirm("⚠ Reset ALL local data?")) { localStorage.removeItem('currentUser'); location.reload(); }};
+    
     function startGame(user) {
       overlay.style.display = 'none'; title.style.display = 'none'; startButton.style.display = 'none'; signinLink.style.display = 'none';
       gameContainer.style.display = 'flex'; renderAdminControls(user); renderHome();
     }
+    
     document.getElementById('loginButton').onclick = async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
       if (u === "Llama" && p === "Helloworld") { const master = { username: "Llama", coins: 99999, level: 100, items: [] }; setCurrentUser(master); startGame(master); return; }
+      // FIX: Use players collection check, no empty ID
+      if(!u) { alert("Enter username"); return; }
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
       const data = snap.data();
@@ -869,6 +894,7 @@
       setCurrentUser(data);
       startGame(data);
     };
+    
     document.getElementById('signupButton').onclick = async () => {
       const u = document.getElementById('signup-username').value.trim();
       const p = document.getElementById('signup-password').value.trim();
@@ -881,12 +907,14 @@
       alert("Created! Log in now.");
       signupForm.style.display='none'; signinForm.style.display='block';
     };
+    
     document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('currentUser'); location.reload(); };
     document.getElementById('homeBtn').onclick = renderHome;
     document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
     document.getElementById('backpackBtn').onclick = renderBackpack;
     document.getElementById('marketBtn').onclick = renderMarket;
     document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
+    
     (async function init() { const s = getCurrentUser(); if (s) startGame(s); })();
   </script>
 </body>
