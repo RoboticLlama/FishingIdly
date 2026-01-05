@@ -75,6 +75,7 @@
       position: absolute; top: 12px; right: 16px;
       background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
       box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+      z-index: 10;
     }
 
     /* Pond & Location Styles */
@@ -132,6 +133,7 @@
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
         <button id="backpackBtn">🎒 Backpack</button>
         <button id="shopBtn">🛒 Shop</button>
+        <button id="leaderboardBtn">🏆 Leaderboard</button>
       </div>
       
       <!-- Admin Panel (Hidden by default) -->
@@ -160,8 +162,8 @@
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-      <div class="hud" id="hud">Loading...</div>
-      <!-- Content injected by JS -->
+      <!-- HUD injected dynamically via JS -->
+      <div id="viewArea"></div>
     </div>
 
   </div>
@@ -169,7 +171,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -201,6 +203,10 @@
       if (!user || !user.username) return;
       await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
     }
+    async function getAllPlayers() {
+      const snap = await getDocs(collection(db, "players"));
+      return snap.docs.map(d => d.data());
+    }
 
     /* --- Fish Data (The Pond) --- */
     const pondTable = [
@@ -229,7 +235,6 @@
     const signupForm = document.getElementById('signupForm');
     const gameContainer = document.getElementById('gameContainer');
     const mainContent = document.getElementById('mainContent');
-    const hud = document.getElementById('hud');
 
     // Admin Elements
     const adminPanel = document.getElementById('adminPanel');
@@ -245,17 +250,25 @@
     startButton.onclick = openModal;
     overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
 
-    /* --- HUD --- */
+    /* --- HUD Logic --- */
+    function renderHudHTML() {
+      // Always returns the HTML string for the HUD.
+      return `<div class="hud" id="hudEl">Loading...</div>`;
+    }
+
     function updateHud() {
       const u = getCurrentUser();
-      if (u) hud.textContent = `💰 ${u.coins} · ⭐ Lv ${u.level}`;
+      const el = document.getElementById('hudEl');
+      if (u && el) {
+        el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
+      }
     }
 
     /* --- Render Pages --- */
     function renderHome() {
       const u = getCurrentUser();
       mainContent.innerHTML = `
-        <div class="hud" id="hud"></div>
+        ${renderHudHTML()}
         <h2>🏠 Home</h2>
         <p>Welcome back, <b>${u.username}</b>.</p>
         <p>Select "Fishing Spot" to catch some fish!</p>
@@ -266,7 +279,7 @@
     function renderFishingSpot() {
       const u = getCurrentUser();
       mainContent.innerHTML = `
-        <div class="hud" id="hud"></div>
+        ${renderHudHTML()}
         <h2>🎣 Fishing Spot</h2>
         <p>Select a location:</p>
         <button class="location-btn" id="enterPondBtn">🐟 Pond</button>
@@ -278,7 +291,7 @@
 
     function renderPond() {
       mainContent.innerHTML = `
-        <div class="hud" id="hud"></div>
+        ${renderHudHTML()}
         <div class="pond-wrap">
           <div class="pond-header">
             <button class="back-inline" id="backToSpot">← Back</button>
@@ -293,6 +306,50 @@
       
       document.getElementById('backToSpot').onclick = renderFishingSpot;
       document.getElementById('castBtn').onclick = handleCast;
+    }
+
+    function renderBackpack() {
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🎒 Backpack</h2>
+        <p>Inventory logic goes here.</p>
+      `;
+      updateHud();
+    }
+
+    function renderShop() {
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🛒 Shop</h2>
+        <p>Store logic goes here.</p>
+      `;
+      updateHud();
+    }
+
+    async function renderLeaderboard() {
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🏆 Leaderboard</h2>
+        <p>Loading players...</p>
+      `;
+      updateHud();
+      
+      const players = await getAllPlayers();
+      // Sort by Level desc, then Coins desc
+      players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
+      
+      const rows = players.slice(0, 10).map((p, i) => 
+        `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`
+      ).join('');
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🏆 Leaderboard</h2>
+        <div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">
+          ${rows || 'No players found.'}
+        </div>
+      `;
+      updateHud();
     }
 
     /* --- Fishing Logic --- */
@@ -425,6 +482,9 @@
     /* --- Nav Listeners --- */
     document.getElementById('homeBtn').onclick = renderHome;
     document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
+    document.getElementById('backpackBtn').onclick = renderBackpack;
+    document.getElementById('shopBtn').onclick = renderShop;
+    document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
     
     // Auto-login
     (async function init() {
