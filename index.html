@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Top 10 Update</title>
+  <title>Fishing Idly - Home Update</title>
   <style>
     /* --- 1. Global Reset & Theme --- */
     body {
@@ -130,36 +130,60 @@
     }
     .market-sell-btn:hover { background: #66bb6a; }
 
-    .mut-Shiny { border-color: #ffcc00; background: linear-gradient(135deg, rgba(255,204,0,0.1), rgba(0,0,0,0)); }
-    .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
-    .mut-Mythical { border-color: #ff00ff; background: linear-gradient(135deg, rgba(255,0,255,0.15), rgba(0,0,0,0.2)); }
-    .mut-Albino { border-color: #ffffff; background: rgba(255,255,255,0.1); }
-
-    .bp-name { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; padding-right: 15px; }
-    .bp-stats { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
-    .bp-tag { 
-      display: inline-block; padding: 2px 6px; border-radius: 4px; 
-      font-size: 0.7rem; margin-top: 4px; font-weight: bold; background: rgba(255,255,255,0.1);
-    }
-    .txt-Shiny { color: #ffcc00; }
-    .txt-Sparkling { color: #00ccff; }
-    .txt-Mythical { color: #ff00ff; }
-    .txt-Albino { color: #fff; }
-
     .market-header { margin-bottom: 10px; display: flex; gap: 10px; justify-content: center; }
     .sell-all-btn { background: #e53935; }
     .sell-all-btn:hover { background: #ef5350; }
 
-    /* --- LEADERBOARD STYLES --- */
-    .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
-    .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .lb-rank { width: 30px; font-weight: bold; }
-    .lb-name { flex: 1; margin-left: 10px; }
-    .lb-stats { opacity: 0.8; }
+    /* --- HOME / AQUARIUM STYLES --- */
+    .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:700px; margin-bottom:15px; }
+    .passive-info { background:rgba(0,0,0,0.3); padding:8px 15px; border-radius:8px; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); }
+    .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; }
+    .claim-btn:hover { background: #ffea70; }
+    .claim-btn:disabled { background: #555; color: #888; }
+
+    .slot-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+      width: 100%; max-width: 750px;
+    }
+    .home-slot {
+      background: rgba(255,255,255,0.05);
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 10px;
+      height: 120px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      cursor: pointer; position: relative;
+      transition: all 0.2s;
+    }
+    .home-slot:hover { background: rgba(255,255,255,0.1); }
     
-    .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-    .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
-    .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
+    .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
+    .slot-locked:hover { opacity: 1; }
+    .lock-icon { font-size: 1.5rem; margin-bottom: 5px; }
+    .lock-cost { color: #ffd700; font-size: 0.8rem; font-weight: bold; }
+
+    .slot-occupied { border-style: solid; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
+    .slot-fish-icon { font-size: 2rem; margin-bottom: 5px; }
+    .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .slot-fish-val { font-size: 0.7rem; opacity: 0.8; color: #ffd700; }
+
+    /* Fish Selector Modal (In-place) */
+    .selector-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(27, 39, 53, 0.95); z-index: 20;
+      display: flex; flex-direction: column; align-items: center; padding-top: 40px;
+    }
+    .selector-close { position: absolute; top: 20px; right: 20px; }
+
+    /* Mutations */
+    .mut-Shiny { border-color: #ffcc00; }
+    .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
+    .mut-Mythical { border-color: #ff00ff; }
+    .mut-Albino { border-color: #ffffff; }
+    .bp-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-top: 4px; font-weight: bold; background: rgba(255,255,255,0.1); }
+    .txt-Shiny { color: #ffcc00; }
+    .txt-Sparkling { color: #00ccff; }
+    .txt-Mythical { color: #ff00ff; }
+    .txt-Albino { color: #fff; }
 
   </style>
 </head>
@@ -275,6 +299,10 @@
 
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
 
+    /* --- HOME SLOTS CONFIG --- */
+    // Slot 0 (1st) is free (cost 0), others cost gold
+    const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
+
     function generateFish() {
       const totalW = pondTable.reduce((sum, item) => sum + item.chanceWeight, 0);
       let r = Math.random() * totalW;
@@ -331,11 +359,177 @@
       if (u && el) el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
     }
 
-    function renderHome() {
-      const u = getCurrentUser();
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏠 Home</h2><p>Welcome back, <b>${u.username}</b>.</p><p>Select "Fishing Spot" to catch some fish!</p>`;
-      updateHud();
+    /* --- HOME LOGIC --- */
+    function initHomeData(user) {
+      if (!user.home) {
+        user.home = {
+          lastClaim: Date.now(),
+          slots: Array(10).fill(null).map((_, i) => ({
+            id: i,
+            unlocked: i === 0, // First slot free
+            fish: null
+          }))
+        };
+      }
+      // Ensure data integrity if saved previously
+      if(!user.home.slots) user.home.slots = Array(10).fill(null).map((_, i) => ({ id: i, unlocked: i === 0, fish: null }));
+      return user;
     }
+
+    function calculatePassive(user) {
+      const now = Date.now();
+      const diffMs = now - (user.home.lastClaim || now);
+      const diffMins = diffMs / 60000;
+      
+      let ratePerMin = 0;
+      user.home.slots.forEach(slot => {
+        if (slot.unlocked && slot.fish) {
+          // 5% of value per minute, min 1g
+          ratePerMin += Math.max(1, Math.floor(slot.fish.value * 0.05));
+        }
+      });
+      
+      return { rate: ratePerMin, pending: Math.floor(ratePerMin * diffMins) };
+    }
+
+    function renderHome() {
+      let u = getCurrentUser();
+      u = initHomeData(u); // Ensure structure exists
+      
+      const passive = calculatePassive(u);
+      
+      // Generate Grid HTML
+      const slotsHTML = u.home.slots.map(slot => {
+        if (!slot.unlocked) {
+          const cost = SLOT_COSTS[slot.id];
+          return `
+            <div class="home-slot slot-locked" onclick="unlockSlot(${slot.id})">
+              <div class="lock-icon">🔒</div>
+              <div class="lock-cost">${cost}g</div>
+            </div>`;
+        } else if (slot.fish) {
+          const fish = slot.fish;
+          const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
+          const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
+          return `
+            <div class="home-slot slot-occupied ${mutClass}" onclick="removeFishFromSlot(${slot.id})">
+              <div class="slot-fish-icon">🐟</div>
+              <div class="slot-fish-name ${txtClass}">${fish.name}</div>
+              <div class="slot-fish-val">${Math.max(1, Math.floor(fish.value * 0.05))}g/min</div>
+            </div>`;
+        } else {
+          return `
+            <div class="home-slot" onclick="openFishSelector(${slot.id})">
+              <div style="font-size:1.5rem; opacity:0.5;">+</div>
+              <div style="font-size:0.8rem; opacity:0.7;">Empty</div>
+            </div>`;
+        }
+      }).join('');
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🏠 Home Aquarium</h2>
+        <div class="home-header">
+          <div class="passive-info">
+            Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/min)</span>
+          </div>
+          <button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button>
+        </div>
+        <div class="slot-grid">
+          ${slotsHTML}
+        </div>
+      `;
+      updateHud();
+
+      document.getElementById('claimBtn').onclick = claimPassiveGold;
+      window.unlockSlot = (id) => unlockHomeSlot(id);
+      window.openFishSelector = (id) => renderFishSelector(id);
+      window.removeFishFromSlot = (id) => removeFish(id);
+    }
+
+    function unlockHomeSlot(id) {
+      const u = getCurrentUser();
+      const cost = SLOT_COSTS[id];
+      if (u.coins >= cost) {
+        if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) {
+          u.coins -= cost;
+          u.home.slots[id].unlocked = true;
+          setCurrentUser(u);
+          savePlayerToCloud(u);
+          renderHome();
+        }
+      } else {
+        alert("Not enough gold!");
+      }
+    }
+
+    function claimPassiveGold() {
+      const u = getCurrentUser();
+      const passive = calculatePassive(u);
+      if (passive.pending > 0) {
+        u.coins += passive.pending;
+        u.home.lastClaim = Date.now();
+        setCurrentUser(u);
+        savePlayerToCloud(u);
+        renderHome(); // Refresh
+      }
+    }
+
+    function removeFish(slotId) {
+      const u = getCurrentUser();
+      const fish = u.home.slots[slotId].fish;
+      if (!fish) return;
+      
+      // Move back to items
+      u.items.push(fish);
+      u.home.slots[slotId].fish = null;
+      
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      renderHome();
+    }
+
+    function renderFishSelector(slotId) {
+      const u = getCurrentUser();
+      // Filter items: only fish (not trash)
+      const validFish = u.items.map((item, idx) => ({...item, originalIdx: idx}))
+                               .filter(i => i.type === 'fish');
+
+      let listHTML = "";
+      if (validFish.length === 0) {
+        listHTML = "<p>No fish in backpack.</p>";
+      } else {
+        listHTML = validFish.map(f => {
+          return `
+            <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px;">
+              <div><b>${f.name}</b> <small>(${f.value}g)</small></div>
+              <button class="btn-sm" style="background:#5bc0be" onclick="placeFish(${slotId}, ${f.originalIdx})">Select</button>
+            </div>`;
+        }).join('');
+      }
+
+      // Overlay
+      const selOverlay = document.createElement('div');
+      selOverlay.className = "selector-overlay";
+      selOverlay.innerHTML = `
+        <button class="selector-close" id="closeSel">Close</button>
+        <h3>Select a Fish</h3>
+        <div style="overflow-y:auto; max-height:400px;">${listHTML}</div>
+      `;
+      mainContent.appendChild(selOverlay);
+      
+      document.getElementById('closeSel').onclick = () => renderHome();
+      window.placeFish = (sId, itemIdx) => {
+        // Move from items to slot
+        const fishToMove = u.items[itemIdx];
+        u.items.splice(itemIdx, 1); // Remove from backpack
+        u.home.slots[sId].fish = fishToMove; // Add to home
+        setCurrentUser(u);
+        savePlayerToCloud(u);
+        renderHome();
+      };
+    }
+
     function renderFishingSpot() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Select a location:</p><button class="location-btn" id="enterPondBtn">🐟 Pond</button><button class="location-btn" disabled>🌊 Stream (Locked)</button>`;
       updateHud();
@@ -461,28 +655,13 @@
       renderMarket();
     }
 
-    /* --- LEADERBOARD --- */
     async function renderLeaderboard() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading...</p>`;
       updateHud();
       const players = await getAllPlayers();
       players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
-      
-      const rows = players.slice(0, 10).map((p, i) => {
-        let rankClass = "";
-        if (i === 0) rankClass = "rank-1";
-        else if (i === 1) rankClass = "rank-2";
-        else if (i === 2) rankClass = "rank-3";
-        return `
-          <div class="lb-row">
-            <div class="lb-rank ${rankClass}">#${i+1}</div>
-            <div class="lb-name ${rankClass}">${p.username}</div>
-            <div class="lb-stats">Lv ${p.level} · ${p.coins}g</div>
-          </div>
-        `;
-      }).join('');
-
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
+      const rows = players.slice(0, 10).map((p, i) => `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">${rows || 'No players.'}</div>`;
       updateHud();
     }
 
