@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Market Update</title>
+  <title>Fishing Idly - Top 10 Update</title>
   <style>
     /* --- 1. Global Reset & Theme --- */
     body {
@@ -115,7 +115,6 @@
       border-radius: 8px; padding: 12px; text-align: center; position: relative;
       overflow: hidden;
     }
-    
     .star-btn {
       position: absolute; top: 4px; right: 4px;
       background: none; border: none; padding: 0;
@@ -147,10 +146,20 @@
     .txt-Mythical { color: #ff00ff; }
     .txt-Albino { color: #fff; }
 
-    /* Sell All Header */
     .market-header { margin-bottom: 10px; display: flex; gap: 10px; justify-content: center; }
     .sell-all-btn { background: #e53935; }
     .sell-all-btn:hover { background: #ef5350; }
+
+    /* --- LEADERBOARD STYLES --- */
+    .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
+    .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lb-rank { width: 30px; font-weight: bold; }
+    .lb-name { flex: 1; margin-left: 10px; }
+    .lb-stats { opacity: 0.8; }
+    
+    .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
+    .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
 
   </style>
 </head>
@@ -333,6 +342,7 @@
       document.getElementById('enterPondBtn').onclick = renderPond;
     }
 
+    /* --- BACKPACK RENDER --- */
     function renderBackpack() {
       const u = getCurrentUser();
       const items = u.items || [];
@@ -366,12 +376,19 @@
       });
     }
 
+    function toggleFavorite(index, view) {
+      const u = getCurrentUser();
+      if (!u || !u.items[index]) return;
+      u.items[index].favorite = !u.items[index].favorite;
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      if(view === 'backpack') renderBackpack();
+    }
+
     /* --- MARKET RENDER --- */
     function renderMarket() {
       const u = getCurrentUser();
       const items = u.items || [];
-      
-      // Calculate sellable items (not favorites)
       const sellableCount = items.filter(i => !i.favorite).length;
       const totalSellValue = items.reduce((sum, item) => item.favorite ? sum : sum + item.value, 0);
 
@@ -414,7 +431,6 @@
       `;
       updateHud();
 
-      // Listeners
       if(sellableCount > 0) document.getElementById('sellAllBtn').onclick = sellAllItems;
       document.querySelectorAll('.action-sell-one').forEach(btn => {
         btn.onclick = () => sellOneItem(parseInt(btn.dataset.index));
@@ -425,50 +441,48 @@
       const u = getCurrentUser();
       const item = u.items[index];
       if (!item || item.favorite) return;
-
       u.coins += item.value;
-      u.items.splice(index, 1); // Remove item
+      u.items.splice(index, 1); 
       setCurrentUser(u);
       savePlayerToCloud(u);
-      renderMarket(); // Re-render to update list/indices
+      renderMarket(); 
     }
 
     function sellAllItems() {
       const u = getCurrentUser();
-      const initialCount = u.items.length;
-      
-      // Filter items to keep only favorites
       const keptItems = u.items.filter(i => i.favorite);
       const soldItems = u.items.filter(i => !i.favorite);
-      
       if (soldItems.length === 0) return;
-
       const profit = soldItems.reduce((sum, i) => sum + i.value, 0);
-      
       u.coins += profit;
-      u.items = keptItems; // Replace inventory with only favorites
-      
+      u.items = keptItems; 
       setCurrentUser(u);
       savePlayerToCloud(u);
       renderMarket();
     }
 
-    function toggleFavorite(index, view) {
-      const u = getCurrentUser();
-      if (!u || !u.items[index]) return;
-      u.items[index].favorite = !u.items[index].favorite;
-      setCurrentUser(u);
-      savePlayerToCloud(u);
-      if(view === 'backpack') renderBackpack();
-    }
-
+    /* --- LEADERBOARD --- */
     async function renderLeaderboard() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading...</p>`;
       updateHud();
       const players = await getAllPlayers();
       players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
-      const rows = players.slice(0, 10).map((p, i) => `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">${rows || 'No players.'}</div>`;
+      
+      const rows = players.slice(0, 10).map((p, i) => {
+        let rankClass = "";
+        if (i === 0) rankClass = "rank-1";
+        else if (i === 1) rankClass = "rank-2";
+        else if (i === 2) rankClass = "rank-3";
+        return `
+          <div class="lb-row">
+            <div class="lb-rank ${rankClass}">#${i+1}</div>
+            <div class="lb-name ${rankClass}">${p.username}</div>
+            <div class="lb-stats">Lv ${p.level} · ${p.coins}g</div>
+          </div>
+        `;
+      }).join('');
+
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
       updateHud();
     }
 
