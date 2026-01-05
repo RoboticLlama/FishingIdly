@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Rarity Income Update</title>
+  <title>Fishing Idly - Sequential & Mutation Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -158,6 +158,11 @@
     
     .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
     .slot-locked:hover { opacity: 1; }
+    
+    /* New style for locked but not next in line */
+    .slot-locked-disabled { opacity: 0.3; cursor: not-allowed; border-color: #333; }
+    .slot-locked-disabled:hover { opacity: 0.3; background: rgba(0,0,0,0.4); }
+
     .lock-icon { font-size: 1.5rem; margin-bottom: 5px; }
     .lock-cost { color: #ffd700; font-size: 0.8rem; font-weight: bold; }
 
@@ -309,7 +314,7 @@
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
     
-    // NEW: Passive Income Rates per Hour based on Rarity
+    // Passive Income Rates per Hour based on Rarity
     const PASSIVE_RATES = {
       trash: 5,
       common: 20,
@@ -399,15 +404,19 @@
     function calculatePassive(user) {
       const now = Date.now();
       const diffMs = now - (user.home.lastClaim || now);
-      // Convert ms to hours
       const diffHours = diffMs / (1000 * 60 * 60);
       
       let ratePerHour = 0;
       user.home.slots.forEach(slot => {
         if (slot.unlocked && slot.fish) {
-          // Use Rarity Lookup, default to 5 if unknown
           const r = slot.fish.rarity || 'trash';
-          ratePerHour += (PASSIVE_RATES[r] || 5);
+          const baseRate = PASSIVE_RATES[r] || 5;
+          
+          // Apply Mutation Multiplier
+          const mutObj = mutations.find(m => m.name === slot.fish.mutation) || mutations[0];
+          const finalRate = Math.ceil(baseRate * mutObj.mult);
+          
+          ratePerHour += finalRate;
         }
       });
       
@@ -423,8 +432,12 @@
       const slotsHTML = u.home.slots.map(slot => {
         if (!slot.unlocked) {
           const cost = SLOT_COSTS[slot.id];
+          // Check if previous slot is unlocked (Slot 0 is always unlocked)
+          const prevUnlocked = (slot.id === 0) || u.home.slots[slot.id - 1].unlocked;
+          const lockClass = prevUnlocked ? "slot-locked" : "slot-locked slot-locked-disabled";
+          
           return `
-            <div class="home-slot slot-locked" onclick="window.unlockHomeSlot(${slot.id})">
+            <div class="home-slot ${lockClass}" onclick="window.unlockHomeSlot(${slot.id})">
               <div class="lock-icon">🔒</div>
               <div class="lock-cost">${cost}g</div>
             </div>`;
@@ -432,7 +445,12 @@
           const fish = slot.fish;
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
-          const rate = PASSIVE_RATES[fish.rarity] || 5;
+          
+          // Calculate specific rate for display
+          const baseRate = PASSIVE_RATES[fish.rarity] || 5;
+          const mutObj = mutations.find(m => m.name === fish.mutation) || mutations[0];
+          const rate = Math.ceil(baseRate * mutObj.mult);
+
           return `
             <div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">
               <div class="slot-fish-icon">🐟</div>
@@ -468,6 +486,13 @@
 
     window.unlockHomeSlot = function(id) {
       const u = getCurrentUser();
+      
+      // Sequential Check
+      if (id > 0 && !u.home.slots[id - 1].unlocked) {
+        alert("You must unlock the previous slot first!");
+        return;
+      }
+
       const cost = SLOT_COSTS[id];
       if (u.coins >= cost) {
         if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) {
@@ -503,7 +528,10 @@
         listHTML = "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>";
       } else {
         listHTML = validFish.map(f => {
-          const rate = PASSIVE_RATES[f.rarity] || 5;
+          const baseRate = PASSIVE_RATES[f.rarity] || 5;
+          const mutObj = mutations.find(m => m.name === f.mutation) || mutations[0];
+          const rate = Math.ceil(baseRate * mutObj.mult);
+          
           return `
             <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
               <div style="text-align:left;"><b>${f.name}</b> <small>(${rate}g/hr)</small></div>
