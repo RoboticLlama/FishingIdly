@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Fixed</title>
+  <title>Fishing Idly - Rarity Income Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -280,12 +280,10 @@
       try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
     }
     async function savePlayerToCloud(user) {
-      // FIX: Ensure username exists before saving to prevent "segments" error
       if (!user || !user.username) return;
       await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
     }
     async function getAllPlayers() {
-      // FIX: Ensure using collection() not doc()
       const snap = await getDocs(collection(db, "players"));
       return snap.docs.map(d => d.data());
     }
@@ -310,6 +308,16 @@
 
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
+    
+    // NEW: Passive Income Rates per Hour based on Rarity
+    const PASSIVE_RATES = {
+      trash: 5,
+      common: 20,
+      uncommon: 50,
+      rare: 150,
+      epic: 500,
+      legendary: 2000
+    };
 
     // --- GENERATOR ---
     function generateFish() {
@@ -382,7 +390,6 @@
             fish: null
           }))
         };
-        // FIX: Force immediate save so DB matches local structure
         setCurrentUser(user);
         savePlayerToCloud(user);
       }
@@ -392,15 +399,19 @@
     function calculatePassive(user) {
       const now = Date.now();
       const diffMs = now - (user.home.lastClaim || now);
-      const diffMins = diffMs / 60000;
+      // Convert ms to hours
+      const diffHours = diffMs / (1000 * 60 * 60);
       
-      let ratePerMin = 0;
+      let ratePerHour = 0;
       user.home.slots.forEach(slot => {
         if (slot.unlocked && slot.fish) {
-          ratePerMin += Math.max(1, Math.floor(slot.fish.value * 0.05));
+          // Use Rarity Lookup, default to 5 if unknown
+          const r = slot.fish.rarity || 'trash';
+          ratePerHour += (PASSIVE_RATES[r] || 5);
         }
       });
-      return { rate: ratePerMin, pending: Math.floor(ratePerMin * diffMins) };
+      
+      return { rate: ratePerHour, pending: Math.floor(ratePerHour * diffHours) };
     }
 
     function renderHome() {
@@ -421,11 +432,12 @@
           const fish = slot.fish;
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
+          const rate = PASSIVE_RATES[fish.rarity] || 5;
           return `
             <div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">
               <div class="slot-fish-icon">🐟</div>
               <div class="slot-fish-name ${txtClass}">${fish.name}</div>
-              <div class="slot-fish-val">${Math.max(1, Math.floor(fish.value * 0.05))}g/min</div>
+              <div class="slot-fish-val">${rate}g/hr</div>
             </div>`;
         } else {
           return `
@@ -441,7 +453,7 @@
         <h2>🏠 Home Aquarium</h2>
         <div class="home-header">
           <div class="passive-info">
-            Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/min)</span>
+            Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/hr)</span>
           </div>
           <button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button>
         </div>
@@ -454,7 +466,6 @@
       document.getElementById('claimBtn').onclick = claimPassiveGold;
     }
 
-    // Attach these to window so HTML onclicks find them easily
     window.unlockHomeSlot = function(id) {
       const u = getCurrentUser();
       const cost = SLOT_COSTS[id];
@@ -492,9 +503,10 @@
         listHTML = "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>";
       } else {
         listHTML = validFish.map(f => {
+          const rate = PASSIVE_RATES[f.rarity] || 5;
           return `
             <div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
-              <div style="text-align:left;"><b>${f.name}</b> <small>(${f.value}g)</small></div>
+              <div style="text-align:left;"><b>${f.name}</b> <small>(${rate}g/hr)</small></div>
               <button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button>
             </div>`;
         }).join('');
