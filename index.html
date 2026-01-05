@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Value Update</title>
+  <title>Fishing Idly - Favorites Update</title>
   <style>
     /* --- 1. Global Reset & Theme --- */
     body {
@@ -34,7 +34,8 @@
       padding: 2rem; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,.4);
       width: 300px; text-align:center; transform: scale(.8); opacity: 0; animation: pop .3s forwards;
     }
-    .signin-box input { width: 90%; padding: .7rem; margin: .5rem 0; border: none; border-radius: 8px; outline: none; background:#1b2735; color:#e0e0e0; }
+    .signin-box input { width: 90%; padding: .7rem; margin: .5rem 0; border: none; border-radius: 8px; outline: none; background:#1b2735; color:#e0e0e0;
+    }
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
@@ -105,7 +106,7 @@
       pointer-events: none; opacity: 0.8;
     }
 
-    /* --- BACKPACK & MUTATIONS --- */
+    /* --- BACKPACK & FAVS --- */
     .bp-grid { 
       display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
       gap: 12px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
@@ -116,26 +117,34 @@
       overflow: hidden;
     }
     
-    /* Mutation Styles for Backpack Cards */
+    /* Favorite Star Button */
+    .star-btn {
+      position: absolute; top: 4px; right: 4px;
+      background: none; border: none; padding: 0;
+      font-size: 1.4rem; cursor: pointer; line-height: 1;
+      color: rgba(255,255,255,0.3);
+      transition: color 0.2s, transform 0.1s;
+      z-index: 10;
+    }
+    .star-btn:hover { color: rgba(255,255,255,0.6); transform: scale(1.1); }
+    .star-btn.fav-active { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); opacity: 1; }
+
+    /* Mutations */
     .mut-Shiny { border-color: #ffcc00; background: linear-gradient(135deg, rgba(255,204,0,0.1), rgba(0,0,0,0)); }
     .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
     .mut-Mythical { border-color: #ff00ff; background: linear-gradient(135deg, rgba(255,0,255,0.15), rgba(0,0,0,0.2)); }
     .mut-Albino { border-color: #ffffff; background: rgba(255,255,255,0.1); }
-    .mut-Darkened { border-color: #333; background: #000; }
-
-    .bp-name { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; }
+    
+    .bp-name { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; padding-right: 15px; /* space for star */ }
     .bp-stats { font-size: 0.8rem; opacity: 0.8; line-height: 1.4; }
     .bp-tag { 
       display: inline-block; padding: 2px 6px; border-radius: 4px; 
       font-size: 0.7rem; margin-top: 4px; font-weight: bold; background: rgba(255,255,255,0.1);
     }
-    
-    /* Text Colors */
     .txt-Shiny { color: #ffcc00; }
     .txt-Sparkling { color: #00ccff; }
     .txt-Mythical { color: #ff00ff; }
     .txt-Albino { color: #fff; }
-    .txt-Darkened { color: #888; }
 
   </style>
 </head>
@@ -232,9 +241,7 @@
       return snap.docs.map(d => d.data());
     }
 
-    /* --- FISH CONFIGURATION --- */
-    
-    // 1. Core Data (Price per Kg is calculated as rough base value / avg weight)
+    /* --- FISH CONFIG --- */
     const pondTable = [
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 25 },
@@ -244,20 +251,18 @@
       { name: "Golden Koi", type: "fish", minKg: 2.0, maxKg: 8.0, pricePerKg: 15, rarity: "legendary", chanceWeight: 2 }
     ];
 
-    // 2. Mutations (Multiplier & Chance)
     const mutations = [
       { name: "Normal", mult: 1.0, chance: 0.85 },
-      { name: "Shiny", mult: 1.85, chance: 0.08 }, // 8%
-      { name: "Sparkling", mult: 1.85, chance: 0.04 }, // 4%
-      { name: "Albino", mult: 1.15, chance: 0.02 }, // 2%
-      { name: "Mythical", mult: 4.5, chance: 0.01 } // 1%
+      { name: "Shiny", mult: 1.85, chance: 0.08 },
+      { name: "Sparkling", mult: 1.85, chance: 0.04 },
+      { name: "Albino", mult: 1.15, chance: 0.02 },
+      { name: "Mythical", mult: 4.5, chance: 0.01 }
     ];
 
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
 
-    /* --- FISH GENERATION LOGIC --- */
+    /* --- FISH GEN --- */
     function generateFish() {
-      // A. Pick Species
       const totalW = pondTable.reduce((sum, item) => sum + item.chanceWeight, 0);
       let r = Math.random() * totalW;
       let species = pondTable[0];
@@ -265,24 +270,15 @@
         if ((r -= item.chanceWeight) <= 0) { species = item; break; }
       }
 
-      // B. Roll Weight
       const weightRaw = species.minKg + Math.random() * (species.maxKg - species.minKg);
       const weight = parseFloat(weightRaw.toFixed(2));
 
-      // C. Size Label (Big/Giant)
       let sizeLabel = "";
-      const range = species.maxKg - species.minKg;
-      const percent = (weight - species.minKg) / range; // 0.0 to 1.0
+      const percent = (weight - species.minKg) / (species.maxKg - species.minKg);
       if (percent > 0.90) sizeLabel = "Giant";
       else if (percent > 0.70) sizeLabel = "Big";
 
-      // D. Roll Mutation
-      let mut = mutations[0]; // Default Normal
-      const rollM = Math.random();
-      let acc = 0;
-      // We start checking from rare to common to prioritize rare if chances overlap in simple logic
-      // Actually simpler: standard weighted pick
-      // Let's just use simple independent checks for rarity
+      let mut = mutations[0]; 
       const rollRare = Math.random();
       if (rollRare < 0.01) mut = mutations.find(m => m.name === "Mythical");
       else if (rollRare < 0.03) mut = mutations.find(m => m.name === "Albino");
@@ -290,9 +286,6 @@
       else if (rollRare < 0.15) mut = mutations.find(m => m.name === "Shiny");
       else mut = mutations[0];
 
-      // E. Calculate Value
-      // Formula: Weight * PricePerKg * MutationMult
-      // If Giant: 2x, If Big: 1.2x (Custom bonus)
       let sizeMult = 1.0;
       if (sizeLabel === "Giant") sizeMult = 2.0;
       else if (sizeLabel === "Big") sizeMult = 1.2;
@@ -300,13 +293,9 @@
       let val = Math.ceil(weight * species.pricePerKg * mut.mult * sizeMult);
 
       return {
-        name: species.name,
-        type: species.type,
-        rarity: species.rarity,
-        weight: weight,
-        mutation: mut.name,
-        size: sizeLabel,
-        value: val
+        name: species.name, type: species.type, rarity: species.rarity,
+        weight: weight, mutation: mut.name, size: sizeLabel, value: val,
+        favorite: false // Default favorite state
       };
     }
 
@@ -348,6 +337,7 @@
       document.getElementById('enterPondBtn').onclick = renderPond;
     }
 
+    /* --- BACKPACK RENDER --- */
     function renderBackpack() {
       const u = getCurrentUser();
       const items = u.items || [];
@@ -356,15 +346,19 @@
       if (items.length === 0) {
         gridHTML = "<p>Your backpack is empty.</p>";
       } else {
-        // Render detailed cards
-        const list = items.map(item => {
+        const list = items.map((item, idx) => {
           const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : "";
           const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : "";
           const sizeText = item.size ? `<b>${item.size}</b> ` : "";
           const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : "";
           
+          // Determine Star visual state
+          const favClass = item.favorite ? "fav-active" : "";
+          const starIcon = item.favorite ? "★" : "☆";
+
           return `
           <div class="bp-item ${mutClass}">
+            <button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button>
             <div style="font-size:1.5rem">🐟</div>
             <div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>
             <div class="bp-stats">
@@ -385,6 +379,28 @@
         ${gridHTML}
       `;
       updateHud();
+      
+      // Attach listeners for stars
+      document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation(); // Prevent bubbling
+          toggleFavorite(parseInt(btn.dataset.index));
+        };
+      });
+    }
+
+    function toggleFavorite(index) {
+      const u = getCurrentUser();
+      if (!u || !u.items[index]) return;
+      
+      // Toggle state
+      u.items[index].favorite = !u.items[index].favorite;
+      
+      setCurrentUser(u);
+      savePlayerToCloud(u);
+      
+      // Re-render to show update
+      renderBackpack();
     }
 
     function renderShop() {
@@ -440,11 +456,8 @@
       const waitTime = 1000 + Math.random() * 2000;
       setTimeout(() => {
         waitBar.style.display = 'none';
-        
-        // 1. GENERATE THE UNIQUE FISH HERE
         const hookedFish = generateFish(); 
         startMinigame(hookedFish);
-        
       }, waitTime);
     }
 
@@ -464,7 +477,6 @@
       barContainer.style.display = 'block';
       btn.style.display = 'none';
       
-      // Mystery Text
       statusEl.innerHTML = `HOOKED! Something is on the line...`;
       
       minigameActive = true;
@@ -592,18 +604,12 @@
       if (won) {
         // SUCCESS
         const u = getCurrentUser();
-        
-        // Add calculated coins
         u.coins += fish.value;
-        // Add full fish object (with weight/mutation stats) to backpack
         u.items.push(fish);
-        
         setCurrentUser(u);
         savePlayerToCloud(u);
         updateHud();
 
-        // MYSTERY REVEAL (Simple name only)
-        // If it's a mutation, we can color the name, but NO numbers.
         const nameHTML = fish.mutation !== "Normal" 
           ? `<b class="txt-${fish.mutation}">${fish.mutation} ${fish.name}</b>` 
           : `<b>${fish.name}</b>`;
