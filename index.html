@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Base</title>
+  <title>Fishing Idly - Minigame Update</title>
   <style>
     /* --- 1. Global Reset & Theme --- */
     body {
@@ -14,6 +14,7 @@
       height: 100vh; 
       overflow: hidden; 
       display: flex; flex-direction: column; justify-content: center; align-items: center; 
+      user-select: none; /* Prevent highlighting text during minigame */
     }
     
     h1 { font-size: 3rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 3px; }
@@ -52,19 +53,16 @@
     .nav-buttons button { width: 95%; margin: 6px 0; background: #3a506b; font-size: 0.95rem; padding: 0.8rem; text-align: left; }
     .nav-buttons button:hover { background: #5bc0be; color: #1b2735; }
 
-    /* Admin Panel Styles (Sidebar) */
-    .admin-panel {
-      width: 95%; background: rgba(0,0,0,.18); border-radius: 10px; 
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset; padding: 10px; margin-bottom: 10px; font-size: .9rem;
-    }
+    .logout-btn { background: #b0413e; width: 95%; font-size: 0.9rem; padding: 0.6rem; }
+    .logout-btn:hover { background: #e24e4b; }
+
+    /* Admin Panel */
+    .admin-panel { width: 95%; background: rgba(0,0,0,.18); border-radius: 10px; padding: 10px; margin-bottom: 10px; font-size: .9rem; }
     .admin-title { font-weight: 700; opacity: .9; margin-bottom: 6px; text-align: center; color: #ff7a7a; }
     .admin-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
     .btn-sm { padding: .3rem .6rem; border-radius: 6px; font-size: 0.8rem; min-width: auto; }
     .admin-reset-btn { background: #7a1f1b; width: 95%; margin-bottom: 10px; font-size: 0.9rem; padding: 0.6rem; }
     .admin-reset-btn:hover { background: #a52b25; }
-
-    .logout-btn { background: #b0413e; width: 95%; font-size: 0.9rem; padding: 0.6rem; }
-    .logout-btn:hover { background: #e24e4b; }
 
     /* Main Content */
     .main-content { 
@@ -75,25 +73,85 @@
       position: absolute; top: 12px; right: 16px;
       background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
       box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
-      z-index: 10;
+      z-index: 15;
     }
 
-    /* Pond & Location Styles */
-    .pond-wrap { max-width: 640px; width: 100%; }
-    .pond-header { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+    /* Pond Elements */
+    .pond-wrap { max-width: 800px; width: 100%; height: 500px; position: relative; display: flex; flex-direction: column; align-items: center; }
+    .pond-header { width: 100%; position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
     .back-inline { position: absolute; left: 0; padding: .5rem 1rem; border-radius: 8px; font-size: 0.9rem; }
     .location-btn { margin: 10px; width: 200px; }
-    .status { margin: 10px 0 20px; font-size: 1.1rem; min-height: 1.5em; color: #9ad4d6; }
+    .status { margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; color: #9ad4d6; }
     
-    /* Progress Bar for Casting */
-    .progress {
-      position: relative; height: 12px; width: 100%; max-width: 400px; background: #0f1824;
-      border-radius: 8px; overflow: hidden; margin: 0 auto 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
-      display: none; /* Hidden by default */
+    /* Casting Wait Bar */
+    .wait-bar {
+      position: relative; height: 10px; width: 200px; background: #0f1824;
+      border-radius: 8px; overflow: hidden; margin: 10px auto; display: none;
     }
-    .progress-fill { height: 100%; width: 0%; background: #5bc0be; transition: width 0.1s linear; }
+    .wait-fill { height: 100%; width: 0%; background: #5bc0be; transition: width 0.1s linear; }
 
-    /* Rarity Colors for Text */
+    /* --- MINIGAME STYLES --- */
+    
+    /* The play area for circles */
+    .minigame-area {
+      position: relative;
+      width: 100%;
+      height: 350px;
+      background: rgba(0,0,0,0.2);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      display: none; /* Hidden until game starts */
+      cursor: crosshair;
+    }
+
+    /* Top Progress Bar for Minigame */
+    .game-bar-container {
+      width: 100%;
+      max-width: 400px;
+      height: 20px;
+      background: #2b1d1d;
+      border: 2px solid #555;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      position: relative;
+      display: none; /* Hidden until game starts */
+      overflow: hidden;
+    }
+    .game-bar-fill {
+      height: 100%;
+      width: 35%; /* Starts at 35% */
+      background: linear-gradient(90deg, #ff8a00, #e52e71);
+      transition: width 0.1s linear;
+    }
+
+    /* The Target (Solid Circle) */
+    .target-circle {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: #5bc0be;
+      border-radius: 50%;
+      transform: translate(-50%, -50%); /* Center on coordinate */
+      z-index: 5;
+      pointer-events: auto; /* Clickable */
+      box-shadow: 0 0 10px rgba(91,192,190,0.5);
+    }
+
+    /* The Ring (Shrinking Border) */
+    .target-ring {
+      position: absolute;
+      width: 150px; /* Starts larger */
+      height: 150px;
+      border: 4px solid #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      pointer-events: none; /* Let clicks pass through to circle */
+      opacity: 0.8;
+    }
+
+    /* Rarity Text Colors */
     .rarity-common { color: #e0e0e0; }
     .rarity-uncommon { color: #5bc0be; font-weight: bold; }
     .rarity-rare { color: #5084cc; font-weight: bold; }
@@ -144,7 +202,7 @@
         <button id="leaderboardBtn">🏆 Leaderboard</button>
       </div>
       
-      <!-- Admin Panel (Hidden by default) -->
+      <!-- Admin Panel -->
       <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
         <div id="adminPanel" class="admin-panel" style="display:none;">
           <div class="admin-title">ADMIN TOOLS</div>
@@ -215,38 +273,27 @@
       return snap.docs.map(d => d.data());
     }
 
-    /* --- POND FISH DATA --- */
-    /* Updated with full list from original game */
+    /* --- Fish & Difficulty --- */
     const pondTable = [
-      // Common
-      { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.8 },
-      { name: "Pumpkinseed", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.2, baseWeight: 1.0 },
-      { name: "Yellow Perch", type: "fish", weight: 12, rarity: "common", value: 4, minWeight: 0.3, baseWeight: 1.2 },
-      
-      // Uncommon
-      { name: "Bluegill", type: "fish", weight: 9, rarity: "uncommon", value: 6, minWeight: 0.1, baseWeight: 0.8 },
-      { name: "Catfish", type: "fish", weight: 7, rarity: "uncommon", value: 8, minWeight: 1.0, baseWeight: 6.0 },
-      { name: "Carp", type: "fish", weight: 4, rarity: "uncommon", value:10, minWeight: 2.0, baseWeight: 15.0 },
-      
-      // Rare
-      { name: "Goldfish", type: "fish", weight: 10, rarity: "rare", value:15, minWeight: 0.1, baseWeight: 0.6 },
-      
-      // Epic
-      { name: "Largemouth Bass", type: "fish", weight: 4, rarity: "epic", value:20, minWeight: 1.0, baseWeight: 4.5 },
-      
-      // Legendary
-      { name: "Golden Koi", type: "fish", weight: 1, rarity: "legendary", value:40, minWeight: 4.0, baseWeight: 25.0 },
-      
-      // Trash (Weight 5 each)
       { name: "Old Boot", type: "trash", weight: 5, value: 1, rarity: "trash" },
-      { name: "Tin Can", type: "trash", weight: 5, value: 1, rarity: "trash" },
-      { name: "Tangled Line", type: "trash", weight: 5, value: 1, rarity: "trash" },
-      { name: "Broken Glass", type: "trash", weight: 5, value: 1, rarity: "trash" },
-      { name: "Rusty Hook", type: "trash", weight: 5, value: 1, rarity: "trash" }
+      { name: "Crappie", type: "fish", weight: 16, rarity: "common", value: 4 },
+      { name: "Bluegill", type: "fish", weight: 9, rarity: "uncommon", value: 6 },
+      { name: "Goldfish", type: "fish", weight: 6, rarity: "rare", value:15 },
+      { name: "Largemouth Bass", type: "fish", weight: 4, rarity: "epic", value:20 },
+      { name: "Golden Koi", type: "fish", weight: 1, rarity: "legendary", value:40 }
     ];
 
+    // How fast the circles shrink (in milliseconds)
+    const difficultyMap = {
+      trash: 2500,
+      common: 2000,
+      uncommon: 1700,
+      rare: 1400,
+      epic: 1100,
+      legendary: 800
+    };
+
     function pickRandomFish() {
-      // Calculate total weight
       const totalWeight = pondTable.reduce((sum, item) => sum + item.weight, 0);
       let random = Math.random() * totalWeight;
       for (const item of pondTable) {
@@ -263,36 +310,26 @@
     const signupForm = document.getElementById('signupForm');
     const gameContainer = document.getElementById('gameContainer');
     const mainContent = document.getElementById('mainContent');
-
-    // Admin Elements
     const adminPanel = document.getElementById('adminPanel');
     const adminResetBtn = document.getElementById('adminResetBtn');
 
-    // Toggle Forms
     document.getElementById('showSignup').onclick = () => { signinForm.style.display='none'; signupForm.style.display='block'; };
     document.getElementById('showSignin').onclick = () => { signupForm.style.display='none'; signinForm.style.display='block'; };
     
-    // Modal
     const openModal = () => overlay.style.display = 'flex';
     signinLink.onclick = openModal;
     startButton.onclick = openModal;
     overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
 
-    /* --- HUD Logic --- */
-    function renderHudHTML() {
-      // Returns HTML for the HUD
-      return `<div class="hud" id="hudEl">Loading...</div>`;
-    }
-
+    /* --- HUD --- */
+    function renderHudHTML() { return `<div class="hud" id="hudEl">Loading...</div>`; }
     function updateHud() {
       const u = getCurrentUser();
       const el = document.getElementById('hudEl');
-      if (u && el) {
-        el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
-      }
+      if (u && el) el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
     }
 
-    /* --- Render Pages --- */
+    /* --- Renders --- */
     function renderHome() {
       const u = getCurrentUser();
       mainContent.innerHTML = `
@@ -316,6 +353,28 @@
       document.getElementById('enterPondBtn').onclick = renderPond;
     }
 
+    function renderBackpack() {
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack</h2><p>Inventory goes here.</p>`;
+      updateHud();
+    }
+
+    function renderShop() {
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🛒 Shop</h2><p>Store goes here.</p>`;
+      updateHud();
+    }
+
+    async function renderLeaderboard() {
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading...</p>`;
+      updateHud();
+      const players = await getAllPlayers();
+      players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
+      const rows = players.slice(0, 10).map((p, i) => `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">${rows || 'No players.'}</div>`;
+      updateHud();
+    }
+
+    /* --- POND & MINIGAME LOGIC --- */
+
     function renderPond() {
       mainContent.innerHTML = `
         ${renderHudHTML()}
@@ -324,9 +383,23 @@
             <button class="back-inline" id="backToSpot">← Back</button>
             <h2>🐟 Pond</h2>
           </div>
+          
+          <!-- Game Bar (Hidden initially) -->
+          <div class="game-bar-container" id="gameBarContainer">
+            <div class="game-bar-fill" id="gameBarFill"></div>
+          </div>
+
           <div class="status" id="pondStatus">The water is calm...</div>
-          <div class="progress" id="castProgress"><div class="progress-fill" id="castFill"></div></div>
-          <button id="castBtn" style="min-width:150px;">Cast Line</button>
+
+          <!-- Waiting Bar (Hidden initially) -->
+          <div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div>
+
+          <!-- Minigame Layer (Hidden initially) -->
+          <div class="minigame-area" id="minigameArea"></div>
+
+          <div style="margin-top:10px;">
+             <button id="castBtn" style="min-width:150px;">Cast Line</button>
+          </div>
         </div>
       `;
       updateHud();
@@ -335,97 +408,229 @@
       document.getElementById('castBtn').onclick = handleCast;
     }
 
-    function renderBackpack() {
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🎒 Backpack</h2>
-        <p>Inventory logic goes here.</p>
-      `;
-      updateHud();
-    }
-
-    function renderShop() {
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🛒 Shop</h2>
-        <p>Store logic goes here.</p>
-      `;
-      updateHud();
-    }
-
-    async function renderLeaderboard() {
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🏆 Leaderboard</h2>
-        <p>Loading players...</p>
-      `;
-      updateHud();
-      
-      const players = await getAllPlayers();
-      // Sort by Level desc, then Coins desc
-      players.sort((a,b) => (b.level - a.level) || (b.coins - a.coins));
-      
-      const rows = players.slice(0, 10).map((p, i) => 
-        `<div>#${i+1} <b>${p.username}</b> - Lv ${p.level} - ${p.coins}g</div>`
-      ).join('');
-
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🏆 Leaderboard</h2>
-        <div style="margin-top:20px; text-align:left; background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">
-          ${rows || 'No players found.'}
-        </div>
-      `;
-      updateHud();
-    }
-
-    /* --- Fishing Logic --- */
     function handleCast() {
       const statusEl = document.getElementById('pondStatus');
-      const progEl = document.getElementById('castProgress');
-      const fillEl = document.getElementById('castFill');
+      const waitBar = document.getElementById('waitBar');
+      const waitFill = document.getElementById('waitFill');
       const btn = document.getElementById('castBtn');
 
-      // Disable button
       btn.disabled = true;
-      btn.textContent = "Waiting...";
-      statusEl.textContent = "Waiting for a bite...";
+      btn.textContent = "Waiting for bite...";
+      statusEl.textContent = "Scanning the water...";
       
-      // Animate Bar
-      progEl.style.display = 'block';
-      fillEl.style.width = '0%';
-      
-      // Simple 2-second wait logic
-      setTimeout(() => { fillEl.style.width = '100%'; }, 50);
+      // Animate Wait Bar
+      waitBar.style.display = 'block';
+      waitFill.style.width = '0%';
+      setTimeout(() => waitFill.style.width = '100%', 50);
+
+      // Random wait 1-3 seconds
+      const waitTime = 1000 + Math.random() * 2000;
 
       setTimeout(() => {
-        // Catch Logic
-        const catchItem = pickRandomFish();
-        const user = getCurrentUser();
-        
-        // Update User
-        user.coins += catchItem.value;
-        user.items.push(catchItem);
-        setCurrentUser(user);
-        savePlayerToCloud(user); // Async save
-        
-        // Update UI
-        updateHud();
-        
-        // Formatting display name with Rarity color
-        const rarityClass = `rarity-${catchItem.rarity || 'common'}`;
-        const rarityLabel = catchItem.rarity ? `[${catchItem.rarity.charAt(0).toUpperCase() + catchItem.rarity.slice(1)}]` : '';
-        
-        statusEl.innerHTML = `You caught: <span class="${rarityClass}">${rarityLabel} ${catchItem.name}</span>! (+${catchItem.value}g)`;
-        
-        // Reset controls
-        progEl.style.display = 'none';
-        fillEl.style.width = '0%';
-        btn.disabled = false;
-        btn.textContent = "Cast Again";
-        
-      }, 2050); // Wait just over 2 seconds
+        waitBar.style.display = 'none';
+        const hookedFish = pickRandomFish();
+        startMinigame(hookedFish);
+      }, waitTime);
     }
+
+    /* 
+      MINIGAME CORE 
+    */
+    let minigameActive = false;
+    let minigameProgress = 35; // Starts at 35%
+    let spawnTimer = null;
+    let gameLoop = null;
+
+    function startMinigame(fish) {
+      const area = document.getElementById('minigameArea');
+      const barContainer = document.getElementById('gameBarContainer');
+      const barFill = document.getElementById('gameBarFill');
+      const statusEl = document.getElementById('pondStatus');
+      const btn = document.getElementById('castBtn');
+
+      // Setup UI
+      area.style.display = 'block';
+      barContainer.style.display = 'block';
+      btn.style.display = 'none'; // Hide cast button during game
+      statusEl.innerHTML = `HOOKED! Catch the <span class="rarity-${fish.rarity}">${fish.name}</span>!`;
+      
+      // Reset State
+      minigameActive = true;
+      minigameProgress = 35;
+      updateBar(barFill);
+      area.innerHTML = ''; // Clear old circles
+
+      // Rarity settings
+      const shrinkDuration = difficultyMap[fish.rarity] || 2000;
+      const spawnRate = 800; // Time between circles appearing
+
+      // 1. Spawner Loop
+      spawnTimer = setInterval(() => {
+        if(!minigameActive) return;
+        spawnCircle(area, shrinkDuration);
+      }, spawnRate);
+
+      // 2. Game Loop (Check Win/Loss)
+      gameLoop = requestAnimationFrame(function step() {
+        if (!minigameActive) return;
+        
+        // Check Conditions
+        if (minigameProgress <= 0) {
+          endMinigame(false, fish);
+          return;
+        }
+        if (minigameProgress >= 100) {
+          endMinigame(true, fish);
+          return;
+        }
+
+        // Slight decay over time (optional, makes it harder)
+        // minigameProgress -= 0.05; 
+        // updateBar(barFill);
+
+        requestAnimationFrame(step);
+      });
+    }
+
+    function spawnCircle(container, duration) {
+      // Random Position
+      const size = 50; // target size
+      const maxX = container.clientWidth - size - 20;
+      const maxY = container.clientHeight - size - 20;
+      const x = 10 + Math.random() * maxX;
+      const y = 10 + Math.random() * maxY;
+
+      // Elements
+      const target = document.createElement('div');
+      target.className = 'target-circle';
+      target.style.left = x + 'px';
+      target.style.top = y + 'px';
+
+      const ring = document.createElement('div');
+      ring.className = 'target-ring';
+      ring.style.left = x + 'px';
+      ring.style.top = y + 'px';
+      
+      // CSS Animation for shrinking
+      ring.style.transition = `width ${duration}ms linear, height ${duration}ms linear`;
+      
+      container.appendChild(target);
+      container.appendChild(ring);
+
+      // Trigger animation next frame
+      requestAnimationFrame(() => {
+        ring.style.width = '50px'; // Shrink to target size
+        ring.style.height = '50px';
+      });
+
+      const startTime = performance.now();
+      let clicked = false;
+
+      // CLICK HANDLER
+      target.onmousedown = (e) => {
+        e.stopPropagation(); // Prevent hitting container
+        if(clicked) return;
+        clicked = true;
+
+        const timeElapsed = performance.now() - startTime;
+        const progress = timeElapsed / duration; // 0.0 to 1.0 (1.0 is end)
+
+        // Hit Logic
+        // Best hit is when ring is close to target (progress near 1.0)
+        // If progress < 0.5 (Ring still huge) -> Miss/Penalty
+        
+        if (progress < 0.5) {
+          // Too early
+          modifyProgress(-5);
+          showFloatText(x, y, "Too Early!", "red");
+        } else {
+          // Good hit
+          modifyProgress(15);
+          showFloatText(x, y, "Nice!", "#5bc0be");
+        }
+        
+        removeElements();
+      };
+
+      // TIMEOUT (Missed)
+      setTimeout(() => {
+        if (!clicked && document.body.contains(target)) {
+          modifyProgress(-10); // Penalty for missing
+          removeElements();
+        }
+      }, duration);
+
+      function removeElements() {
+        if(target.parentNode) target.parentNode.removeChild(target);
+        if(ring.parentNode) ring.parentNode.removeChild(ring);
+      }
+    }
+
+    function modifyProgress(amount) {
+      minigameProgress += amount;
+      if(minigameProgress > 100) minigameProgress = 100;
+      if(minigameProgress < 0) minigameProgress = 0;
+      
+      const barFill = document.getElementById('gameBarFill');
+      if(barFill) updateBar(barFill);
+    }
+
+    function updateBar(el) {
+      el.style.width = minigameProgress + '%';
+    }
+
+    function showFloatText(x, y, text, color) {
+      const el = document.createElement('div');
+      el.textContent = text;
+      el.style.position = 'absolute';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.color = color;
+      el.style.fontWeight = 'bold';
+      el.style.pointerEvents = 'none';
+      el.style.transition = 'top 1s ease, opacity 1s ease';
+      el.style.zIndex = 10;
+      
+      document.getElementById('minigameArea').appendChild(el);
+      
+      requestAnimationFrame(() => {
+        el.style.top = (y - 30) + 'px';
+        el.style.opacity = '0';
+      });
+      setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1000);
+    }
+
+    function endMinigame(won, fish) {
+      minigameActive = false;
+      clearInterval(spawnTimer);
+      cancelAnimationFrame(gameLoop);
+      
+      const area = document.getElementById('minigameArea');
+      const barContainer = document.getElementById('gameBarContainer');
+      const statusEl = document.getElementById('pondStatus');
+      const btn = document.getElementById('castBtn');
+
+      area.style.display = 'none';
+      barContainer.style.display = 'none';
+      btn.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = "Cast Again";
+
+      if (won) {
+        // Success Logic
+        const u = getCurrentUser();
+        u.coins += fish.value;
+        u.items.push(fish);
+        setCurrentUser(u);
+        savePlayerToCloud(u);
+        updateHud();
+        statusEl.innerHTML = `<span style="color:#5bc0be">SUCCESS!</span> Caught <b class="rarity-${fish.rarity}">${fish.name}</b> (+${fish.value}g)`;
+      } else {
+        // Fail Logic
+        statusEl.innerHTML = `<span style="color:#ff7a7a">FAILED!</span> The ${fish.name} got away...`;
+      }
+    }
+
 
     /* --- Admin Logic --- */
     function renderAdminControls(user) {
@@ -438,7 +643,6 @@
       }
     }
 
-    // Admin Button Listeners
     function modifyUser(key, amount) {
       const u = getCurrentUser();
       if (!u) return;
@@ -451,12 +655,8 @@
     document.getElementById('admLvlDown').onclick = () => modifyUser('level', -1);
     document.getElementById('admGoldUp').onclick = () => modifyUser('coins', 100);
     document.getElementById('admGoldDown').onclick = () => modifyUser('coins', -100);
-    
     document.getElementById('adminResetBtn').onclick = () => {
-      if(confirm("⚠ Reset ALL local data?")) {
-        localStorage.removeItem('currentUser');
-        location.reload();
-      }
+      if(confirm("⚠ Reset ALL local data?")) { localStorage.removeItem('currentUser'); location.reload(); }
     };
 
     /* --- Auth & Start --- */
@@ -466,59 +666,45 @@
       startButton.style.display = 'none';
       signinLink.style.display = 'none';
       gameContainer.style.display = 'flex';
-      
       renderAdminControls(user);
       renderHome();
     }
-
     document.getElementById('loginButton').onclick = async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
-
       if (u === "Llama" && p === "Helloworld") {
         const master = { username: "Llama", coins: 99999, level: 100, items: [] };
         setCurrentUser(master);
         startGame(master);
         return;
       }
-
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
       const data = snap.data();
       if (data.password !== p) return alert("Wrong password.");
-      
       setCurrentUser(data);
       startGame(data);
     };
-
     document.getElementById('signupButton').onclick = async () => {
       const u = document.getElementById('signup-username').value.trim();
       const p = document.getElementById('signup-password').value.trim();
       const e = document.getElementById('signup-email').value.trim();
       if(!u || !p || !e) return alert("Fill all fields");
-
       const snap = await getDoc(doc(db, "players", u));
       if (snap.exists()) return alert("Username taken.");
-
       const newUser = { username: u, password: p, email: e, coins: 0, level: 1, items: [] };
       await savePlayerToCloud(newUser);
       alert("Created! Log in now.");
       signupForm.style.display='none'; signinForm.style.display='block';
     };
+    document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('currentUser'); location.reload(); };
 
-    document.getElementById('logoutBtn').onclick = () => {
-      localStorage.removeItem('currentUser');
-      location.reload();
-    };
-
-    /* --- Nav Listeners --- */
     document.getElementById('homeBtn').onclick = renderHome;
     document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
     document.getElementById('backpackBtn').onclick = renderBackpack;
     document.getElementById('shopBtn').onclick = renderShop;
     document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
     
-    // Auto-login
     (async function init() {
       const s = getCurrentUser();
       if (s) startGame(s);
