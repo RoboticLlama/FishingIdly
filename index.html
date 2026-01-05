@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Sequential & Mutation Update</title>
+  <title>Fishing Idly - Profile Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -158,8 +158,6 @@
     
     .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
     .slot-locked:hover { opacity: 1; }
-    
-    /* New style for locked but not next in line */
     .slot-locked-disabled { opacity: 0.3; cursor: not-allowed; border-color: #333; }
     .slot-locked-disabled:hover { opacity: 0.3; background: rgba(0,0,0,0.4); }
 
@@ -179,6 +177,11 @@
     }
     .selector-close { position: absolute; top: 20px; right: 20px; }
 
+    /* Profile Modal */
+    .profile-box { width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
+    .profile-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-stats { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+
     /* Mutations */
     .mut-Shiny { border-color: #ffcc00; }
     .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
@@ -190,10 +193,12 @@
     .txt-Mythical { color: #ff00ff; }
     .txt-Albino { color: #fff; }
 
+    /* Leaderboard */
     .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
     .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .lb-rank { width: 30px; font-weight: bold; }
-    .lb-name { flex: 1; margin-left: 10px; }
+    .lb-name { flex: 1; margin-left: 10px; color: #5bc0be; cursor: pointer; text-decoration: underline; }
+    .lb-name:hover { color: #fff; }
     .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
     .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
     .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
@@ -224,6 +229,22 @@
         <input type="password" id="signup-password" placeholder="Password"/>
         <button id="signupButton">Sign Up</button>
         <span class="toggle-link" id="showSignin">Already have an account? Sign In</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="overlay" id="profileOverlay" style="display:none;">
+    <div class="signin-box profile-box">
+      <div style="text-align:right;"><button id="closeProfileBtn" style="padding:5px 10px; font-size:0.8rem;">X</button></div>
+      <div class="profile-header">
+        <h2 id="profName">Player</h2>
+        <div class="profile-stats" id="profStats">Lv 1 · 0g</div>
+      </div>
+      <h3>Home Aquarium</h3>
+      <div class="passive-info" style="margin-bottom:10px;" id="profPassive">Generating: 0g/hr</div>
+      <div class="slot-grid" id="profGrid">
+        <!-- Slots injected here -->
       </div>
     </div>
   </div>
@@ -292,6 +313,10 @@
       const snap = await getDocs(collection(db, "players"));
       return snap.docs.map(d => d.data());
     }
+    async function getPlayerProfile(username) {
+      const snap = await getDoc(doc(db, "players", username));
+      return snap.exists() ? snap.data() : null;
+    }
 
     // --- GAME CONFIG ---
     const pondTable = [
@@ -314,7 +339,6 @@
     const difficultyMap = { trash: 2500, common: 2000, uncommon: 1700, rare: 1400, epic: 1100, legendary: 800 };
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
     
-    // Passive Income Rates per Hour based on Rarity
     const PASSIVE_RATES = {
       trash: 5,
       common: 20,
@@ -358,6 +382,7 @@
 
     /* --- GLOBAL UI ELEMENTS --- */
     const overlay = document.getElementById('overlay');
+    const profileOverlay = document.getElementById('profileOverlay');
     const startButton = document.getElementById('startButton');
     const signinLink = document.getElementById('signinLink');
     const signinForm = document.getElementById('signinForm');
@@ -373,6 +398,10 @@
     signinLink.onclick = openModal;
     startButton.onclick = openModal;
     overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
+    
+    // Profile Modal Logic
+    document.getElementById('closeProfileBtn').onclick = () => profileOverlay.style.display = 'none';
+    profileOverlay.onclick = (e) => { if (e.target === profileOverlay) profileOverlay.style.display = 'none'; };
 
     function renderHudHTML() { return `<div class="hud" id="hudEl">Loading...</div>`; }
     function updateHud() {
@@ -407,18 +436,16 @@
       const diffHours = diffMs / (1000 * 60 * 60);
       
       let ratePerHour = 0;
-      user.home.slots.forEach(slot => {
-        if (slot.unlocked && slot.fish) {
-          const r = slot.fish.rarity || 'trash';
-          const baseRate = PASSIVE_RATES[r] || 5;
-          
-          // Apply Mutation Multiplier
-          const mutObj = mutations.find(m => m.name === slot.fish.mutation) || mutations[0];
-          const finalRate = Math.ceil(baseRate * mutObj.mult);
-          
-          ratePerHour += finalRate;
-        }
-      });
+      if(user.home && user.home.slots) {
+        user.home.slots.forEach(slot => {
+          if (slot.unlocked && slot.fish) {
+            const r = slot.fish.rarity || 'trash';
+            const baseRate = PASSIVE_RATES[r] || 5;
+            const mutObj = mutations.find(m => m.name === slot.fish.mutation) || mutations[0];
+            ratePerHour += Math.ceil(baseRate * mutObj.mult);
+          }
+        });
+      }
       
       return { rate: ratePerHour, pending: Math.floor(ratePerHour * diffHours) };
     }
@@ -432,7 +459,6 @@
       const slotsHTML = u.home.slots.map(slot => {
         if (!slot.unlocked) {
           const cost = SLOT_COSTS[slot.id];
-          // Check if previous slot is unlocked (Slot 0 is always unlocked)
           const prevUnlocked = (slot.id === 0) || u.home.slots[slot.id - 1].unlocked;
           const lockClass = prevUnlocked ? "slot-locked" : "slot-locked slot-locked-disabled";
           
@@ -446,7 +472,6 @@
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
           
-          // Calculate specific rate for display
           const baseRate = PASSIVE_RATES[fish.rarity] || 5;
           const mutObj = mutations.find(m => m.name === fish.mutation) || mutations[0];
           const rate = Math.ceil(baseRate * mutObj.mult);
@@ -486,13 +511,10 @@
 
     window.unlockHomeSlot = function(id) {
       const u = getCurrentUser();
-      
-      // Sequential Check
       if (id > 0 && !u.home.slots[id - 1].unlocked) {
         alert("You must unlock the previous slot first!");
         return;
       }
-
       const cost = SLOT_COSTS[id];
       if (u.coins >= cost) {
         if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) {
@@ -891,11 +913,51 @@
         if (i === 0) rankClass = "rank-1";
         else if (i === 1) rankClass = "rank-2";
         else if (i === 2) rankClass = "rank-3";
-        return `<div class="lb-row"><div class="lb-rank ${rankClass}">#${i+1}</div><div class="lb-name ${rankClass}">${p.username}</div><div class="lb-stats">Lv ${p.level} · ${p.coins}g</div></div>`;
+        return `<div class="lb-row"><div class="lb-rank ${rankClass}">#${i+1}</div><div class="lb-name ${rankClass}" onclick="window.openProfile('${p.username}')">${p.username}</div><div class="lb-stats">Lv ${p.level} · ${p.coins}g</div></div>`;
       }).join('');
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows || 'No players.'}</div>`;
       updateHud();
     }
+
+    window.openProfile = async function(username) {
+      const p = await getPlayerProfile(username);
+      if(!p) return alert("Player not found");
+      
+      document.getElementById('profName').textContent = p.username;
+      document.getElementById('profStats').textContent = `Lv ${p.level} · ${p.coins}g`;
+      
+      // Calculate passive for profile view
+      const passive = calculatePassive(p);
+      document.getElementById('profPassive').textContent = `Generating: ${passive.rate}g/hr`;
+
+      const grid = document.getElementById('profGrid');
+      if(!p.home || !p.home.slots) {
+        grid.innerHTML = "<p>No aquarium data.</p>";
+      } else {
+        grid.innerHTML = p.home.slots.map(slot => {
+          if (!slot.unlocked) {
+            return `<div class="home-slot slot-locked" style="cursor:default;"><div class="lock-icon">🔒</div></div>`;
+          } else if (slot.fish) {
+            const fish = slot.fish;
+            const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
+            const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
+            const baseRate = PASSIVE_RATES[fish.rarity] || 5;
+            const mutObj = mutations.find(m => m.name === fish.mutation) || mutations[0];
+            const rate = Math.ceil(baseRate * mutObj.mult);
+            return `
+              <div class="home-slot slot-occupied ${mutClass}" style="cursor:default;">
+                <div class="slot-fish-icon">🐟</div>
+                <div class="slot-fish-name ${txtClass}">${fish.name}</div>
+                <div class="slot-fish-val">${rate}g/hr</div>
+              </div>`;
+          } else {
+            return `<div class="home-slot" style="cursor:default;"><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
+          }
+        }).join('');
+      }
+      
+      profileOverlay.style.display = 'flex';
+    };
 
     /* --- AUTH --- */
     function renderAdminControls(user) {
@@ -925,7 +987,6 @@
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
       if (u === "Llama" && p === "Helloworld") { const master = { username: "Llama", coins: 99999, level: 100, items: [] }; setCurrentUser(master); startGame(master); return; }
-      // FIX: Use players collection check, no empty ID
       if(!u) { alert("Enter username"); return; }
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
