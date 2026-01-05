@@ -3,28 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Base</title>
+  <title>Fishing Idly - Sidebar Base</title>
   <style>
-    /* --- Core Visuals & Theme --- */
+    /* --- 1. Global Reset & Theme --- */
     body {
       background-color: #1b2735;
       color: #e0e0e0;
       font-family: 'Courier New', monospace;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      height: 100vh; margin: 0; position: relative; overflow: hidden;
+      margin: 0; 
+      height: 100vh; 
+      overflow: hidden; /* Stop scrolling on full page */
+      display: flex;    /* For the landing page centering */
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
     }
+    
     h1 { font-size: 3rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 3px; }
     
-    /* General Button Styles */
     button {
       background-color: #3a506b; color: #fff; border: none; padding: 1rem 2rem;
       font-size: 1.1rem; border-radius: 10px; cursor: pointer; transition: background-color .2s;
     }
     button:hover { background-color: #5bc0be; color:#1b2735; }
 
-    /* Sign In UI (Top Right & Modal) */
+    /* --- 2. Landing Page Elements (Hidden when Game Starts) --- */
     .signin-top { position: absolute; top: 20px; right: 30px; background: #3a506b; color:#e0e0e0; padding:.5rem 1rem; border-radius:8px; text-decoration:none; }
-    .signin-top:hover { background:#5bc0be; color:#1b2735; }
     
     .overlay { position: fixed; inset:0; background: rgba(0,0,0,.65); display:flex; justify-content:center; align-items:center; z-index: 20; }
     
@@ -41,23 +45,28 @@
     }
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
 
-    /* --- SIDEBAR & GAME LAYOUT --- */
+    /* --- 3. Game Layout (Sidebar + Main) --- */
+    
+    /* The container acts as a Flex Row: [Sidebar] [Main Content] */
     .game-container { 
       display: none; /* Hidden until login */
-      width: 100%; height: 100vh; 
-      flex-direction: row; /* Side-by-side layout */
+      width: 100%; 
+      height: 100vh; 
+      flex-direction: row; 
+      background-color: #1b2735; /* Ensure background persists */
     }
 
-    /* Sidebar Styling */
+    /* Left Sidebar Styling */
     .sidebar {
       width: 220px; 
       background: #2a3d56; 
       display: flex; 
       flex-direction: column; 
-      justify-content: space-between;
+      justify-content: space-between; /* Pushes logout to bottom */
       align-items: center; 
       padding: 16px 10px; 
       border-right: 2px solid #5bc0be;
+      box-sizing: border-box; /* Ensures padding doesn't break width */
     }
 
     .nav-buttons { 
@@ -68,28 +77,27 @@
     }
 
     .nav-buttons button { 
-      width: 90%; 
-      margin: 8px 0; 
+      width: 95%; 
+      margin: 6px 0; 
       background: #3a506b; 
-      font-size: 1rem; 
+      font-size: 0.95rem; 
       padding: 0.8rem; 
       text-align: left;
     }
-    
     .nav-buttons button:hover { background: #5bc0be; color: #1b2735; }
 
     .logout-btn { 
       background: #b0413e; 
-      width: 90%; 
-      font-size: 1rem; 
-      padding: 0.8rem; 
+      width: 95%; 
+      font-size: 0.9rem; 
+      padding: 0.6rem; 
       margin-bottom: 10px;
     }
     .logout-btn:hover { background: #e24e4b; }
 
-    /* Main Content Area */
+    /* Right Main Content Styling */
     .main-content { 
-      flex: 1; 
+      flex: 1; /* Takes remaining width */
       display: flex; 
       flex-direction: column;
       justify-content: center; 
@@ -99,7 +107,7 @@
       position: relative; 
     }
 
-    /* HUD (Heads Up Display) */
+    /* HUD (Top Right of Main Content) */
     .hud {
       position: absolute; top: 12px; right: 16px;
       background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
@@ -109,12 +117,12 @@
 </head>
 <body>
 
-  <!-- 1. Landing Screen -->
+  <!-- Landing Screen (Visible initially) -->
   <a href="#" class="signin-top" id="signinLink">Sign In</a>
   <h1 id="title">Fishing Idly</h1>
   <button id="startButton">Start</button>
 
-  <!-- 2. Login Overlay -->
+  <!-- Login Overlay -->
   <div class="overlay" id="overlay" style="display:none;">
     <div class="signin-box">
       <!-- Sign In Form -->
@@ -137,12 +145,13 @@
     </div>
   </div>
 
-  <!-- 3. Main Game Interface -->
+  <!-- Game UI (Visible after login) -->
   <div class="game-container" id="gameContainer">
     
     <!-- LEFT SIDEBAR -->
     <div class="sidebar">
       <div class="nav-buttons">
+        <!-- These are empty placeholders for now -->
         <button id="homeBtn">🏠 Home</button>
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
         <button id="backpackBtn">🎒 Backpack</button>
@@ -152,7 +161,7 @@
       <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
 
-    <!-- RIGHT CONTENT -->
+    <!-- RIGHT MAIN CONTENT -->
     <div class="main-content" id="mainContent">
       <div class="hud" id="hud">Loading...</div>
       <h2 id="welcomeMsg">Welcome!</h2>
@@ -161,7 +170,7 @@
 
   </div>
 
-  <!-- 4. Logic Module -->
+  <!-- Logic -->
   <script type="module">
     /* ---------------- Firebase Setup ---------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -180,7 +189,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    /* ---------------- Data Handling ---------------- */
+    /* ---------------- Helper Functions ---------------- */
     function cleanForFirestore(obj) {
       const cleaned = { ...obj };
       Object.keys(cleaned).forEach(key => {
@@ -206,30 +215,48 @@
       await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
     }
 
-    /* ---------------- UI Logic ---------------- */
+    /* ---------------- UI Handling ---------------- */
     const overlay = document.getElementById('overlay');
     const title = document.getElementById('title');
     const startButton = document.getElementById('startButton');
     const signinLink = document.getElementById('signinLink');
     const signinForm = document.getElementById('signinForm');
     const signupForm = document.getElementById('signupForm');
+    
+    // Game Elements
     const gameContainer = document.getElementById('gameContainer');
     const mainContent = document.getElementById('mainContent');
     const hud = document.getElementById('hud');
     const welcomeMsg = document.getElementById('welcomeMsg');
 
-    // Toggle Forms
+    // Button Logic
     document.getElementById('showSignup').onclick = () => { signinForm.style.display='none'; signupForm.style.display='block'; };
     document.getElementById('showSignin').onclick = () => { signupForm.style.display='none'; signinForm.style.display='block'; };
     
-    // Modal
     function openModal() { overlay.style.display = 'flex'; }
     signinLink.onclick = openModal;
     startButton.onclick = openModal;
     overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
 
-    /* ---------------- Auth Logic ---------------- */
-    // Sign Up
+    /* ---------------- Auth & Game Start ---------------- */
+    
+    // START GAME FUNCTION (Switches Layout)
+    function startGame(user) {
+      // Hide Landing Elements
+      overlay.style.display = 'none';
+      title.style.display = 'none';
+      startButton.style.display = 'none';
+      signinLink.style.display = 'none';
+      
+      // Show Game Container (Flex Row)
+      gameContainer.style.display = 'flex';
+      
+      // Update UI
+      welcomeMsg.innerHTML = `Welcome back, <strong>${user.username}</strong>!`;
+      hud.textContent = `💰 ${user.coins || 0} · ⭐ Lv ${user.level || 1}`;
+    }
+
+    // SIGN UP
     document.getElementById('signupButton').onclick = async () => {
       const email = document.getElementById('signup-email').value.trim();
       const username = document.getElementById('signup-username').value.trim();
@@ -242,10 +269,7 @@
 
       const newUser = { 
         email, username, password, 
-        coins: 0, 
-        items: [], 
-        level: 1, 
-        xp: 0 
+        coins: 0, items: [], level: 1, xp: 0 
       };
 
       await savePlayerToCloud(newUser);
@@ -254,12 +278,12 @@
       signinForm.style.display = 'block';
     };
 
-    // Log In
+    // LOG IN
     document.getElementById('loginButton').onclick = async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
 
-      // Master Login
+      // Master Account
       if (u === "Llama" && p === "Helloworld") {
         const masterUser = { username: "Llama", email: "llama@master.local", coins: 99999, level: 100, isAdmin: true };
         setCurrentUser(masterUser);
@@ -267,6 +291,7 @@
         return;
       }
 
+      // Normal Account
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
       
@@ -277,43 +302,31 @@
       startGame(user);
     };
 
-    // Logout
+    // LOGOUT
     document.getElementById('logoutBtn').onclick = () => {
       localStorage.removeItem('currentUser');
       location.reload();
     };
 
-    /* ---------------- Game Loop ---------------- */
-    function startGame(user) {
-      overlay.style.display = 'none';
-      title.style.display = 'none';
-      startButton.style.display = 'none';
-      signinLink.style.display = 'none';
-      
-      gameContainer.style.display = 'flex';
-      welcomeMsg.innerHTML = `Welcome back, <strong>${user.username}</strong>!`;
-      hud.textContent = `💰 ${user.coins || 0} · ⭐ Lv ${user.level || 1}`;
-    }
-
-    /* ---------------- Navigation Setup (Empty for now) ---------------- */
-    // You will add functionality to these later
+    /* ---------------- Sidebar Navigation (Placeholders) ---------------- */
     document.getElementById('homeBtn').onclick = () => {
+      // Just updating the text for now
       mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🏠 Home</h2><p>This is your base.</p>`;
     };
     document.getElementById('fishingSpotBtn').onclick = () => {
-      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎣 Fishing Spot</h2><p>Pond logic goes here.</p>`;
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎣 Fishing Spot</h2><p>Pond logic will go here.</p>`;
     };
     document.getElementById('backpackBtn').onclick = () => {
-      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎒 Backpack</h2><p>Inventory logic goes here.</p>`;
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎒 Backpack</h2><p>Items will go here.</p>`;
     };
     document.getElementById('shopBtn').onclick = () => {
-      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🛒 Shop</h2><p>Store logic goes here.</p>`;
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🛒 Shop</h2><p>Store will go here.</p>`;
     };
     document.getElementById('leaderboardBtn').onclick = () => {
-      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🏆 Leaderboard</h2><p>Rankings go here.</p>`;
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🏆 Leaderboard</h2><p>Rankings will go here.</p>`;
     };
 
-    // Auto-login check
+    // Auto-Login Check
     (async function init() {
       const saved = getCurrentUser();
       if (saved) startGame(saved);
