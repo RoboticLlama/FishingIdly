@@ -15,14 +15,14 @@
     }
     h1 { font-size: 3rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 3px; }
     
-    /* Buttons */
+    /* General Button Styles */
     button {
       background-color: #3a506b; color: #fff; border: none; padding: 1rem 2rem;
       font-size: 1.1rem; border-radius: 10px; cursor: pointer; transition: background-color .2s;
     }
     button:hover { background-color: #5bc0be; color:#1b2735; }
 
-    /* Sign In UI */
+    /* Sign In UI (Top Right & Modal) */
     .signin-top { position: absolute; top: 20px; right: 30px; background: #3a506b; color:#e0e0e0; padding:.5rem 1rem; border-radius:8px; text-decoration:none; }
     .signin-top:hover { background:#5bc0be; color:#1b2735; }
     
@@ -41,27 +41,80 @@
     }
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
 
-    /* Game Container (Hidden until login) */
-    .game-container { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; }
+    /* --- SIDEBAR & GAME LAYOUT --- */
+    .game-container { 
+      display: none; /* Hidden until login */
+      width: 100%; height: 100vh; 
+      flex-direction: row; /* Side-by-side layout */
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: 220px; 
+      background: #2a3d56; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between;
+      align-items: center; 
+      padding: 16px 10px; 
+      border-right: 2px solid #5bc0be;
+    }
+
+    .nav-buttons { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      width: 100%; 
+    }
+
+    .nav-buttons button { 
+      width: 90%; 
+      margin: 8px 0; 
+      background: #3a506b; 
+      font-size: 1rem; 
+      padding: 0.8rem; 
+      text-align: left;
+    }
     
+    .nav-buttons button:hover { background: #5bc0be; color: #1b2735; }
+
+    .logout-btn { 
+      background: #b0413e; 
+      width: 90%; 
+      font-size: 1rem; 
+      padding: 0.8rem; 
+      margin-bottom: 10px;
+    }
+    .logout-btn:hover { background: #e24e4b; }
+
+    /* Main Content Area */
+    .main-content { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column;
+      justify-content: center; 
+      align-items: center; 
+      text-align: center; 
+      padding: 30px; 
+      position: relative; 
+    }
+
+    /* HUD (Heads Up Display) */
     .hud {
       position: absolute; top: 12px; right: 16px;
       background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
       box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
     }
-
-    .logout-btn { background:#b0413e; margin-top: 20px; }
-    .logout-btn:hover { background:#e24e4b; }
   </style>
 </head>
 <body>
 
-  <!-- Landing Screen -->
+  <!-- 1. Landing Screen -->
   <a href="#" class="signin-top" id="signinLink">Sign In</a>
   <h1 id="title">Fishing Idly</h1>
   <button id="startButton">Start</button>
 
-  <!-- Login Overlay -->
+  <!-- 2. Login Overlay -->
   <div class="overlay" id="overlay" style="display:none;">
     <div class="signin-box">
       <!-- Sign In Form -->
@@ -84,15 +137,31 @@
     </div>
   </div>
 
-  <!-- Main Game Area -->
+  <!-- 3. Main Game Interface -->
   <div class="game-container" id="gameContainer">
-    <div class="hud" id="hud">Loading...</div>
-    <h2>Welcome, <span id="playerNameDisplay"></span>!</h2>
-    <p>This is your fresh start.</p>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
+    
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-buttons">
+        <button id="homeBtn">🏠 Home</button>
+        <button id="fishingSpotBtn">🎣 Fishing Spot</button>
+        <button id="backpackBtn">🎒 Backpack</button>
+        <button id="shopBtn">🛒 Shop</button>
+        <button id="leaderboardBtn">🏆 Leaderboard</button>
+      </div>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="main-content" id="mainContent">
+      <div class="hud" id="hud">Loading...</div>
+      <h2 id="welcomeMsg">Welcome!</h2>
+      <p>Select an option from the sidebar to begin.</p>
+    </div>
+
   </div>
 
-  <!-- Logic -->
+  <!-- 4. Logic Module -->
   <script type="module">
     /* ---------------- Firebase Setup ---------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -112,7 +181,6 @@
     const db = getFirestore(app);
 
     /* ---------------- Data Handling ---------------- */
-    // Helper to remove undefined values for Firestore
     function cleanForFirestore(obj) {
       const cleaned = { ...obj };
       Object.keys(cleaned).forEach(key => {
@@ -121,13 +189,11 @@
       return cleaned;
     }
 
-    // Save user to LocalStorage
     function setCurrentUser(user) {
       if (!user) return;
       localStorage.setItem('currentUser', JSON.stringify(cleanForFirestore(user)));
     }
 
-    // Get user from LocalStorage
     function getCurrentUser() {
       try {
         const raw = localStorage.getItem('currentUser');
@@ -135,7 +201,6 @@
       } catch { return null; }
     }
 
-    // Save to Firebase
     async function savePlayerToCloud(user) {
       if (!user || !user.username) return;
       await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
@@ -149,22 +214,22 @@
     const signinForm = document.getElementById('signinForm');
     const signupForm = document.getElementById('signupForm');
     const gameContainer = document.getElementById('gameContainer');
+    const mainContent = document.getElementById('mainContent');
+    const hud = document.getElementById('hud');
+    const welcomeMsg = document.getElementById('welcomeMsg');
 
     // Toggle Forms
     document.getElementById('showSignup').onclick = () => { signinForm.style.display='none'; signupForm.style.display='block'; };
     document.getElementById('showSignin').onclick = () => { signupForm.style.display='none'; signinForm.style.display='block'; };
     
-    // Open Modal
+    // Modal
     function openModal() { overlay.style.display = 'flex'; }
     signinLink.onclick = openModal;
     startButton.onclick = openModal;
-    
-    // Close Modal on outside click
     overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
 
     /* ---------------- Auth Logic ---------------- */
-
-    // 1. Sign Up
+    // Sign Up
     document.getElementById('signupButton').onclick = async () => {
       const email = document.getElementById('signup-email').value.trim();
       const username = document.getElementById('signup-username').value.trim();
@@ -172,11 +237,9 @@
 
       if (!email || !username || !password) return alert("Please fill all fields.");
 
-      // Check if exists
       const snap = await getDoc(doc(db, "players", username));
       if (snap.exists()) return alert("Username already exists!");
 
-      // Create new Basic User (Fresh Start data)
       const newUser = { 
         email, username, password, 
         coins: 0, 
@@ -191,25 +254,18 @@
       signinForm.style.display = 'block';
     };
 
-    // 2. Log In
+    // Log In
     document.getElementById('loginButton').onclick = async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
 
-      // --- MASTER LOGIN ---
+      // Master Login
       if (u === "Llama" && p === "Helloworld") {
-        const masterUser = {
-          username: "Llama",
-          email: "llama@master.local",
-          coins: 99999,
-          level: 100,
-          isAdmin: true
-        };
+        const masterUser = { username: "Llama", email: "llama@master.local", coins: 99999, level: 100, isAdmin: true };
         setCurrentUser(masterUser);
         startGame(masterUser);
         return;
       }
-      // --------------------
 
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
@@ -221,7 +277,7 @@
       startGame(user);
     };
 
-    // 3. Logout
+    // Logout
     document.getElementById('logoutBtn').onclick = () => {
       localStorage.removeItem('currentUser');
       location.reload();
@@ -235,17 +291,32 @@
       signinLink.style.display = 'none';
       
       gameContainer.style.display = 'flex';
-      document.getElementById('playerNameDisplay').textContent = user.username;
-      document.getElementById('hud').textContent = `💰 ${user.coins || 0} · ⭐ Lv ${user.level || 1}`;
+      welcomeMsg.innerHTML = `Welcome back, <strong>${user.username}</strong>!`;
+      hud.textContent = `💰 ${user.coins || 0} · ⭐ Lv ${user.level || 1}`;
     }
 
-    // Auto-login if saved
+    /* ---------------- Navigation Setup (Empty for now) ---------------- */
+    // You will add functionality to these later
+    document.getElementById('homeBtn').onclick = () => {
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🏠 Home</h2><p>This is your base.</p>`;
+    };
+    document.getElementById('fishingSpotBtn').onclick = () => {
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎣 Fishing Spot</h2><p>Pond logic goes here.</p>`;
+    };
+    document.getElementById('backpackBtn').onclick = () => {
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🎒 Backpack</h2><p>Inventory logic goes here.</p>`;
+    };
+    document.getElementById('shopBtn').onclick = () => {
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🛒 Shop</h2><p>Store logic goes here.</p>`;
+    };
+    document.getElementById('leaderboardBtn').onclick = () => {
+      mainContent.innerHTML = `<div class="hud" id="hud">${hud.textContent}</div><h2>🏆 Leaderboard</h2><p>Rankings go here.</p>`;
+    };
+
+    // Auto-login check
     (async function init() {
       const saved = getCurrentUser();
-      if (saved) {
-        // Optional: specific check to re-validate against DB could go here
-        startGame(saved);
-      }
+      if (saved) startGame(saved);
     })();
   </script>
 </body>
