@@ -3,16 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Fishing Idly - Base</title>
+  <style>
+    /* --- Core Visuals & Theme --- */
+    body {
+      background-color: #1b2735;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      height: 100vh; margin: 0; position: relative; overflow: hidden;
+    }
+    h1 { font-size: 3rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 3px; }
+    
+    /* Buttons */
+    button {
+      background-color: #3a506b; color: #fff; border: none; padding: 1rem 2rem;
+      font-size: 1.1rem; border-radius: 10px; cursor: pointer; transition: background-color .2s;
+    }
+    button:hover { background-color: #5bc0be; color:#1b2735; }
+
+    /* Sign In UI */
+    .signin-top { position: absolute; top: 20px; right: 30px; background: #3a506b; color:#e0e0e0; padding:.5rem 1rem; border-radius:8px; text-decoration:none; }
+    .signin-top:hover { background:#5bc0be; color:#1b2735; }
+    
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.65); display:flex; justify-content:center; align-items:center; z-index: 20; }
+    
+    .signin-box {
+      background: linear-gradient(135deg, #2a3d56, #3a506b);
+      padding: 2rem; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,.4);
+      width: 300px; text-align:center; transform: scale(.8); opacity: 0; animation: pop .3s forwards;
+    }
+    @keyframes pop { to { transform: scale(1); opacity: 1; } }
+
+    .signin-box input {
+      width: 90%; padding: .7rem; margin: .5rem 0; border: none; border-radius: 8px;
+      outline: none; background:#1b2735; color:#e0e0e0;
+    }
+    .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
+
+    /* Game Container (Hidden until login) */
+    .game-container { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; }
+    
+    .hud {
+      position: absolute; top: 12px; right: 16px;
+      background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+    }
+
+    .logout-btn { background:#b0413e; margin-top: 20px; }
+    .logout-btn:hover { background:#e24e4b; }
+  </style>
 </head>
 <body>
+
+  <!-- Landing Screen -->
   <a href="#" class="signin-top" id="signinLink">Sign In</a>
   <h1 id="title">Fishing Idly</h1>
   <button id="startButton">Start</button>
-  <!-- Sign In / Up -->
-  <div class="overlay" id="overlay">
+
+  <!-- Login Overlay -->
+  <div class="overlay" id="overlay" style="display:none;">
     <div class="signin-box">
+      <!-- Sign In Form -->
       <div id="signinForm">
         <h2>Sign In</h2>
         <input type="text" id="signin-username" placeholder="Username"/>
@@ -20,6 +72,7 @@
         <button id="loginButton">Log In</button>
         <span class="toggle-link" id="showSignup">Don’t have an account? Sign Up</span>
       </div>
+      <!-- Sign Up Form -->
       <div id="signupForm" style="display:none;">
         <h2>Create Account</h2>
         <input type="email" id="signup-email" placeholder="Email"/>
@@ -30,46 +83,170 @@
       </div>
     </div>
   </div>
-  <!-- 🔓 Area Unlock Modal -->
-  <div class="overlay" id="unlockOverlay" style="display:none;">
-    <div class="signin-box" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
-      <h2 id="unlockTitle">New Area Unlocked!</h2>
-      <p>You can now access: <b>🌊 Stream</b></p>
-      <button id="unlockOkBtn">Let’s go</button>
-    </div>
-  </div>
-  <!-- 👤 Player Profile Modal -->
-  <div class="overlay" id="profileOverlay" style="display:none;">
-    <div class="signin-box profile-box" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-      <h2 id="profileTitle">Player</h2>
-      <div id="profileBody"></div>
-      <div class="row" style="margin-top:12px;">
-        <button id="profileCloseBtn">Close</button>
-      </div>
-    </div>
-  </div>
-  <!-- Game UI -->
+
+  <!-- Main Game Area -->
   <div class="game-container" id="gameContainer">
-    <div class="sidebar">
-      <div class="nav-buttons">
-        <button id="homeBtn">🏠 Home</button>
-        <button id="fishingSpotBtn">🎣 Fishing Spot</button>
-        <button id="backpackBtn">🎒 Backpack</button>
-        <button id="shopBtn">🛒 Shop</button>
-        <button id="leaderboardBtn">🏆 Leaderboard</button>
-      </div>
-      <div id="adminPanel" style="display:none;"></div>
-      <button class="admin-reset-btn" id="adminResetBtn" style="display:none;">⚠ Reset All Data</button>
-      <button class="logout-btn" id="logoutBtn">Logout</button>
-    </div>
-    <div class="main-content" id="mainContent">
-      <div class="hud" id="goldHud">💰 0 · ⭐ Lv 1 (0/20)</div>
-      Welcome back, fisherman! Choose an option from the left to begin.
-    </div>
+    <div class="hud" id="hud">Loading...</div>
+    <h2>Welcome, <span id="playerNameDisplay"></span>!</h2>
+    <p>This is your fresh start.</p>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
   </div>
-  <!-- =============================== -->
-  <!-- Firebase + Game Logic (module) -->
-  <!-- =============================== -->
-  <script type="module" src="script.js"></script>
+
+  <!-- Logic -->
+  <script type="module">
+    /* ---------------- Firebase Setup ---------------- */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
+      authDomain: "fishingidly-c1613.firebaseapp.com",
+      projectId: "fishingidly-c1613",
+      storageBucket: "fishingidly-c1613.firebasestorage.app",
+      messagingSenderId: "531215063717",
+      appId: "1:531215063717:web:dea4ce7aa7a64d3f374b4c",
+      measurementId: "G-SR67MT90SE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* ---------------- Data Handling ---------------- */
+    // Helper to remove undefined values for Firestore
+    function cleanForFirestore(obj) {
+      const cleaned = { ...obj };
+      Object.keys(cleaned).forEach(key => {
+        if (cleaned[key] === undefined || cleaned[key] === null) delete cleaned[key];
+      });
+      return cleaned;
+    }
+
+    // Save user to LocalStorage
+    function setCurrentUser(user) {
+      if (!user) return;
+      localStorage.setItem('currentUser', JSON.stringify(cleanForFirestore(user)));
+    }
+
+    // Get user from LocalStorage
+    function getCurrentUser() {
+      try {
+        const raw = localStorage.getItem('currentUser');
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+
+    // Save to Firebase
+    async function savePlayerToCloud(user) {
+      if (!user || !user.username) return;
+      await setDoc(doc(db, "players", user.username), cleanForFirestore(user), { merge: true });
+    }
+
+    /* ---------------- UI Logic ---------------- */
+    const overlay = document.getElementById('overlay');
+    const title = document.getElementById('title');
+    const startButton = document.getElementById('startButton');
+    const signinLink = document.getElementById('signinLink');
+    const signinForm = document.getElementById('signinForm');
+    const signupForm = document.getElementById('signupForm');
+    const gameContainer = document.getElementById('gameContainer');
+
+    // Toggle Forms
+    document.getElementById('showSignup').onclick = () => { signinForm.style.display='none'; signupForm.style.display='block'; };
+    document.getElementById('showSignin').onclick = () => { signupForm.style.display='none'; signinForm.style.display='block'; };
+    
+    // Open Modal
+    function openModal() { overlay.style.display = 'flex'; }
+    signinLink.onclick = openModal;
+    startButton.onclick = openModal;
+    
+    // Close Modal on outside click
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = 'none'; };
+
+    /* ---------------- Auth Logic ---------------- */
+
+    // 1. Sign Up
+    document.getElementById('signupButton').onclick = async () => {
+      const email = document.getElementById('signup-email').value.trim();
+      const username = document.getElementById('signup-username').value.trim();
+      const password = document.getElementById('signup-password').value.trim();
+
+      if (!email || !username || !password) return alert("Please fill all fields.");
+
+      // Check if exists
+      const snap = await getDoc(doc(db, "players", username));
+      if (snap.exists()) return alert("Username already exists!");
+
+      // Create new Basic User (Fresh Start data)
+      const newUser = { 
+        email, username, password, 
+        coins: 0, 
+        items: [], 
+        level: 1, 
+        xp: 0 
+      };
+
+      await savePlayerToCloud(newUser);
+      alert("Account created! Please Log In.");
+      signupForm.style.display = 'none';
+      signinForm.style.display = 'block';
+    };
+
+    // 2. Log In
+    document.getElementById('loginButton').onclick = async () => {
+      const u = document.getElementById('signin-username').value.trim();
+      const p = document.getElementById('signin-password').value.trim();
+
+      // --- MASTER LOGIN ---
+      if (u === "Llama" && p === "Helloworld") {
+        const masterUser = {
+          username: "Llama",
+          email: "llama@master.local",
+          coins: 99999,
+          level: 100,
+          isAdmin: true
+        };
+        setCurrentUser(masterUser);
+        startGame(masterUser);
+        return;
+      }
+      // --------------------
+
+      const snap = await getDoc(doc(db, "players", u));
+      if (!snap.exists()) return alert("User not found.");
+      
+      const user = snap.data();
+      if (user.password !== p) return alert("Wrong password.");
+
+      setCurrentUser(user);
+      startGame(user);
+    };
+
+    // 3. Logout
+    document.getElementById('logoutBtn').onclick = () => {
+      localStorage.removeItem('currentUser');
+      location.reload();
+    };
+
+    /* ---------------- Game Loop ---------------- */
+    function startGame(user) {
+      overlay.style.display = 'none';
+      title.style.display = 'none';
+      startButton.style.display = 'none';
+      signinLink.style.display = 'none';
+      
+      gameContainer.style.display = 'flex';
+      document.getElementById('playerNameDisplay').textContent = user.username;
+      document.getElementById('hud').textContent = `💰 ${user.coins || 0} · ⭐ Lv ${user.level || 1}`;
+    }
+
+    // Auto-login if saved
+    (async function init() {
+      const saved = getCurrentUser();
+      if (saved) {
+        // Optional: specific check to re-validate against DB could go here
+        startGame(saved);
+      }
+    })();
+  </script>
 </body>
 </html>
