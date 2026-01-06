@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Backpack Update</title>
+  <title>Fishing Idly - Sorted Selector</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -379,7 +379,7 @@
       if (!user.ownedRods) { user.ownedRods = [0]; changed = true; }
       if (user.equippedRod === undefined) { user.equippedRod = 0; changed = true; }
       
-      // Backpack Data (NEW)
+      // Backpack Data
       if (!user.maxItems) { user.maxItems = 15; changed = true; }
 
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
@@ -537,12 +537,35 @@
     };
     window.removeFishFromSlot = function(slotId) { const u = getCurrentUser(); const fish = u.home.slots[slotId].fish; if (!fish) return; u.items.push(fish); u.home.slots[slotId].fish = null; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
     window.openFishSelector = function(slotId) {
-      const u = getCurrentUser(); const validFish = u.items.map((item, idx) => ({...item, originalIdx: idx})).filter(i => i.type === 'fish');
-      let listHTML = validFish.length === 0 ? "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>" : validFish.map(f => {
-        const baseRate = PASSIVE_RATES[f.rarity] || 5; const mutObj = mutations.find(m => m.name === f.mutation) || mutations[0]; const rate = Math.ceil(baseRate * mutObj.mult);
-        return `<div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;"><div style="text-align:left;"><b>${f.name}</b> <small>(${rate}g/hr)</small></div><button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button></div>`;
-      }).join('');
-      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; mainContent.appendChild(selOverlay); document.getElementById('closeSel').onclick = () => renderHome();
+      const u = getCurrentUser(); 
+      // 1. Map to attach original index and calculate rate for sorting
+      let validFish = u.items.map((item, idx) => {
+        const baseRate = PASSIVE_RATES[item.rarity] || 5;
+        const mutObj = mutations.find(m => m.name === item.mutation) || mutations[0];
+        const rate = Math.ceil(baseRate * mutObj.mult);
+        return { ...item, originalIdx: idx, calculatedRate: rate };
+      })
+      // 2. Filter only fish
+      .filter(i => i.type === 'fish');
+      // 3. Sort by Rate (Descending)
+      validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
+
+      let listHTML = validFish.length === 0 ? 
+        "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>" : 
+        validFish.map(f => {
+          return `<div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
+            <div style="text-align:left;">
+              <b>${f.name}</b> <br>
+              <small style="color:#ffd700">${f.calculatedRate}g/hr</small>
+            </div>
+            <button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button>
+          </div>`;
+        }).join('');
+      
+      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; 
+      selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; 
+      mainContent.appendChild(selOverlay); 
+      document.getElementById('closeSel').onclick = () => renderHome();
     };
     window.placeFish = function(sId, itemIdx) { const u = getCurrentUser(); const fishToMove = u.items[itemIdx]; if(!fishToMove) { renderHome(); return; } u.items.splice(itemIdx, 1); u.home.slots[sId].fish = fishToMove; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
     function claimPassiveGold() { const u = getCurrentUser(); const passive = calculatePassive(u); if (passive.pending > 0) { u.coins += passive.pending; u.home.lastClaim = Date.now(); setCurrentUser(u); savePlayerToCloud(u); renderHome(); } }
