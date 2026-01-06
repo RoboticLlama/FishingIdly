@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - DB Reset Update</title>
+  <title>Fishing Idly - Stream Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -130,6 +130,7 @@
     .btn-buy:hover { background: #66bb6a; }
     .btn-equip { background: #5bc0be; color: #1b2735; }
     .btn-owned { background: #555; color: #aaa; cursor: default; }
+    .btn-locked { background: #2b1d1d; color: #ff7a7a; border:1px solid #7a1f1b; }
     
     .upgrade-item { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.1); }
 
@@ -326,6 +327,7 @@
       { id: 6, name: "Poseidon's Trident", cost: 250000, luck: 5.0, speed: 3.0, icon: "🔱" }
     ];
 
+    // LOCATION: POND
     const pondTable = [
       // Trash
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
@@ -333,25 +335,52 @@
       { name: "Tangled Line", type: "trash", minKg: 0.1, maxKg: 0.5, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Broken Glass", type: "trash", minKg: 0.1, maxKg: 0.2, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Rusty Hook", type: "trash", minKg: 0.05, maxKg: 0.1, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      
       // Common
       { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 20 },
       { name: "Pumpkinseed", type: "fish", minKg: 0.1, maxKg: 0.4, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
       { name: "Yellow Perch", type: "fish", minKg: 0.2, maxKg: 1.0, pricePerKg: 5, rarity: "common", chanceWeight: 20 },
-      
       // Uncommon
       { name: "Bluegill", type: "fish", minKg: 0.3, maxKg: 1.2, pricePerKg: 6, rarity: "uncommon", chanceWeight: 12 },
       { name: "Catfish", type: "fish", minKg: 2.0, maxKg: 10.0, pricePerKg: 4, rarity: "uncommon", chanceWeight: 10 },
       { name: "Carp", type: "fish", minKg: 3.0, maxKg: 15.0, pricePerKg: 3, rarity: "uncommon", chanceWeight: 10 },
-      
       // Rare
       { name: "Goldfish", type: "fish", minKg: 0.1, maxKg: 0.8, pricePerKg: 20, rarity: "rare", chanceWeight: 8 },
-      
       // Epic
       { name: "Largemouth Bass", type: "fish", minKg: 1.5, maxKg: 5.0, pricePerKg: 8, rarity: "epic", chanceWeight: 5 },
-      
       // Legendary
       { name: "Golden Koi", type: "fish", minKg: 2.0, maxKg: 8.0, pricePerKg: 15, rarity: "legendary", chanceWeight: 2 }
+    ];
+
+    // LOCATION: STREAM
+    const streamTable = [
+      // Trash
+      { name: "Waterlogged Branch", type: "trash", minKg: 1.0, maxKg: 5.0, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
+      { name: "Torn Fishing Net", type: "trash", minKg: 0.5, maxKg: 2.0, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      { name: "Muddy Bottle", type: "trash", minKg: 0.2, maxKg: 0.8, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      
+      // Common
+      { name: "Creek Chub", type: "fish", minKg: 0.1, maxKg: 0.5, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
+      { name: "Fallfish", type: "fish", minKg: 0.2, maxKg: 1.0, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
+      { name: "White Sucker", type: "fish", minKg: 0.5, maxKg: 2.5, pricePerKg: 5, rarity: "common", chanceWeight: 15 },
+      { name: "Common Shiner", type: "fish", minKg: 0.1, maxKg: 0.3, pricePerKg: 4, rarity: "common", chanceWeight: 15 },
+      { name: "Redbreast Sunfish", type: "fish", minKg: 0.2, maxKg: 0.8, pricePerKg: 4, rarity: "common", chanceWeight: 15 },
+
+      // Uncommon
+      { name: "Smallmouth Bass", type: "fish", minKg: 0.8, maxKg: 4.0, pricePerKg: 10, rarity: "uncommon", chanceWeight: 12 },
+      { name: "Rock Bass", type: "fish", minKg: 0.3, maxKg: 1.5, pricePerKg: 7, rarity: "uncommon", chanceWeight: 12 },
+      { name: "Rainbow Darter", type: "fish", minKg: 0.02, maxKg: 0.15, pricePerKg: 20, rarity: "uncommon", chanceWeight: 8 }, 
+      { name: "Brook Stickleback", type: "fish", minKg: 0.02, maxKg: 0.1, pricePerKg: 15, rarity: "uncommon", chanceWeight: 8 },
+
+      // Rare
+      { name: "Brook Trout", type: "fish", minKg: 0.5, maxKg: 4.0, pricePerKg: 16, rarity: "rare", chanceWeight: 6 },
+      { name: "Brown Trout", type: "fish", minKg: 0.5, maxKg: 5.0, pricePerKg: 18, rarity: "rare", chanceWeight: 5 },
+      { name: "Tiger Trout", type: "fish", minKg: 0.5, maxKg: 4.0, pricePerKg: 19, rarity: "rare", chanceWeight: 4 },
+
+      // Epic
+      { name: "Atlantic Salmon", type: "fish", minKg: 2.0, maxKg: 12.0, pricePerKg: 28, rarity: "epic", chanceWeight: 3 },
+
+      // Legendary
+      { name: "Ancient River Sturgeon", type: "fish", minKg: 10.0, maxKg: 50.0, pricePerKg: 45, rarity: "legendary", chanceWeight: 1 }
     ];
 
     const mutations = [
@@ -382,6 +411,9 @@
       // Backpack Data
       if (!user.maxItems) { user.maxItems = 15; changed = true; }
 
+      // Unlocked Locations (NEW)
+      if (!user.unlockedLocations) { user.unlockedLocations = ["pond"]; changed = true; }
+
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
       return user;
     }
@@ -390,12 +422,11 @@
       return RODS.find(r => r.id === user.equippedRod) || RODS[0];
     }
 
-    // --- GENERATOR WITH LUCK ---
-    function generateFish(luckMultiplier = 1.0) {
+    // --- GENERATOR WITH LOCATION ---
+    function generateFish(locationTable, luckMultiplier = 1.0) {
       // Calculate total weight with Luck applied to higher rarities
-      const adjustedTable = pondTable.map(item => {
+      const adjustedTable = locationTable.map(item => {
         let weight = item.chanceWeight;
-        // Apply luck to anything Uncommon or better
         if (item.rarity !== 'trash' && item.rarity !== 'common') {
           weight = weight * luckMultiplier;
         }
@@ -416,7 +447,7 @@
       if (percent > 0.90) sizeLabel = "Giant";
       else if (percent > 0.70) sizeLabel = "Big";
 
-      // Mutation Roll (also affected slightly by luck? For now keep simple)
+      // Mutation Roll
       let mut = mutations[0]; 
       const rollRare = Math.random();
       if (rollRare < 0.01 * luckMultiplier) mut = mutations.find(m => m.name === "Mythical");
@@ -468,12 +499,9 @@
         const xpCurrent = u.xp || 0;
         const xpNeeded = u.level * 100;
         const pct = Math.min(100, Math.max(0, (xpCurrent / xpNeeded) * 100));
-        
-        // Items count
         const items = u.items ? u.items.length : 0;
         const max = u.maxItems || 15;
         const bagColor = items >= max ? '#ff7a7a' : '#aaa';
-
         el.innerHTML = `
           <div class="hud-row">
             <span style="font-weight:bold; color:#fff;">👤 ${u.username}</span>
@@ -531,64 +559,77 @@
       document.getElementById('claimBtn').onclick = claimPassiveGold;
     }
     window.unlockHomeSlot = function(id) {
-      const u = getCurrentUser();
-      const cost = SLOT_COSTS[id];
+      const u = getCurrentUser(); const cost = SLOT_COSTS[id];
       if (u.coins >= cost) { if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) { u.coins -= cost; u.home.slots[id].unlocked = true; setCurrentUser(u); savePlayerToCloud(u); renderHome(); } } else { alert("Not enough gold!"); }
     };
     window.removeFishFromSlot = function(slotId) { const u = getCurrentUser(); const fish = u.home.slots[slotId].fish; if (!fish) return; u.items.push(fish); u.home.slots[slotId].fish = null; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
     window.openFishSelector = function(slotId) {
       const u = getCurrentUser(); 
-      // 1. Map to attach original index and calculate rate for sorting
       let validFish = u.items.map((item, idx) => {
-        const baseRate = PASSIVE_RATES[item.rarity] || 5;
-        const mutObj = mutations.find(m => m.name === item.mutation) || mutations[0];
-        const rate = Math.ceil(baseRate * mutObj.mult);
+        const baseRate = PASSIVE_RATES[item.rarity] || 5; const mutObj = mutations.find(m => m.name === item.mutation) || mutations[0]; const rate = Math.ceil(baseRate * mutObj.mult);
         return { ...item, originalIdx: idx, calculatedRate: rate };
-      })
-      // 2. Filter only fish
-      .filter(i => i.type === 'fish');
-      // 3. Sort by Rate (Descending)
+      }).filter(i => i.type === 'fish');
       validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
-
-      let listHTML = validFish.length === 0 ? 
-        "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>" : 
-        validFish.map(f => {
-          return `<div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;">
-            <div style="text-align:left;">
-              <b>${f.name}</b> <br>
-              <small style="color:#ffd700">${f.calculatedRate}g/hr</small>
-            </div>
-            <button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button>
-          </div>`;
-        }).join('');
-      
-      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; 
-      selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; 
-      mainContent.appendChild(selOverlay); 
-      document.getElementById('closeSel').onclick = () => renderHome();
+      let listHTML = validFish.length === 0 ? "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>" : validFish.map(f => {
+          return `<div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;"><div style="text-align:left;"><b>${f.name}</b> <br><small style="color:#ffd700">${f.calculatedRate}g/hr</small></div><button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button></div>`;
+      }).join('');
+      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; mainContent.appendChild(selOverlay); document.getElementById('closeSel').onclick = () => renderHome();
     };
     window.placeFish = function(sId, itemIdx) { const u = getCurrentUser(); const fishToMove = u.items[itemIdx]; if(!fishToMove) { renderHome(); return; } u.items.splice(itemIdx, 1); u.home.slots[sId].fish = fishToMove; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
     function claimPassiveGold() { const u = getCurrentUser(); const passive = calculatePassive(u); if (passive.pending > 0) { u.coins += passive.pending; u.home.lastClaim = Date.now(); setCurrentUser(u); savePlayerToCloud(u); renderHome(); } }
 
-    /* --- FISHING & ROD CALCULATIONS --- */
+    /* --- FISHING LOCATIONS --- */
     function renderFishingSpot() {
       const u = getCurrentUser();
       const currentRod = getEquippedRod(u);
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p><p style="font-size:0.8rem; opacity:0.7;">Stats: ${currentRod.luck}x Luck, ${currentRod.speed}x Speed</p><button class="location-btn" id="enterPondBtn">🐟 Pond</button><button class="location-btn" disabled>🌊 Stream (Locked)</button>`;
+      
+      const streamUnlocked = u.unlockedLocations.includes("stream");
+      let streamBtnHTML = "";
+      if(streamUnlocked) {
+        streamBtnHTML = `<button class="location-btn" onclick="window.renderStream()">🌊 Stream</button>`;
+      } else {
+        streamBtnHTML = `<button class="location-btn btn-locked" onclick="window.unlockStream()">🔒 Stream (2500g)</button>`;
+      }
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🎣 Fishing Spot</h2>
+        <p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p>
+        <p style="font-size:0.8rem; opacity:0.7;">Stats: ${currentRod.luck}x Luck, ${currentRod.speed}x Speed</p>
+        <button class="location-btn" onclick="window.renderPond()">🐟 Pond</button>
+        ${streamBtnHTML}
+      `;
       updateHud();
-      document.getElementById('enterPondBtn').onclick = renderPond;
     }
-    function renderPond() {
-      mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" id="backToSpot">← Back</button><h2>🐟 Pond</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">The water is calm...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><div style="margin-top:10px;"><button id="castBtn" style="min-width:150px;">Cast Line</button></div></div>`;
+
+    window.unlockStream = function() {
+      const u = getCurrentUser();
+      if(u.coins >= 2500) {
+        if(confirm("Unlock The Stream for 2500g?")) {
+          u.coins -= 2500;
+          u.unlockedLocations.push("stream");
+          setCurrentUser(u); savePlayerToCloud(u); renderFishingSpot();
+        }
+      } else { alert("Not enough gold!"); }
+    };
+
+    /* --- POND LOGIC --- */
+    window.renderPond = function() {
+      mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🐟 Pond</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">The water is calm...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><div style="margin-top:10px;"><button id="castBtn" style="min-width:150px;" onclick="window.handleCast('pond')">Cast Line</button></div></div>`;
       updateHud();
-      document.getElementById('backToSpot').onclick = renderFishingSpot;
-      document.getElementById('castBtn').onclick = handleCast;
-    }
-    function handleCast() {
+    };
+
+    /* --- STREAM LOGIC (NEW) --- */
+    window.renderStream = function() {
+      mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🌊 Stream</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">The current flows gently...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><div style="margin-top:10px;"><button id="castBtn" style="min-width:150px;" onclick="window.handleCast('stream')">Cast Line</button></div></div>`;
+      updateHud();
+    };
+
+    /* --- GENERAL FISHING LOGIC --- */
+    window.handleCast = function(locationType) {
       const u = getCurrentUser();
       const rod = getEquippedRod(u);
       
-      // CHECK BACKPACK SIZE
       if (u.items.length >= (u.maxItems || 15)) {
         alert("🎒 Backpack is full! Sell some fish in the Market.");
         return;
@@ -602,17 +643,20 @@
       statusEl.textContent = "Scanning the water...";
       waitBar.style.display = 'block'; waitFill.style.width = '0%';
       
-      // Speed calc: Divide wait time by rod speed
       let baseTime = 1000 + Math.random() * 2000;
       let actualTime = baseTime / rod.speed;
       
       setTimeout(() => waitFill.style.width = '100%', 50);
       setTimeout(() => {
         waitBar.style.display = 'none';
-        const hookedFish = generateFish(rod.luck); // Pass rod luck
+        
+        let targetTable = pondTable;
+        if(locationType === 'stream') targetTable = streamTable;
+
+        const hookedFish = generateFish(targetTable, rod.luck); 
         startMinigame(hookedFish);
       }, actualTime);
-    }
+    };
 
     /* --- MINIGAME --- */
     let minigameActive = false; let minigameProgress = 35; let spawnTimer = null; let gameLoop = null;
@@ -651,105 +695,28 @@
     /* --- ROD SHOP UI --- */
     function renderShop() {
       const u = getCurrentUser();
-      
-      // Upgrade Button Logic
       const currentMax = u.maxItems || 15;
-      const upgradeCost = currentMax * 50; // Dynamic pricing
-
-      const upgradeHTML = `
-        <div class="bp-item upgrade-item">
-            <div style="font-size:2rem;">🎒</div>
-            <div style="font-weight:bold; margin-top:5px;">Expand Backpack</div>
-            <div class="rod-stats">
-              Current: <b>${currentMax}</b><br>
-              Upgrade: <b>+5 Slots</b>
-            </div>
-            <button class="shop-btn btn-buy" onclick="window.upgradeBackpack()">Upgrade ${upgradeCost}g</button>
-        </div>
-      `;
-
+      const upgradeCost = currentMax * 50; 
+      const upgradeHTML = `<div class="bp-item upgrade-item"><div style="font-size:2rem;">🎒</div><div style="font-weight:bold; margin-top:5px;">Expand Backpack</div><div class="rod-stats">Current: <b>${currentMax}</b><br>Upgrade: <b>+5 Slots</b></div><button class="shop-btn btn-buy" onclick="window.upgradeBackpack()">Upgrade ${upgradeCost}g</button></div>`;
       const list = RODS.map(rod => {
-        const owned = u.ownedRods.includes(rod.id);
-        const equipped = u.equippedRod === rod.id;
-        
-        let btnHTML = "";
-        if (equipped) {
-          btnHTML = `<button class="shop-btn btn-owned">Equipped</button>`;
-        } else if (owned) {
-          btnHTML = `<button class="shop-btn btn-equip" onclick="window.equipRod(${rod.id})">Equip</button>`;
-        } else {
-          btnHTML = `<button class="shop-btn btn-buy" onclick="window.buyRod(${rod.id})">Buy ${rod.cost}g</button>`;
-        }
-
-        return `
-          <div class="bp-item">
-            <div style="font-size:2rem;">${rod.icon}</div>
-            <div style="font-weight:bold; margin-top:5px;">${rod.name}</div>
-            <div class="rod-stats">
-              Luck: <b>${rod.luck}x</b><br>
-              Speed: <b>${rod.speed}x</b>
-            </div>
-            ${btnHTML}
-          </div>
-        `;
+        const owned = u.ownedRods.includes(rod.id); const equipped = u.equippedRod === rod.id;
+        let btnHTML = equipped ? `<button class="shop-btn btn-owned">Equipped</button>` : owned ? `<button class="shop-btn btn-equip" onclick="window.equipRod(${rod.id})">Equip</button>` : `<button class="shop-btn btn-buy" onclick="window.buyRod(${rod.id})">Buy ${rod.cost}g</button>`;
+        return `<div class="bp-item"><div style="font-size:2rem;">${rod.icon}</div><div style="font-weight:bold; margin-top:5px;">${rod.name}</div><div class="rod-stats">Luck: <b>${rod.luck}x</b><br>Speed: <b>${rod.speed}x</b></div>${btnHTML}</div>`;
       }).join('');
-
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🛒 Item Shop</h2>
-        <div class="bp-grid">
-          ${upgradeHTML}
-          ${list}
-        </div>
-      `;
-      updateHud();
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🛒 Item Shop</h2><div class="bp-grid">${upgradeHTML}${list}</div>`; updateHud();
     }
-
-    window.upgradeBackpack = function() {
-      const u = getCurrentUser();
-      const currentMax = u.maxItems || 15;
-      const cost = currentMax * 50;
-
-      if (u.coins >= cost) {
-        if(confirm(`Expand backpack to ${currentMax + 5} slots for ${cost}g?`)) {
-          u.coins -= cost;
-          u.maxItems = currentMax + 5;
-          setCurrentUser(u); savePlayerToCloud(u); renderShop();
-        }
-      } else { alert("Not enough gold!"); }
-    };
-
-    window.buyRod = function(id) {
-      const u = getCurrentUser();
-      const rod = RODS.find(r => r.id === id);
-      if (u.coins >= rod.cost) {
-        if(confirm(`Buy ${rod.name} for ${rod.cost}g?`)) {
-          u.coins -= rod.cost;
-          u.ownedRods.push(id);
-          u.equippedRod = id; // Auto equip
-          setCurrentUser(u); savePlayerToCloud(u); renderShop();
-        }
-      } else { alert("Not enough gold!"); }
-    };
-
-    window.equipRod = function(id) {
-      const u = getCurrentUser();
-      u.equippedRod = id;
-      setCurrentUser(u); savePlayerToCloud(u); renderShop();
-    };
+    window.upgradeBackpack = function() { const u = getCurrentUser(); const currentMax = u.maxItems || 15; const cost = currentMax * 50; if (u.coins >= cost) { if(confirm(`Expand backpack to ${currentMax + 5} slots for ${cost}g?`)) { u.coins -= cost; u.maxItems = currentMax + 5; setCurrentUser(u); savePlayerToCloud(u); renderShop(); } } else { alert("Not enough gold!"); } };
+    window.buyRod = function(id) { const u = getCurrentUser(); const rod = RODS.find(r => r.id === id); if (u.coins >= rod.cost) { if(confirm(`Buy ${rod.name} for ${rod.cost}g?`)) { u.coins -= rod.cost; u.ownedRods.push(id); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); renderShop(); } } else { alert("Not enough gold!"); } };
+    window.equipRod = function(id) { const u = getCurrentUser(); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); renderShop(); };
 
     /* --- BACKPACK & MARKET --- */
     function renderBackpack() {
-      const u = getCurrentUser(); const items = u.items || [];
-      const max = u.maxItems || 15;
-      
+      const u = getCurrentUser(); const items = u.items || []; const max = u.maxItems || 15;
       let gridHTML = items.length === 0 ? "<p>Your backpack is empty.</p>" : `<div class="bp-grid">${items.map((item, idx) => {
         const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : ""; const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : ""; const sizeText = item.size ? `<b>${item.size}</b> ` : ""; const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : ""; const favClass = item.favorite ? "fav-active" : ""; const starIcon = item.favorite ? "★" : "☆";
         return `<div class="bp-item ${mutClass}"><button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button><div style="font-size:1.5rem">🐟</div><div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div><div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>${mutLabel}</div>`;
       }).join('')}</div>`;
-      
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack <small>(${items.length}/${max})</small></h2>${gridHTML}`; 
-      updateHud();
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack <small>(${items.length}/${max})</small></h2>${gridHTML}`; updateHud();
       document.querySelectorAll('.star-btn').forEach(btn => { btn.onclick = (e) => { e.stopPropagation(); toggleFavorite(parseInt(btn.dataset.index), 'backpack'); }; });
     }
     function toggleFavorite(index, view) { const u = getCurrentUser(); if (!u || !u.items[index]) return; u.items[index].favorite = !u.items[index].favorite; setCurrentUser(u); savePlayerToCloud(u); if(view === 'backpack') renderBackpack(); }
@@ -770,6 +737,9 @@
     };
 
     /* --- CONTROLS --- */
+    window.renderFishingSpot = renderFishingSpot;
+    window.renderPond = renderPond;
+    window.renderStream = renderStream;
     function renderAdminControls(user) { if (user.username === "Llama") { adminPanel.style.display = 'block'; adminResetBtn.style.display = 'block'; } else { adminPanel.style.display = 'none'; adminResetBtn.style.display = 'none'; } }
     function modifyUser(key, amount) { const u = getCurrentUser(); if (!u) return; u[key] = Math.max(0, (u[key] || 0) + amount); setCurrentUser(u); savePlayerToCloud(u); updateHud(); }
     document.getElementById('admLvlUp').onclick = () => modifyUser('level', 1);
@@ -793,6 +763,7 @@
           ownedRods: [0],
           equippedRod: 0,
           maxItems: 15,
+          unlockedLocations: ["pond"], // Reset unlocked locations
           home: {
             lastClaim: Date.now(),
             slots: Array(10).fill(null).map((_, i) => ({ id: i, unlocked: i === 0, fish: null }))
@@ -814,7 +785,7 @@
     // NAVIGATION
     document.getElementById('homeBtn').onclick = renderHome;
     document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
-    document.getElementById('shopBtn').onclick = renderShop; // NEW
+    document.getElementById('shopBtn').onclick = renderShop; 
     document.getElementById('backpackBtn').onclick = renderBackpack;
     document.getElementById('marketBtn').onclick = renderMarket;
     document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
