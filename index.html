@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Profile Update</title>
+  <title>Fishing Idly - XP Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -348,6 +348,16 @@
       legendary: 2000
     };
 
+    // NEW: XP Rates
+    const XP_RATES = {
+      trash: 1,
+      common: 5,
+      uncommon: 15,
+      rare: 40,
+      epic: 100,
+      legendary: 500
+    };
+
     // --- GENERATOR ---
     function generateFish() {
       const totalW = pondTable.reduce((sum, item) => sum + item.chanceWeight, 0);
@@ -407,7 +417,11 @@
     function updateHud() {
       const u = getCurrentUser();
       const el = document.getElementById('hudEl');
-      if (u && el) el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level}`;
+      if (u && el) {
+        // XP Progress
+        const xpNeeded = u.level * 100;
+        el.innerHTML = `👤 <b>${u.username}</b> · 💰 ${u.coins} · ⭐ Lv ${u.level} <small>(${u.xp || 0}/${xpNeeded})</small>`;
+      }
     }
 
     /* =========================================================================
@@ -756,6 +770,17 @@
       setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1000);
     }
 
+    // --- LEVEL UP LOGIC ---
+    function checkLevelUp(user) {
+      const needed = user.level * 100;
+      if ((user.xp || 0) >= needed) {
+        user.xp -= needed;
+        user.level++;
+        alert(`🎉 Level Up! You are now Level ${user.level}!`);
+        checkLevelUp(user); // Recursive check
+      }
+    }
+
     function endMinigame(won, fish) {
       minigameActive = false;
       clearInterval(spawnTimer);
@@ -772,13 +797,19 @@
       if (won) {
         const u = getCurrentUser();
         u.items.push(fish);
+        
+        // XP Logic
+        const xpGain = XP_RATES[fish.rarity] || 1;
+        u.xp = (u.xp || 0) + xpGain;
+        checkLevelUp(u);
+
         setCurrentUser(u);
         savePlayerToCloud(u);
         updateHud();
         const nameHTML = fish.mutation !== "Normal" 
           ? `<b class="txt-${fish.mutation}">${fish.mutation} ${fish.name}</b>` 
           : `<b>${fish.name}</b>`;
-        statusEl.innerHTML = `<span style="color:#5bc0be">SUCCESS!</span> You caught a ${nameHTML}! Added to Backpack.`;
+        statusEl.innerHTML = `<span style="color:#5bc0be">SUCCESS!</span> You caught a ${nameHTML}! (+${xpGain} XP)`;
       } else {
         statusEl.innerHTML = `<span style="color:#ff7a7a">FAILED!</span> It got away...`;
       }
@@ -926,7 +957,6 @@
       document.getElementById('profName').textContent = p.username;
       document.getElementById('profStats').textContent = `Lv ${p.level} · ${p.coins}g`;
       
-      // Calculate passive for profile view
       const passive = calculatePassive(p);
       document.getElementById('profPassive').textContent = `Generating: ${passive.rate}g/hr`;
 
