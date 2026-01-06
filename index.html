@@ -64,19 +64,29 @@
       text-align: center; padding: 30px; position: relative; 
     }
     
-    /* HUD UPDATES */
+    /* --- HUD UPDATES --- */
     .hud {
       position: absolute; top: 12px; right: 16px;
-      background: rgba(0,0,0,.35); padding: 8px 12px; border-radius: 10px; font-size: .95rem;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
-      z-index: 15; min-width: 200px; text-align: right;
+      background: rgba(0,0,0,.5); /* Slightly darker for better contrast */
+      padding: 10px 15px; border-radius: 12px; font-size: .95rem;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset;
+      z-index: 15; 
+      min-width: 260px; /* Made wider to fit single line */
+    }
+    .hud-row {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 6px;
     }
     .xp-container {
-      width: 100%; height: 6px; background: #111; border-radius: 3px;
-      margin-top: 6px; overflow: hidden; position: relative;
+      width: 100%; height: 8px; background: #111; border-radius: 4px;
+      overflow: hidden; position: relative;
+      border: 1px solid rgba(255,255,255,0.1);
     }
     .xp-fill {
-      height: 100%; background: #a06cd5; width: 0%;
+      height: 100%; background: linear-gradient(90deg, #a06cd5, #b886e6); 
+      width: 0%;
       transition: width 0.3s ease-out;
     }
 
@@ -440,13 +450,17 @@
         const pct = Math.min(100, Math.max(0, (xpCurrent / xpNeeded) * 100));
 
         el.innerHTML = `
-          <div style="font-weight:bold; margin-bottom:4px;">👤 ${u.username}</div>
-          <div style="font-size:0.9rem; color:#ffd700;">💰 ${u.coins}</div>
-          <div style="font-size:0.9rem; color:#a06cd5; margin-top:2px;">⭐ Lv ${u.level}</div>
+          <div class="hud-row">
+            <span style="font-weight:bold; color:#fff;">👤 ${u.username}</span>
+            <span style="font-weight:bold; color:#ffd700;">💰 ${u.coins}</span>
+            <span style="font-weight:bold; color:#a06cd5;">⭐ ${u.level}</span>
+          </div>
           <div class="xp-container">
             <div class="xp-fill" style="width:${pct}%"></div>
           </div>
-          <div style="font-size:0.7rem; opacity:0.6; margin-top:2px;">${xpCurrent} / ${xpNeeded} XP</div>
+          <div style="font-size:0.7rem; color:#aaa; text-align:center; margin-top:4px; letter-spacing:1px;">
+            ${xpCurrent} / ${xpNeeded} XP
+          </div>
         `;
       }
     }
