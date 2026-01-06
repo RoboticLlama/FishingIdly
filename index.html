@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Stream Update</title>
+  <title>Fishing Idly - Location Multipliers</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -327,59 +327,48 @@
       { id: 6, name: "Poseidon's Trident", cost: 250000, luck: 5.0, speed: 3.0, icon: "🔱" }
     ];
 
+    // --- LOCATION CONFIG ---
+    const LOCATION_MULTIPLIERS = {
+      pond: 1.0,
+      stream: 1.5
+    };
+
     // LOCATION: POND
     const pondTable = [
-      // Trash
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Tin Can", type: "trash", minKg: 0.1, maxKg: 0.3, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Tangled Line", type: "trash", minKg: 0.1, maxKg: 0.5, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Broken Glass", type: "trash", minKg: 0.1, maxKg: 0.2, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Rusty Hook", type: "trash", minKg: 0.05, maxKg: 0.1, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      // Common
       { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 20 },
       { name: "Pumpkinseed", type: "fish", minKg: 0.1, maxKg: 0.4, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
       { name: "Yellow Perch", type: "fish", minKg: 0.2, maxKg: 1.0, pricePerKg: 5, rarity: "common", chanceWeight: 20 },
-      // Uncommon
       { name: "Bluegill", type: "fish", minKg: 0.3, maxKg: 1.2, pricePerKg: 6, rarity: "uncommon", chanceWeight: 12 },
       { name: "Catfish", type: "fish", minKg: 2.0, maxKg: 10.0, pricePerKg: 4, rarity: "uncommon", chanceWeight: 10 },
       { name: "Carp", type: "fish", minKg: 3.0, maxKg: 15.0, pricePerKg: 3, rarity: "uncommon", chanceWeight: 10 },
-      // Rare
       { name: "Goldfish", type: "fish", minKg: 0.1, maxKg: 0.8, pricePerKg: 20, rarity: "rare", chanceWeight: 8 },
-      // Epic
       { name: "Largemouth Bass", type: "fish", minKg: 1.5, maxKg: 5.0, pricePerKg: 8, rarity: "epic", chanceWeight: 5 },
-      // Legendary
       { name: "Golden Koi", type: "fish", minKg: 2.0, maxKg: 8.0, pricePerKg: 15, rarity: "legendary", chanceWeight: 2 }
     ];
 
     // LOCATION: STREAM
     const streamTable = [
-      // Trash
       { name: "Waterlogged Branch", type: "trash", minKg: 1.0, maxKg: 5.0, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Torn Fishing Net", type: "trash", minKg: 0.5, maxKg: 2.0, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Muddy Bottle", type: "trash", minKg: 0.2, maxKg: 0.8, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      
-      // Common
       { name: "Creek Chub", type: "fish", minKg: 0.1, maxKg: 0.5, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
       { name: "Fallfish", type: "fish", minKg: 0.2, maxKg: 1.0, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
       { name: "White Sucker", type: "fish", minKg: 0.5, maxKg: 2.5, pricePerKg: 5, rarity: "common", chanceWeight: 15 },
       { name: "Common Shiner", type: "fish", minKg: 0.1, maxKg: 0.3, pricePerKg: 4, rarity: "common", chanceWeight: 15 },
       { name: "Redbreast Sunfish", type: "fish", minKg: 0.2, maxKg: 0.8, pricePerKg: 4, rarity: "common", chanceWeight: 15 },
-
-      // Uncommon
       { name: "Smallmouth Bass", type: "fish", minKg: 0.8, maxKg: 4.0, pricePerKg: 10, rarity: "uncommon", chanceWeight: 12 },
       { name: "Rock Bass", type: "fish", minKg: 0.3, maxKg: 1.5, pricePerKg: 7, rarity: "uncommon", chanceWeight: 12 },
       { name: "Rainbow Darter", type: "fish", minKg: 0.02, maxKg: 0.15, pricePerKg: 20, rarity: "uncommon", chanceWeight: 8 }, 
       { name: "Brook Stickleback", type: "fish", minKg: 0.02, maxKg: 0.1, pricePerKg: 15, rarity: "uncommon", chanceWeight: 8 },
-
-      // Rare
       { name: "Brook Trout", type: "fish", minKg: 0.5, maxKg: 4.0, pricePerKg: 16, rarity: "rare", chanceWeight: 6 },
       { name: "Brown Trout", type: "fish", minKg: 0.5, maxKg: 5.0, pricePerKg: 18, rarity: "rare", chanceWeight: 5 },
       { name: "Tiger Trout", type: "fish", minKg: 0.5, maxKg: 4.0, pricePerKg: 19, rarity: "rare", chanceWeight: 4 },
-
-      // Epic
       { name: "Atlantic Salmon", type: "fish", minKg: 2.0, maxKg: 12.0, pricePerKg: 28, rarity: "epic", chanceWeight: 3 },
-
-      // Legendary
       { name: "Ancient River Sturgeon", type: "fish", minKg: 10.0, maxKg: 50.0, pricePerKg: 45, rarity: "legendary", chanceWeight: 1 }
     ];
 
@@ -423,7 +412,7 @@
     }
 
     // --- GENERATOR WITH LOCATION ---
-    function generateFish(locationTable, luckMultiplier = 1.0) {
+    function generateFish(locationTable, luckMultiplier = 1.0, locationName) {
       // Calculate total weight with Luck applied to higher rarities
       const adjustedTable = locationTable.map(item => {
         let weight = item.chanceWeight;
@@ -465,7 +454,8 @@
       return {
         name: species.name, type: species.type, rarity: species.rarity,
         weight: weight, mutation: mut.name, size: sizeLabel, value: val,
-        favorite: false
+        favorite: false,
+        origin: locationName // Save Origin
       };
     }
 
@@ -527,7 +517,12 @@
             const r = slot.fish.rarity || 'trash';
             const baseRate = PASSIVE_RATES[r] || 5;
             const mutObj = mutations.find(m => m.name === slot.fish.mutation) || mutations[0];
-            ratePerHour += Math.ceil(baseRate * mutObj.mult);
+            
+            // LOCATION MULTIPLIER LOGIC
+            const origin = slot.fish.origin || 'pond'; // default to pond if old fish
+            const locMult = LOCATION_MULTIPLIERS[origin] || 1.0;
+
+            ratePerHour += Math.ceil(baseRate * mutObj.mult * locMult);
           }
         });
       }
@@ -546,9 +541,13 @@
           const fish = slot.fish;
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
+          
           const baseRate = PASSIVE_RATES[fish.rarity] || 5;
           const mutObj = mutations.find(m => m.name === fish.mutation) || mutations[0];
-          const rate = Math.ceil(baseRate * mutObj.mult);
+          const origin = fish.origin || 'pond';
+          const locMult = LOCATION_MULTIPLIERS[origin] || 1.0;
+          const rate = Math.ceil(baseRate * mutObj.mult * locMult);
+
           return `<div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})"><div class="slot-fish-icon">🐟</div><div class="slot-fish-name ${txtClass}">${fish.name}</div><div class="slot-fish-val">${rate}g/hr</div></div>`;
         } else {
           return `<div class="home-slot" onclick="window.openFishSelector(${slot.id})"><div style="font-size:1.5rem; opacity:0.5;">+</div><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
@@ -566,10 +565,16 @@
     window.openFishSelector = function(slotId) {
       const u = getCurrentUser(); 
       let validFish = u.items.map((item, idx) => {
-        const baseRate = PASSIVE_RATES[item.rarity] || 5; const mutObj = mutations.find(m => m.name === item.mutation) || mutations[0]; const rate = Math.ceil(baseRate * mutObj.mult);
+        const baseRate = PASSIVE_RATES[item.rarity] || 5; 
+        const mutObj = mutations.find(m => m.name === item.mutation) || mutations[0]; 
+        const origin = item.origin || 'pond';
+        const locMult = LOCATION_MULTIPLIERS[origin] || 1.0;
+        const rate = Math.ceil(baseRate * mutObj.mult * locMult);
         return { ...item, originalIdx: idx, calculatedRate: rate };
       }).filter(i => i.type === 'fish');
+      
       validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
+      
       let listHTML = validFish.length === 0 ? "<p style='padding:20px; text-align:center;'>No fish in backpack.</p>" : validFish.map(f => {
           return `<div class="bp-item" style="display:flex; justify-content:space-between; align-items:center; width:300px; margin:5px auto;"><div style="text-align:left;"><b>${f.name}</b> <br><small style="color:#ffd700">${f.calculatedRate}g/hr</small></div><button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button></div>`;
       }).join('');
@@ -619,7 +624,7 @@
       updateHud();
     };
 
-    /* --- STREAM LOGIC (NEW) --- */
+    /* --- STREAM LOGIC --- */
     window.renderStream = function() {
       mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🌊 Stream</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">The current flows gently...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><div style="margin-top:10px;"><button id="castBtn" style="min-width:150px;" onclick="window.handleCast('stream')">Cast Line</button></div></div>`;
       updateHud();
@@ -653,7 +658,7 @@
         let targetTable = pondTable;
         if(locationType === 'stream') targetTable = streamTable;
 
-        const hookedFish = generateFish(targetTable, rod.luck); 
+        const hookedFish = generateFish(targetTable, rod.luck, locationType); 
         startMinigame(hookedFish);
       }, actualTime);
     };
@@ -714,7 +719,8 @@
       const u = getCurrentUser(); const items = u.items || []; const max = u.maxItems || 15;
       let gridHTML = items.length === 0 ? "<p>Your backpack is empty.</p>" : `<div class="bp-grid">${items.map((item, idx) => {
         const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : ""; const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : ""; const sizeText = item.size ? `<b>${item.size}</b> ` : ""; const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : ""; const favClass = item.favorite ? "fav-active" : ""; const starIcon = item.favorite ? "★" : "☆";
-        return `<div class="bp-item ${mutClass}"><button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button><div style="font-size:1.5rem">🐟</div><div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div><div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>${mutLabel}</div>`;
+        const origin = item.origin ? `<div style="font-size:0.7rem; color:#aaa;">${item.origin.toUpperCase()}</div>` : '';
+        return `<div class="bp-item ${mutClass}"><button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button><div style="font-size:1.5rem">🐟</div><div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div>${origin}<div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>${mutLabel}</div>`;
       }).join('')}</div>`;
       mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack <small>(${items.length}/${max})</small></h2>${gridHTML}`; updateHud();
       document.querySelectorAll('.star-btn').forEach(btn => { btn.onclick = (e) => { e.stopPropagation(); toggleFavorite(parseInt(btn.dataset.index), 'backpack'); }; });
