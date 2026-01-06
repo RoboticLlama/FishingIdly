@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Rod Shop Update</title>
+  <title>Fishing Idly - Expanded Fish List</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -323,12 +323,32 @@
       { id: 6, name: "Poseidon's Trident", cost: 250000, luck: 5.0, speed: 3.0, icon: "🔱" }
     ];
 
+    // UPDATED POND TABLE
     const pondTable = [
+      // Trash
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
-      { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 25 },
-      { name: "Bluegill", type: "fish", minKg: 0.3, maxKg: 1.2, pricePerKg: 6, rarity: "uncommon", chanceWeight: 15 },
+      { name: "Tin Can", type: "trash", minKg: 0.1, maxKg: 0.3, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      { name: "Tangled Line", type: "trash", minKg: 0.1, maxKg: 0.5, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      { name: "Broken Glass", type: "trash", minKg: 0.1, maxKg: 0.2, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      { name: "Rusty Hook", type: "trash", minKg: 0.05, maxKg: 0.1, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
+      
+      // Common
+      { name: "Crappie", type: "fish", minKg: 0.5, maxKg: 2.0, pricePerKg: 3, rarity: "common", chanceWeight: 20 },
+      { name: "Pumpkinseed", type: "fish", minKg: 0.1, maxKg: 0.4, pricePerKg: 4, rarity: "common", chanceWeight: 20 },
+      { name: "Yellow Perch", type: "fish", minKg: 0.2, maxKg: 1.0, pricePerKg: 5, rarity: "common", chanceWeight: 20 },
+      
+      // Uncommon
+      { name: "Bluegill", type: "fish", minKg: 0.3, maxKg: 1.2, pricePerKg: 6, rarity: "uncommon", chanceWeight: 12 },
+      { name: "Catfish", type: "fish", minKg: 2.0, maxKg: 10.0, pricePerKg: 4, rarity: "uncommon", chanceWeight: 10 },
+      { name: "Carp", type: "fish", minKg: 3.0, maxKg: 15.0, pricePerKg: 3, rarity: "uncommon", chanceWeight: 10 },
+      
+      // Rare
       { name: "Goldfish", type: "fish", minKg: 0.1, maxKg: 0.8, pricePerKg: 20, rarity: "rare", chanceWeight: 8 },
+      
+      // Epic
       { name: "Largemouth Bass", type: "fish", minKg: 1.5, maxKg: 5.0, pricePerKg: 8, rarity: "epic", chanceWeight: 5 },
+      
+      // Legendary
       { name: "Golden Koi", type: "fish", minKg: 2.0, maxKg: 8.0, pricePerKg: 15, rarity: "legendary", chanceWeight: 2 }
     ];
 
