@@ -340,22 +340,22 @@
     const SLOT_COSTS = [0, 500, 1500, 3000, 5000, 10000, 20000, 50000, 100000, 250000];
     
     const PASSIVE_RATES = {
-      trash: 5,
-      common: 20,
-      uncommon: 50,
-      rare: 150,
-      epic: 500,
-      legendary: 2000
+      trash: 0,
+      common: 5,
+      uncommon: 15,
+      rare: 100,
+      epic: 250,
+      legendary: 500
     };
 
     // NEW: XP Rates
     const XP_RATES = {
       trash: 1,
       common: 5,
-      uncommon: 15,
-      rare: 40,
-      epic: 100,
-      legendary: 500
+      uncommon: 10,
+      rare: 20,
+      epic: 50,
+      legendary: 100
     };
 
     // --- GENERATOR ---
@@ -1016,7 +1016,7 @@
     document.getElementById('loginButton').onclick = async () => {
       const u = document.getElementById('signin-username').value.trim();
       const p = document.getElementById('signin-password').value.trim();
-      if (u === "Llama" && p === "Helloworld") { const master = { username: "Llama", coins: 99999, level: 100, items: [] }; setCurrentUser(master); startGame(master); return; }
+      if (u === "Llama" && p === "Helloworld") { const master = { username: "Llama", coins: 0, level: 1, items: [] }; setCurrentUser(master); startGame(master); return; }
       if(!u) { alert("Enter username"); return; }
       const snap = await getDoc(doc(db, "players", u));
       if (!snap.exists()) return alert("User not found.");
