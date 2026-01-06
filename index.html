@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Expanded Fish List</title>
+  <title>Fishing Idly - Backpack Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -130,6 +130,9 @@
     .btn-buy:hover { background: #66bb6a; }
     .btn-equip { background: #5bc0be; color: #1b2735; }
     .btn-owned { background: #555; color: #aaa; cursor: default; }
+    
+    .upgrade-item { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.1); }
+
     .star-btn {
       position: absolute; top: 4px; right: 4px;
       background: none; border: none; padding: 0;
@@ -323,7 +326,6 @@
       { id: 6, name: "Poseidon's Trident", cost: 250000, luck: 5.0, speed: 3.0, icon: "🔱" }
     ];
 
-    // UPDATED POND TABLE
     const pondTable = [
       // Trash
       { name: "Old Boot", type: "trash", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
@@ -377,6 +379,9 @@
       if (!user.ownedRods) { user.ownedRods = [0]; changed = true; }
       if (user.equippedRod === undefined) { user.equippedRod = 0; changed = true; }
       
+      // Backpack Data (NEW)
+      if (!user.maxItems) { user.maxItems = 15; changed = true; }
+
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
       return user;
     }
@@ -463,6 +468,12 @@
         const xpCurrent = u.xp || 0;
         const xpNeeded = u.level * 100;
         const pct = Math.min(100, Math.max(0, (xpCurrent / xpNeeded) * 100));
+        
+        // Items count
+        const items = u.items ? u.items.length : 0;
+        const max = u.maxItems || 15;
+        const bagColor = items >= max ? '#ff7a7a' : '#aaa';
+
         el.innerHTML = `
           <div class="hud-row">
             <span style="font-weight:bold; color:#fff;">👤 ${u.username}</span>
@@ -471,6 +482,7 @@
           </div>
           <div class="xp-container"><div class="xp-fill" style="width:${pct}%"></div></div>
           <div style="font-size:0.7rem; color:#aaa; text-align:center; margin-top:4px; letter-spacing:1px;">${xpCurrent} / ${xpNeeded} XP</div>
+          <div style="font-size:0.75rem; color:${bagColor}; text-align:right; margin-top:4px;">🎒 ${items}/${max}</div>
         `;
       }
     }
@@ -552,6 +564,13 @@
     function handleCast() {
       const u = getCurrentUser();
       const rod = getEquippedRod(u);
+      
+      // CHECK BACKPACK SIZE
+      if (u.items.length >= (u.maxItems || 15)) {
+        alert("🎒 Backpack is full! Sell some fish in the Market.");
+        return;
+      }
+
       const statusEl = document.getElementById('pondStatus');
       const waitBar = document.getElementById('waitBar');
       const waitFill = document.getElementById('waitFill');
@@ -609,6 +628,23 @@
     /* --- ROD SHOP UI --- */
     function renderShop() {
       const u = getCurrentUser();
+      
+      // Upgrade Button Logic
+      const currentMax = u.maxItems || 15;
+      const upgradeCost = currentMax * 50; // Dynamic pricing
+
+      const upgradeHTML = `
+        <div class="bp-item upgrade-item">
+            <div style="font-size:2rem;">🎒</div>
+            <div style="font-weight:bold; margin-top:5px;">Expand Backpack</div>
+            <div class="rod-stats">
+              Current: <b>${currentMax}</b><br>
+              Upgrade: <b>+5 Slots</b>
+            </div>
+            <button class="shop-btn btn-buy" onclick="window.upgradeBackpack()">Upgrade ${upgradeCost}g</button>
+        </div>
+      `;
+
       const list = RODS.map(rod => {
         const owned = u.ownedRods.includes(rod.id);
         const equipped = u.equippedRod === rod.id;
@@ -637,11 +673,28 @@
 
       mainContent.innerHTML = `
         ${renderHudHTML()}
-        <h2>🛒 Rod Shop</h2>
-        <div class="bp-grid">${list}</div>
+        <h2>🛒 Item Shop</h2>
+        <div class="bp-grid">
+          ${upgradeHTML}
+          ${list}
+        </div>
       `;
       updateHud();
     }
+
+    window.upgradeBackpack = function() {
+      const u = getCurrentUser();
+      const currentMax = u.maxItems || 15;
+      const cost = currentMax * 50;
+
+      if (u.coins >= cost) {
+        if(confirm(`Expand backpack to ${currentMax + 5} slots for ${cost}g?`)) {
+          u.coins -= cost;
+          u.maxItems = currentMax + 5;
+          setCurrentUser(u); savePlayerToCloud(u); renderShop();
+        }
+      } else { alert("Not enough gold!"); }
+    };
 
     window.buyRod = function(id) {
       const u = getCurrentUser();
@@ -665,11 +718,15 @@
     /* --- BACKPACK & MARKET --- */
     function renderBackpack() {
       const u = getCurrentUser(); const items = u.items || [];
+      const max = u.maxItems || 15;
+      
       let gridHTML = items.length === 0 ? "<p>Your backpack is empty.</p>" : `<div class="bp-grid">${items.map((item, idx) => {
         const mutClass = item.mutation !== "Normal" ? `mut-${item.mutation}` : ""; const mutTextClass = item.mutation !== "Normal" ? `txt-${item.mutation}` : ""; const sizeText = item.size ? `<b>${item.size}</b> ` : ""; const mutLabel = item.mutation !== "Normal" ? `<div class="bp-tag ${mutTextClass}">${item.mutation}</div>` : ""; const favClass = item.favorite ? "fav-active" : ""; const starIcon = item.favorite ? "★" : "☆";
         return `<div class="bp-item ${mutClass}"><button class="star-btn ${favClass}" data-index="${idx}">${starIcon}</button><div style="font-size:1.5rem">🐟</div><div class="bp-name ${mutTextClass}">${sizeText}${item.name}</div><div class="bp-stats">${item.weight} kg<br>Value: ${item.value}g</div>${mutLabel}</div>`;
       }).join('')}</div>`;
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack</h2><p>Items caught: ${items.length}</p>${gridHTML}`; updateHud();
+      
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack <small>(${items.length}/${max})</small></h2>${gridHTML}`; 
+      updateHud();
       document.querySelectorAll('.star-btn').forEach(btn => { btn.onclick = (e) => { e.stopPropagation(); toggleFavorite(parseInt(btn.dataset.index), 'backpack'); }; });
     }
     function toggleFavorite(index, view) { const u = getCurrentUser(); if (!u || !u.items[index]) return; u.items[index].favorite = !u.items[index].favorite; setCurrentUser(u); savePlayerToCloud(u); if(view === 'backpack') renderBackpack(); }
