@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Location Multipliers</title>
+  <title>Fishing Idly - Level Restriction Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -587,28 +587,24 @@
     function renderFishingSpot() {
       const u = getCurrentUser();
       const currentRod = getEquippedRod(u);
-      
       const streamUnlocked = u.unlockedLocations.includes("stream");
       let streamBtnHTML = "";
       if(streamUnlocked) {
         streamBtnHTML = `<button class="location-btn" onclick="window.renderStream()">🌊 Stream</button>`;
       } else {
-        streamBtnHTML = `<button class="location-btn btn-locked" onclick="window.unlockStream()">🔒 Stream (2500g)</button>`;
+        if (u.level < 5) {
+           streamBtnHTML = `<button class="location-btn btn-locked" disabled style="opacity:0.6; cursor:not-allowed;">🔒 Stream (Req. Lv 5)</button>`;
+        } else {
+           streamBtnHTML = `<button class="location-btn btn-locked" onclick="window.unlockStream()">🔒 Unlock Stream (2500g)</button>`;
+        }
       }
-
-      mainContent.innerHTML = `
-        ${renderHudHTML()}
-        <h2>🎣 Fishing Spot</h2>
-        <p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p>
-        <p style="font-size:0.8rem; opacity:0.7;">Stats: ${currentRod.luck}x Luck, ${currentRod.speed}x Speed</p>
-        <button class="location-btn" onclick="window.renderPond()">🐟 Pond</button>
-        ${streamBtnHTML}
-      `;
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p><p style="font-size:0.8rem; opacity:0.7;">Stats: ${currentRod.luck}x Luck, ${currentRod.speed}x Speed</p><button class="location-btn" onclick="window.renderPond()">🐟 Pond</button>${streamBtnHTML}`;
       updateHud();
     }
 
     window.unlockStream = function() {
       const u = getCurrentUser();
+      if(u.level < 5) { alert("You must be Level 5 to unlock this area!"); return; }
       if(u.coins >= 2500) {
         if(confirm("Unlock The Stream for 2500g?")) {
           u.coins -= 2500;
