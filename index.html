@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Sorted Selector</title>
+  <title>Fishing Idly - DB Reset Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -262,7 +262,7 @@
           <div class="admin-row"><span>Level</span><div><button class="btn-sm" id="admLvlDown">-</button><button class="btn-sm" id="admLvlUp">+</button></div></div>
           <div class="admin-row"><span>Gold</span><div><button class="btn-sm" id="admGoldDown">-</button><button class="btn-sm" id="admGoldUp">+</button></div></div>
         </div>
-        <button class="admin-reset-btn" id="adminResetBtn" style="display:none;">⚠ Reset All Data</button>
+        <button class="admin-reset-btn" id="adminResetBtn" style="display:none;">⚠ RESET ALL DB DATA</button>
         <button class="logout-btn" id="logoutBtn">Logout</button>
       </div>
     </div>
@@ -274,7 +274,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, writeBatch } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -776,7 +776,36 @@
     document.getElementById('admLvlDown').onclick = () => modifyUser('level', -1);
     document.getElementById('admGoldUp').onclick = () => modifyUser('coins', 100);
     document.getElementById('admGoldDown').onclick = () => modifyUser('coins', -100);
-    document.getElementById('adminResetBtn').onclick = () => { if(confirm("⚠ Reset ALL local data?")) { localStorage.removeItem('currentUser'); location.reload(); }};
+    
+    // --- DB RESET LOGIC ---
+    document.getElementById('adminResetBtn').onclick = async () => {
+      if(!confirm("⚠ WARNING: This will reset ALL players' game progress (Gold, Level, Items) in the database. Credentials will remain. Are you sure?")) return;
+      const snap = await getDocs(collection(db, "players"));
+      const batch = writeBatch(db);
+      let count = 0;
+      snap.forEach((docSnap) => {
+        const ref = doc(db, "players", docSnap.id);
+        const resetState = {
+          coins: 0,
+          level: 1,
+          xp: 0,
+          items: [],
+          ownedRods: [0],
+          equippedRod: 0,
+          maxItems: 15,
+          home: {
+            lastClaim: Date.now(),
+            slots: Array(10).fill(null).map((_, i) => ({ id: i, unlocked: i === 0, fish: null }))
+          }
+        };
+        batch.update(ref, resetState);
+        count++;
+      });
+      await batch.commit();
+      alert(`Reset complete for ${count} players.`);
+      location.reload();
+    };
+
     function startGame(user) { overlay.style.display = 'none'; title.style.display = 'none'; startButton.style.display = 'none'; signinLink.style.display = 'none'; gameContainer.style.display = 'flex'; renderAdminControls(user); renderHome(); }
     document.getElementById('loginButton').onclick = async () => { const u = document.getElementById('signin-username').value.trim(); const p = document.getElementById('signin-password').value.trim(); if (u === "Llama" && p === "Helloworld") { const master = { username: "Llama", coins: 0, level: 1, items: [] }; setCurrentUser(master); startGame(master); return; } if(!u) { alert("Enter username"); return; } const snap = await getDoc(doc(db, "players", u)); if (!snap.exists()) return alert("User not found."); const data = snap.data(); if (data.password !== p) return alert("Wrong password."); setCurrentUser(data); startGame(data); };
     document.getElementById('signupButton').onclick = async () => { const u = document.getElementById('signup-username').value.trim(); const p = document.getElementById('signup-password').value.trim(); const e = document.getElementById('signup-email').value.trim(); if(!u || !p || !e) return alert("Fill all fields"); const snap = await getDoc(doc(db, "players", u)); if (snap.exists()) return alert("Username taken."); const newUser = { username: u, password: p, email: e, coins: 0, level: 1, items: [] }; await savePlayerToCloud(newUser); alert("Created! Log in now."); signupForm.style.display='none'; signinForm.style.display='block'; };
