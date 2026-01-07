@@ -31,7 +31,7 @@
       width: 64px;
       height: 64px;
       object-fit: contain;
-      image-rendering: pixelated; /* Keeps pixel art sharp */
+      image-rendering: pixelated; 
       image-rendering: crisp-edges;
     }
     .emoji-icon { font-size: 2rem; }
@@ -156,7 +156,7 @@
     /* --- INDEX STYLES --- */
     .index-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 15px; width: 100%; max-height: 65vh; overflow-y: auto; padding: 10px;
+      gap: 15px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
     }
     .index-card {
       background: rgba(0,0,0,0.3); border: 2px solid #2a3d56; border-radius: 12px;
@@ -168,6 +168,19 @@
     }
     .index-name { font-size: 0.8rem; margin-top: 8px; font-weight: bold; }
     .index-rarity { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* --- INDEX TABS (NEW) --- */
+    .index-tabs {
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;
+    }
+    .tab-btn {
+      background: #2a3d56; border: 1px solid #5bc0be; color: #5bc0be;
+      padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+    }
+    .tab-btn:hover { background: rgba(91,192,190,0.2); }
+    .tab-btn.active {
+      background: #5bc0be; color: #1b2735; font-weight: bold; box-shadow: 0 0 10px rgba(91,192,190,0.4);
+    }
 
     .market-sell-btn { margin-top: 8px; font-size: 0.8rem; padding: 4px 10px; width: 100%; background: #4caf50; color: white; }
     .market-sell-btn:hover { background: #66bb6a; }
@@ -276,7 +289,6 @@
   <div class="game-container" id="gameContainer">
     <div class="sidebar">
       <div class="nav-buttons">
-        <!-- REORDERED BUTTONS -->
         <button id="homeBtn">🏠 Home</button>
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
         <button id="backpackBtn">🎒 Backpack</button>
@@ -345,13 +357,10 @@
     }
 
     // --- ICON HELPER ---
-    // This will check if an 'img' exists. If not, fallback to default emoji.
     function getEntityIcon(item) {
         if (item.img && item.img !== "placeholder.png") {
-            // Path logic assuming you follow the assets/fish/ structure
             return `<img src="assets/fish/${item.img}" class="pixel-icon" alt="${item.name}">`;
         }
-        // Fallback Emojis
         if (item.type === 'trash') return `<span class="emoji-icon">👞</span>`;
         return `<span class="emoji-icon">🐟</span>`;
     }
@@ -370,7 +379,6 @@
     // --- LOCATION CONFIG ---
     const LOCATION_MULTIPLIERS = { pond: 1.0, stream: 1.5 };
 
-    // Added 'img' properties (currently placeholders)
     const pondTable = [
       { name: "Old Boot", type: "trash", img: "placeholder.png", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Tin Can", type: "trash", img: "placeholder.png", minKg: 0.1, maxKg: 0.3, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
@@ -432,8 +440,6 @@
       if (user.equippedRod === undefined) { user.equippedRod = 0; changed = true; }
       if (!user.maxItems) { user.maxItems = 15; changed = true; }
       if (!user.unlockedLocations) { user.unlockedLocations = ["pond"]; changed = true; }
-      
-      // NEW: TRACK CAUGHT FISH
       if (!user.discoveredFish) { user.discoveredFish = []; changed = true; }
 
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
@@ -665,20 +671,64 @@
     window.sellOne = function(i) { const u = getCurrentUser(); u.coins += u.items[i].value; u.items.splice(i, 1); setCurrentUser(u); savePlayerToCloud(u); renderMarket(); };
     window.sellAll = function() { const u = getCurrentUser(); const sold = u.items.filter(i => !i.favorite); u.coins += sold.reduce((s,i) => s + i.value, 0); u.items = u.items.filter(i => i.favorite); setCurrentUser(u); savePlayerToCloud(u); renderMarket(); };
 
-    /* --- INDEX (NEW) --- */
-    function renderIndex() {
+    /* --- INDEX (UPDATED WITH TABS) --- */
+    window.renderIndex = function(filterType = 'all') {
       const u = getCurrentUser();
-      const allPossible = [...pondTable, ...streamTable].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
-      const gridHTML = allPossible.map(item => {
+      
+      // 1. Prepare lists with origin tags
+      const pondItems = pondTable.map(i => ({...i, _origin: 'pond'}));
+      const streamItems = streamTable.map(i => ({...i, _origin: 'stream'}));
+      
+      let displayList = [];
+
+      // 2. Filter Logic
+      if (filterType === 'pond') {
+        displayList = pondItems;
+      } else if (filterType === 'stream') {
+        displayList = streamItems;
+      } else {
+        // 'all': Merge and remove duplicates (by name)
+        const combined = [...pondItems, ...streamItems];
+        displayList = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+      }
+
+      // 3. Generate Tab Buttons HTML
+      const tabs = ['all', 'pond', 'stream'];
+      const tabsHTML = tabs.map(t => {
+        const isActive = t === filterType ? 'active' : '';
+        const label = t.charAt(0).toUpperCase() + t.slice(1);
+        return `<button class="tab-btn ${isActive}" onclick="window.renderIndex('${t}')">${label}</button>`;
+      }).join('');
+
+      // 4. Generate Card Grid
+      const gridHTML = displayList.map(item => {
         const isUnlocked = u.discoveredFish.includes(item.name);
         const cardClass = isUnlocked ? "index-card unlocked" : "index-card";
         const name = isUnlocked ? item.name : "???";
         const rarity = isUnlocked ? item.rarity : "Unknown";
-        return `<div class="${cardClass}">${getEntityIcon(item)}<div class="index-name">${name}</div><div class="index-rarity" style="color:${isUnlocked?'#5bc0be':'#555'}">${rarity}</div></div>`;
+        
+        return `
+          <div class="${cardClass}">
+            ${getEntityIcon(item)}
+            <div class="index-name">${name}</div>
+            <div class="index-rarity" style="color:${isUnlocked?'#5bc0be':'#555'}">${rarity}</div>
+          </div>`;
       }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>📖 Fish Index</h2><p>You have discovered ${u.discoveredFish.length} / ${allPossible.length} species.</p><div class="index-grid">${gridHTML}</div>`;
+
+      // 5. Calculate Total Discovery Count (Global)
+      const uniqueAll = [...pondItems, ...streamItems].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+      const discoveredCount = u.discoveredFish.length;
+      const totalCount = uniqueAll.length;
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>📖 Fish Index</h2>
+        <div class="index-tabs">${tabsHTML}</div>
+        <p style="margin-top:0;">Global Discovery: ${discoveredCount} / ${totalCount} species</p>
+        <div class="index-grid">${gridHTML}</div>
+      `;
       updateHud();
-    }
+    };
 
     /* --- ROD SHOP --- */
     function renderShop() {
@@ -720,7 +770,10 @@
     document.getElementById('backpackBtn').onclick = renderBackpack;
     document.getElementById('marketBtn').onclick = renderMarket;
     document.getElementById('shopBtn').onclick = renderShop;
-    document.getElementById('indexBtn').onclick = renderIndex;
+    
+    // UPDATED: Calls renderIndex with default 'all'
+    document.getElementById('indexBtn').onclick = () => window.renderIndex('all');
+    
     document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
 
     (async function() { const s = getCurrentUser(); if(s) startGame(s); })();
