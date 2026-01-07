@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Value Based Passive</title>
+  <title>Fishing Idly - Daily Quests Update</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -236,6 +236,26 @@
     .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
     .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
 
+    /* --- QUESTS --- */
+    .quest-card {
+      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 15px; margin-bottom: 12px;
+      display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+    }
+    .quest-info { text-align: left; flex: 1; margin-left: 15px; }
+    .quest-title { font-weight: bold; font-size: 1rem; color: #ffd700; margin-bottom: 4px; }
+    .quest-desc { font-size: 0.85rem; color: #aaa; margin-bottom: 8px; }
+    .quest-progress-bg { 
+      width: 100%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; 
+    }
+    .quest-progress-fill { height: 100%; background: #5bc0be; transition: width 0.3s; }
+    .quest-reward-btn {
+      background: #4caf50; color: white; border: none; padding: 8px 16px;
+      border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
+    }
+    .quest-reward-btn:disabled { background: #333; color: #666; cursor: default; }
+    .quest-done-badge { background: #333; color: #888; padding: 8px 16px; border-radius: 8px; font-size:0.8rem; }
+
   </style>
 </head>
 <body>
@@ -287,6 +307,7 @@
         <button id="homeBtn">🏠 Home</button>
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
         <button id="backpackBtn">🎒 Backpack</button>
+        <button id="questsBtn">📜 Daily Quests</button> <!-- NEW BUTTON -->
         <button id="marketBtn">🏪 Market</button>
         <button id="shopBtn">🛒 Rod Shop</button>
         <button id="indexBtn">📖 Index</button>
@@ -438,6 +459,10 @@
       if (!user.maxItems) { user.maxItems = 15; changed = true; }
       if (!user.unlockedLocations) { user.unlockedLocations = ["pond"]; changed = true; }
       if (!user.discoveredFish) { user.discoveredFish = []; changed = true; }
+      
+      // NEW: Quest Init
+      if (!user.dailyQuests) { user.dailyQuests = []; changed = true; }
+      if (!user.lastQuestReset) { user.lastQuestReset = 0; changed = true; }
 
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
       return user;
@@ -489,6 +514,80 @@
       };
     }
 
+    // --- QUEST LOGIC ---
+    function checkAndResetQuests(user) {
+      const now = new Date();
+      const last = new Date(user.lastQuestReset || 0);
+      
+      // Simple daily check (resets at midnight local time)
+      const isNextDay = now.getDate() !== last.getDate() || 
+                        now.getMonth() !== last.getMonth() || 
+                        now.getFullYear() !== last.getFullYear();
+
+      if (isNextDay || user.dailyQuests.length === 0) {
+        generateNewQuests(user);
+        return true;
+      }
+      return false;
+    }
+
+    function generateNewQuests(user) {
+      // Unlocked pool
+      let pool = [...pondTable];
+      if (user.unlockedLocations.includes("stream")) {
+        pool = [...pool, ...streamTable];
+      }
+      // Fish only
+      const fishOnly = pool.filter(i => i.type === 'fish');
+      
+      const newQuests = [];
+      const questCount = 3; 
+
+      for(let i=0; i < questCount; i++) {
+        const randomFish = fishOnly[Math.floor(Math.random() * fishOnly.length)];
+        
+        let needed = 1;
+        if (randomFish.rarity === 'common') needed = Math.floor(Math.random() * 3) + 3; // 3-5
+        else if (randomFish.rarity === 'uncommon') needed = Math.floor(Math.random() * 2) + 2; // 2-3
+        else needed = 1; // Rare+ is 1
+
+        const reward = Math.ceil(randomFish.pricePerKg * 1.5 * 10 * needed) + 100;
+
+        newQuests.push({
+          id: Date.now() + i,
+          target: randomFish.name,
+          img: randomFish.img,
+          needed: needed,
+          current: 0,
+          reward: reward,
+          claimed: false
+        });
+      }
+
+      user.dailyQuests = newQuests;
+      user.lastQuestReset = Date.now();
+    }
+
+    function checkQuestProgress(user, caughtFishName) {
+      let updated = false;
+      if (!user.dailyQuests) return;
+
+      user.dailyQuests.forEach(q => {
+        if (!q.claimed && q.target === caughtFishName && q.current < q.needed) {
+          q.current++;
+          updated = true;
+          // Notify via existing HUD element if visible
+          const hud = document.getElementById('pondStatus');
+          if(hud) hud.textContent = `Quest: ${q.current}/${q.needed} ${q.target}`;
+        }
+      });
+
+      if (updated) {
+        setCurrentUser(user);
+        savePlayerToCloud(user);
+      }
+    }
+
     /* --- GLOBAL UI ELEMENTS --- */
     const overlay = document.getElementById('overlay');
     const profileOverlay = document.getElementById('profileOverlay');
@@ -535,7 +634,7 @@
       }
     }
 
-    /* --- HOME / PASSIVE CALCULATION (UPDATED: 25% of Value) --- */
+    /* --- HOME / PASSIVE CALCULATION --- */
     function calculatePassive(user) {
       const now = Date.now();
       const diffHours = (now - (user.home.lastClaim || now)) / (1000 * 60 * 60);
@@ -543,7 +642,6 @@
       if(user.home && user.home.slots) {
         user.home.slots.forEach(slot => {
           if (slot.unlocked && slot.fish) {
-            // NEW LOGIC: 40% of value
             ratePerHour += Math.ceil(slot.fish.value * 0.4);
           }
         });
@@ -564,10 +662,7 @@
           const fish = slot.fish;
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
-          
-          // NEW LOGIC: 40% of value
           const rate = Math.ceil(fish.value * 0.4);
-          
           return `<div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">${getEntityIcon(fish)}<div class="slot-fish-name ${txtClass}">${fish.name}</div><div class="slot-fish-val">${rate}g/hr</div></div>`;
         } else {
           return `<div class="home-slot" onclick="window.openFishSelector(${slot.id})"><div style="font-size:1.5rem; opacity:0.5;">+</div><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
@@ -584,11 +679,9 @@
     };
     window.removeFishFromSlot = function(slotId) { const u = getCurrentUser(); const fish = u.home.slots[slotId].fish; if (!fish) return; u.items.push(fish); u.home.slots[slotId].fish = null; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
     
-    // UPDATED: Fish Selector sorts by value-based rate
     window.openFishSelector = function(slotId) {
       const u = getCurrentUser(); 
       let validFish = u.items.map((item, idx) => {
-        // NEW LOGIC: 25% of value
         const rate = Math.ceil(item.value * 0.4);
         return { ...item, originalIdx: idx, calculatedRate: rate };
       }).filter(i => i.type === 'fish');
@@ -650,7 +743,10 @@
       const statusEl = document.getElementById('pondStatus'); document.getElementById('minigameArea').style.display = 'none'; document.getElementById('gameBarContainer').style.display = 'none'; const btn = document.getElementById('castBtn'); btn.style.display = 'block'; btn.disabled = false;
       if (won) {
         const u = getCurrentUser(); u.items.push(fish);
-        // INDEX LOGIC: ADD TO DISCOVERED
+        
+        // CHECK QUEST PROGRESS
+        checkQuestProgress(u, fish.name);
+
         if (!u.discoveredFish.includes(fish.name)) { u.discoveredFish.push(fish.name); }
         
         const locName = fish.origin || 'pond';
@@ -703,6 +799,61 @@
       updateHud();
     };
 
+    /* --- NEW: QUEST UI --- */
+    window.renderQuests = function() {
+      let u = getCurrentUser();
+      const resetNeeded = checkAndResetQuests(u);
+      if(resetNeeded) { setCurrentUser(u); savePlayerToCloud(u); }
+
+      const listHTML = u.dailyQuests.map(q => {
+        const pct = Math.min(100, (q.current / q.needed) * 100);
+        const isDone = q.current >= q.needed;
+        
+        let actionBtn;
+        if (q.claimed) {
+          actionBtn = `<span class="quest-done-badge">Completed</span>`;
+        } else if (isDone) {
+          actionBtn = `<button class="quest-reward-btn" onclick="window.claimQuest(${q.id})">Claim ${q.reward}g</button>`;
+        } else {
+          actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">In Progress</span>`;
+        }
+
+        return `
+          <div class="quest-card">
+            <div style="font-size:2rem;">🐟</div>
+            <div class="quest-info">
+              <div class="quest-title">Catch ${q.target}</div>
+              <div class="quest-desc">Progress: ${q.current} / ${q.needed}</div>
+              <div class="quest-progress-bg"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div>${actionBtn}</div>
+          </div>
+        `;
+      }).join('');
+
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>📜 Daily Quests</h2>
+        <p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">Resets daily at 12:01 AM</p>
+        <div style="width:100%; max-width:600px;">
+          ${listHTML}
+        </div>
+      `;
+      updateHud();
+    };
+
+    window.claimQuest = function(qId) {
+      const u = getCurrentUser();
+      const quest = u.dailyQuests.find(q => q.id === qId);
+      if (quest && !quest.claimed && quest.current >= quest.needed) {
+        quest.claimed = true;
+        u.coins += quest.reward;
+        setCurrentUser(u);
+        savePlayerToCloud(u);
+        window.renderQuests(); 
+      }
+    };
+
     /* --- ROD SHOP --- */
     function renderShop() {
       const u = getCurrentUser();
@@ -738,21 +889,14 @@
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows}</div>`; updateHud();
     }
 
-    // NEW FUNCTION TO VIEW OTHERS
     window.viewProfile = async function(username) {
       const data = await getPlayerProfile(username);
       if(!data) return alert("Player not found");
-      
-      // Clean data for view (ensure home exists)
       const safeUser = { ...data, home: data.home || { slots: [] } };
-      
-      // Update Modal
       document.getElementById('profName').textContent = safeUser.username;
       document.getElementById('profStats').textContent = `Lv ${safeUser.level} · ${safeUser.coins}g`;
-      
       const passive = calculatePassive(safeUser);
       document.getElementById('profPassive').textContent = `Generating: ${passive.rate}g/hr`;
-      
       const grid = document.getElementById('profGrid');
       grid.innerHTML = (safeUser.home.slots || []).map(slot => {
          if (slot.unlocked && slot.fish) {
@@ -765,7 +909,6 @@
            return `<div class="home-slot slot-locked"><div class="lock-icon">🔒</div></div>`;
          }
       }).join('');
-      
       profileOverlay.style.display = 'flex';
     };
 
@@ -784,6 +927,7 @@
     document.getElementById('homeBtn').onclick = renderHome;
     document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
     document.getElementById('backpackBtn').onclick = renderBackpack;
+    document.getElementById('questsBtn').onclick = window.renderQuests;
     document.getElementById('marketBtn').onclick = renderMarket;
     document.getElementById('shopBtn').onclick = renderShop;
     document.getElementById('indexBtn').onclick = () => window.renderIndex('all');
