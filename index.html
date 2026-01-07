@@ -1123,10 +1123,10 @@
       profileOverlay.style.display = 'flex';
     };
 
-    function startGame(user) { overlay.style.display = 'none'; title.style.display = 'none'; startButton.style.display = 'none'; signinLink.style.display = 'none'; gameContainer.style.display = 'flex'; if(user.username==="Llama"){adminPanel.style.display='block';adminResetBtn.style.display='block';} renderHome(); }
+    function startGame(user) { overlay.style.display = 'none'; title.style.display = 'none'; startButton.style.display = 'none'; signinLink.style.display = 'none'; gameContainer.style.display = 'flex'; if(user.username===""){adminPanel.style.display='block';adminResetBtn.style.display='block';} renderHome(); }
     document.getElementById('loginButton').onclick = async () => { 
       const u = document.getElementById('signin-username').value.trim(); const p = document.getElementById('signin-password').value.trim();
-      if(u==="Llama" && p==="Helloworld") { const master = { username: "Llama", coins: 0, level: 1, items: [] }; setCurrentUser(master); startGame(master); return; }
+      if(u==="Llama" && p==="Helloworld") { const master = { username: "Llama", coins: 0, level: 60, items: [] }; setCurrentUser(master); startGame(master); return; }
       const snap = await getDoc(doc(db, "players", u)); if(snap.exists() && snap.data().password === p) { setCurrentUser(snap.data()); startGame(snap.data()); } else { alert("Error"); }
     };
     document.getElementById('signupButton').onclick = async () => {
