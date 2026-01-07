@@ -543,8 +543,8 @@
       if(user.home && user.home.slots) {
         user.home.slots.forEach(slot => {
           if (slot.unlocked && slot.fish) {
-            // NEW LOGIC: 25% of value
-            ratePerHour += Math.ceil(slot.fish.value * 0.25);
+            // NEW LOGIC: 40% of value
+            ratePerHour += Math.ceil(slot.fish.value * 0.4);
           }
         });
       }
@@ -565,8 +565,8 @@
           const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
           const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
           
-          // NEW LOGIC: 25% of value
-          const rate = Math.ceil(fish.value * 0.25);
+          // NEW LOGIC: 40% of value
+          const rate = Math.ceil(fish.value * 0.4);
           
           return `<div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">${getEntityIcon(fish)}<div class="slot-fish-name ${txtClass}">${fish.name}</div><div class="slot-fish-val">${rate}g/hr</div></div>`;
         } else {
@@ -589,7 +589,7 @@
       const u = getCurrentUser(); 
       let validFish = u.items.map((item, idx) => {
         // NEW LOGIC: 25% of value
-        const rate = Math.ceil(item.value * 0.25);
+        const rate = Math.ceil(item.value * 0.4);
         return { ...item, originalIdx: idx, calculatedRate: rate };
       }).filter(i => i.type === 'fish');
       validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
