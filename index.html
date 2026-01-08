@@ -501,6 +501,7 @@
       if (user.prestige === undefined) { user.prestige = 0; changed = true; }
       // CLUBS INIT
       if (user.clubName === undefined) { user.clubName = null; changed = true; }
+      if (user.clubTag === undefined) { user.clubTag = null; changed = true; } // NEW: Ensure clubTag exists on player
       if (user.lastSeen === undefined) { user.lastSeen = Date.now(); changed = true; }
       
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
@@ -943,6 +944,7 @@
         });
 
         u.clubName = name;
+        u.clubTag = tag;
         setCurrentUser(u);
         savePlayerToCloud(u);
         
@@ -954,11 +956,16 @@
         const u = getCurrentUser();
         try {
             const clubRef = doc(db, "clubs", clubId);
+            const clubSnap = await getDoc(clubRef);
+            if(!clubSnap.exists()) { alert("Club not found"); return; }
+            const cData = clubSnap.data();
+
             await updateDoc(clubRef, {
                 members: arrayUnion(u.username)
             });
             
             u.clubName = clubId;
+            u.clubTag = cData.tag;
             setCurrentUser(u);
             savePlayerToCloud(u);
             window.renderClubs();
@@ -980,6 +987,7 @@
             });
 
             u.clubName = null;
+            u.clubTag = null;
             setCurrentUser(u);
             savePlayerToCloud(u);
             window.renderClubs();
@@ -1346,11 +1354,15 @@
       const rows = p.slice(0, 10).map((player, i) => {
         let rankClass = ""; 
         if (i === 0) rankClass = "rank-1"; else if (i === 1) rankClass = "rank-2"; else if (i === 2) rankClass = "rank-3";
+        
+        // --- TAG DISPLAY LOGIC ---
+        const tagDisplay = player.clubTag ? `<span style="color:#81c784; font-weight:bold; margin-right:5px;">[${player.clubTag}]</span> ` : '';
+
         return `
           <div class="lb-row">
             <div class="lb-rank ${rankClass}">#${i+1}</div>
             <div class="lb-name" onclick="window.viewProfile('${player.username}')">
-               ${player.username}
+               ${tagDisplay}${player.username}
             </div>
             <div style="font-weight:bold; letter-spacing:1px; min-width:140px; text-align:right;">
                <span style="color:#7986cb;">P ${player.prestige || 0}</span> 
