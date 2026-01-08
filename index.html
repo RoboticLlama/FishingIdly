@@ -1513,7 +1513,7 @@
       if(u==="Llama" && p==="Helloworld") { 
           const masterData = await getPlayerProfile("Llama");
           if(masterData) { setCurrentUser(masterData); startGame(masterData); }
-          else { const master = { username: "Llama", password: "Helloworld", coins: 0, level: 60, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
+          else { const master = { username: "Llama", password: "Helloworld", coins: 250000, level: 50, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
           return; 
       }
       const snap = await getDoc(doc(db, "players", u)); if(snap.exists() && snap.data().password === p) { setCurrentUser(snap.data()); startGame(snap.data()); } else { alert("Error"); }
