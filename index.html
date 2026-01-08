@@ -44,12 +44,12 @@
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
     /* --- Game UI --- */
-    .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; background-color: transparent; }
+    .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; background-color: transparent; position: relative; }
 
     .sidebar {
       width: 240px; background: #2a3d56; display: flex; flex-direction: column; 
       justify-content: space-between; align-items: center; padding: 16px 10px; border-right: 2px solid #5bc0be;
-      box-sizing: border-box;
+      box-sizing: border-box; z-index: 10;
     }
     .nav-buttons { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .nav-buttons button { width: 95%; margin: 6px 0; background: #3a506b; font-size: 0.95rem; padding: 0.8rem; text-align: left; }
@@ -107,7 +107,7 @@
       background: rgba(15, 24, 36, 0.85);
       border: 1px solid #5bc0be; border-radius: 12px;
       display: flex; flex-direction: column; overflow: hidden;
-      z-index: 80; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 200; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     .chat-messages {
       flex: 1; padding: 10px; overflow-y: auto;
@@ -388,16 +388,18 @@
         <button class="logout-btn" id="logoutBtn">Logout</button>
       </div>
     </div>
+    
+    <!-- Main Content (Views load here) -->
     <div class="main-content" id="mainContent">
       <div id="viewArea"></div>
-      
-      <!-- Global Chat -->
-      <div class="chat-container" id="chatContainer" style="display:none;">
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-area">
-          <input type="text" id="chatInput" placeholder="Type to chat..." maxlength="80">
-          <button class="chat-send-btn" id="chatSendBtn">SEND</button>
-        </div>
+    </div>
+
+    <!-- Global Chat (MOVED HERE) -->
+    <div class="chat-container" id="chatContainer" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Type to chat..." maxlength="80">
+        <button class="chat-send-btn" id="chatSendBtn">SEND</button>
       </div>
     </div>
   </div>
@@ -1142,8 +1144,9 @@
             adminResetBtn.style.display = 'none';
         }
         
+        // Chat starts hidden by default until game load, but now it won't be deleted.
         document.getElementById('chatContainer').style.display = 'flex';
-        initChat(); // Setup Chat real-time listener
+        initChat(); 
         renderHome(); 
     }
 
