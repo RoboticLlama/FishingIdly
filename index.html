@@ -73,7 +73,7 @@
       text-align: center; padding: 30px; position: relative; 
     }
     
-    /* --- HUD (UPDATED FOR READABILITY) --- */
+    /* --- HUD (READABILITY UPDATED) --- */
     .hud {
       position: absolute; top: 12px; right: 16px;
       background: rgba(15, 24, 36, 0.95); padding: 12px 18px; border-radius: 12px; font-size: .95rem;
@@ -617,7 +617,6 @@
       if (updated) { setCurrentUser(user); savePlayerToCloud(user); }
     }
 
-    /* --- GLOBAL UI ELEMENTS --- */
     const overlay = document.getElementById('overlay');
     const profileOverlay = document.getElementById('profileOverlay');
     const startButton = document.getElementById('startButton');
@@ -640,7 +639,6 @@
 
     function renderHudHTML() { return `<div class="hud" id="hudEl">Loading...</div>`; }
     
-    /* --- UPDATED HUD DISPLAY FUNCTION --- */
     function updateHud() {
       const u = getCurrentUser();
       const el = document.getElementById('hudEl');
@@ -693,7 +691,6 @@
       }
     }
 
-    // --- PRESTIGE SYSTEM ---
     window.confirmRetire = function() {
         const u = getCurrentUser();
         if (u.level < 50) return;
@@ -1002,7 +999,7 @@
         }
     };
 
-    /* --- UPDATED LEADERBOARD SORTING --- */
+    /* --- UPDATED LEADERBOARD (P 1 LV 1 FORMAT) --- */
     async function renderLeaderboard() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading ranking...</p>`;
       const p = await getAllPlayers(); 
@@ -1019,9 +1016,12 @@
           <div class="lb-row">
             <div class="lb-rank ${rankClass}">#${i+1}</div>
             <div class="lb-name" onclick="window.viewProfile('${player.username}')">
-               ${player.username} <span style="font-size:0.7rem; color:#7986cb; margin-left:5px;">(P${player.prestige || 0})</span>
+               ${player.username}
             </div>
-            <div style="color:#a06cd5; font-weight:bold;">Lv ${player.level}</div>
+            <div style="font-weight:bold; letter-spacing:1px; min-width:140px; text-align:right;">
+               <span style="color:#7986cb;">P ${player.prestige || 0}</span> 
+               <span style="color:#a06cd5; margin-left:10px;">LV ${player.level}</span>
+            </div>
           </div>`;
       }).join('');
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows}</div>`; updateHud();
@@ -1046,7 +1046,6 @@
       profileOverlay.style.display = 'flex';
     };
 
-    /* --- FIXED STARTGAME FOR ADMIN ACCESS --- */
     function startGame(user) { 
         overlay.style.display = 'none'; 
         title.style.display = 'none'; 
