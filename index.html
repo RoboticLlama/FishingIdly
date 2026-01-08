@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Marketplace & Quests</title>
+  <title>Fishing Idly - Fixed Market & Quests</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -43,22 +43,44 @@
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
-    /* --- Game UI --- */
+    /* --- Game UI Layout --- */
     .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; background-color: transparent; position: relative; }
 
+    /* --- SIDEBAR FIXES --- */
     .sidebar {
-      width: 240px; background: #2a3d56; display: flex; flex-direction: column; 
-      justify-content: space-between; align-items: center; padding: 16px 10px; border-right: 2px solid #5bc0be;
-      box-sizing: border-box; z-index: 10;
+      width: 250px; 
+      background: #2a3d56; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; /* Pushes logout to bottom */
+      align-items: center; 
+      padding: 20px 10px; 
+      border-right: 2px solid #5bc0be;
+      box-sizing: border-box; 
+      z-index: 10;
+      height: 100vh;
     }
-    .nav-buttons { display: flex; flex-direction: column; align-items: center; width: 100%; }
-    .nav-buttons button { width: 95%; margin: 6px 0; background: #3a506b; font-size: 0.95rem; padding: 0.8rem; text-align: left; }
+    .nav-buttons { 
+      display: flex; 
+      flex-direction: column; 
+      width: 100%; 
+      gap: 10px; /* Space between buttons */
+    }
+    .nav-buttons button { 
+      width: 100%; 
+      background: #3a506b; 
+      font-size: 0.95rem; 
+      padding: 0.8rem 1rem; 
+      text-align: left; 
+      margin: 0;
+      border-radius: 8px;
+    }
     .nav-buttons button:hover { background: #5bc0be; color: #1b2735; }
     
     .retire-btn { background: #673ab7 !important; border: 1px solid #9575cd; display:none; }
     .retire-btn:hover { background: #9575cd !important; }
 
-    .logout-btn { background: #b0413e; width: 95%; font-size: 0.9rem; padding: 0.6rem; }
+    .logout-btn { background: #b0413e; width: 100%; font-size: 0.9rem; padding: 0.8rem; border-radius: 8px; }
     .logout-btn:hover { background: #e24e4b; }
 
     .main-content { 
@@ -75,20 +97,12 @@
     }
     .hud-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
     .hud-stat-box { 
-      background: rgba(0,0,0,0.4); 
-      padding: 4px 10px; 
-      border-radius: 6px; 
-      flex: 1; 
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 6px; 
+      flex: 1; text-align: center; border: 1px solid rgba(255,255,255,0.1);
     }
     .stat-label { display: block; font-size: 0.65rem; color: #aaa; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
     .stat-value { font-weight: bold; font-size: 1.1rem; }
-
-    .xp-container {
-      width: 100%; height: 8px; background: #111; border-radius: 4px;
-      overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1);
-    }
+    .xp-container { width: 100%; height: 8px; background: #111; border-radius: 4px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
     .xp-fill { height: 100%; background: linear-gradient(90deg, #a06cd5, #b886e6); width: 0%; transition: width 0.3s ease-out; }
     .hud-currency { display: flex; gap: 10px; }
 
@@ -101,22 +115,15 @@
       display: flex; flex-direction: column; overflow: hidden;
       z-index: 200; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
-    .chat-messages {
-      flex: 1; padding: 10px; overflow-y: auto;
-      display: flex; flex-direction: column-reverse; 
-      font-size: 0.85rem; gap: 6px; text-align: left;
-    }
+    .chat-messages { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; font-size: 0.85rem; gap: 6px; text-align: left; }
     .chat-input-area { display: flex; border-top: 1px solid rgba(91,192,190,0.3); background: rgba(0,0,0,0.2); }
-    .chat-input-area input {
-      flex: 1; background: transparent; border: none; color: #fff;
-      padding: 8px 12px; outline: none; font-family: inherit; font-size: 0.85rem;
-    }
+    .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 12px; outline: none; font-family: inherit; font-size: 0.85rem; }
     .chat-send-btn { background: transparent; border:none; color: #5bc0be; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
     .msg-row { line-height: 1.3; }
     .msg-user { color: #5bc0be; font-weight: bold; margin-right: 5px; }
     .msg-system { color: #ffcc00; font-style: italic; background: rgba(255, 204, 0, 0.1); padding: 2px 4px; border-radius: 4px; display: block; border-left: 2px solid #ffcc00; }
 
-    /* --- POND --- */
+    /* --- POND & MINIGAME --- */
     .pond-wrap { max-width: 800px; width: 100%; height: 500px; position: relative; display: flex; flex-direction: column; align-items: center; }
     .pond-header { width: 100%; position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
     .back-inline { position: absolute; left: 0; padding: .5rem 1rem; border-radius: 8px; font-size: 0.9rem; }
@@ -124,51 +131,20 @@
     .status { margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; color: #9ad4d6; }
     .wait-bar { position: relative; height: 10px; width: 200px; background: #0f1824; border-radius: 8px; overflow: hidden; margin: 10px auto; display: none; }
     .wait-fill { height: 100%; width: 0%; background: #5bc0be; transition: width 0.1s linear; }
-
-    /* --- MINIGAME --- */
-    .minigame-area {
-      position: relative; width: 100%; height: 350px;
-      background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 12px; overflow: hidden; display: none; cursor: crosshair;
-    }
-    .game-bar-container {
-      width: 100%; max-width: 400px; height: 20px; background: #2b1d1d;
-      border: 2px solid #555; border-radius: 10px; margin-bottom: 10px;
-      position: relative; display: none; overflow: hidden;
-    }
-    .game-bar-fill {
-      height: 100%; width: 35%; background: linear-gradient(90deg, #ff8a00, #e52e71);
-      transition: width 0.1s linear;
-    }
-    .target-circle {
-      position: absolute; width: 50px; height: 50px; background: #5bc0be;
-      border-radius: 50%; transform: translate(-50%, -50%); z-index: 5;
-      pointer-events: auto; box-shadow: 0 0 10px rgba(91,192,190,0.5);
-    }
-    .target-ring {
-      position: absolute; width: 150px; height: 150px; border: 4px solid #fff;
-      border-radius: 50%; transform: translate(-50%, -50%); z-index: 4;
-      pointer-events: none; opacity: 0.8;
-    }
+    .minigame-area { position: relative; width: 100%; height: 350px; background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: none; cursor: crosshair; }
+    .game-bar-container { width: 100%; max-width: 400px; height: 20px; background: #2b1d1d; border: 2px solid #555; border-radius: 10px; margin-bottom: 10px; position: relative; display: none; overflow: hidden; }
+    .game-bar-fill { height: 100%; width: 35%; background: linear-gradient(90deg, #ff8a00, #e52e71); transition: width 0.1s linear; }
+    .target-circle { position: absolute; width: 50px; height: 50px; background: #5bc0be; border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: auto; box-shadow: 0 0 10px rgba(91,192,190,0.5); }
+    .target-ring { position: absolute; width: 150px; height: 150px; border: 4px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); z-index: 4; pointer-events: none; opacity: 0.8; }
 
     /* --- MARKET & SHOP --- */
-    .bp-grid { 
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-      gap: 12px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
-    }
-    .bp-item {
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 12px; text-align: center; position: relative;
-      overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    }
+    .bp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px; }
+    .bp-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; text-align: center; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
     .shop-btn { width: 100%; padding: 6px; font-size: 0.9rem; margin-top: 5px; }
-    .btn-buy { background: #4caf50; }
-    .btn-buy:hover { background: #66bb6a; }
-    .btn-pearl { background: #e040fb; color: #fff; } 
-    .btn-pearl:hover { background: #ea80fc; }
+    .btn-buy { background: #4caf50; } .btn-buy:hover { background: #66bb6a; }
+    .btn-pearl { background: #e040fb; color: #fff; } .btn-pearl:hover { background: #ea80fc; }
     .btn-equip { background: #5bc0be; color: #1b2735; }
     .btn-owned { background: #555; color: #aaa; cursor: default; }
-    .btn-locked { background: #2b1d1d; color: #ff7a7a; border:1px solid #7a1f1b; }
     .market-sell-btn { margin-top: 8px; font-size: 0.8rem; padding: 4px 10px; width: 100%; background: #4caf50; color: white; border:none; cursor: pointer; border-radius: 4px; }
     .market-sell-btn:hover { background: #66bb6a; }
     
@@ -176,78 +152,46 @@
     .item-key { border: 1px solid #00e5ff; }
     .star-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; padding: 0; font-size: 1.4rem; cursor: pointer; color: rgba(255,255,255,0.3); z-index: 10; }
     .star-btn.fav-active { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); opacity: 1; }
-
-    /* Market Specific */
     .market-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
     .market-price-input { width: 80%; background: #111; border: 1px solid #444; color: white; padding: 4px; border-radius: 4px; margin-top: 5px; text-align: center; }
     .listing-seller { font-size: 0.7rem; color: #aaa; position: absolute; top: 5px; left: 5px; }
 
-    /* --- INDEX STYLES --- */
-    .index-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 15px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
-    }
-    .index-card {
-      background: rgba(0,0,0,0.3); border: 2px solid #2a3d56; border-radius: 12px;
-      padding: 15px; text-align: center; opacity: 0.4; filter: grayscale(1);
-      transition: all 0.3s;
-    }
-    .index-card.unlocked {
-      opacity: 1; filter: none; border-color: #5bc0be; background: rgba(91,192,190,0.1);
-    }
+    /* --- INDEX & QUESTS --- */
+    .index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px; }
+    .index-card { background: rgba(0,0,0,0.3); border: 2px solid #2a3d56; border-radius: 12px; padding: 15px; text-align: center; opacity: 0.4; filter: grayscale(1); transition: all 0.3s; }
+    .index-card.unlocked { opacity: 1; filter: none; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
     .index-name { font-size: 0.8rem; margin-top: 8px; font-weight: bold; }
     .index-rarity { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
     .index-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-    .tab-btn {
-      background: #2a3d56; border: 1px solid #5bc0be; color: #5bc0be;
-      padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
-    }
+    .tab-btn { background: #2a3d56; border: 1px solid #5bc0be; color: #5bc0be; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
     .tab-btn:hover { background: rgba(91,192,190,0.2); }
     .tab-btn.active { background: #5bc0be; color: #1b2735; font-weight: bold; box-shadow: 0 0 10px rgba(91,192,190,0.4); }
 
-    /* --- QUESTS --- */
-    .quest-card {
-      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 15px; margin-bottom: 12px;
-      display: flex; flex-direction: row; align-items: center; justify-content: space-between;
-    }
+    .quest-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
     .quest-info { text-align: left; flex: 1; margin-left: 15px; }
     .quest-title { font-weight: bold; font-size: 1rem; color: #ffd700; margin-bottom: 4px; }
     .quest-desc { font-size: 0.85rem; color: #aaa; margin-bottom: 8px; }
     .quest-progress-bg { width: 100%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
     .quest-progress-fill { height: 100%; background: #5bc0be; transition: width 0.3s; }
-    .quest-reward-btn {
-      background: #4caf50; color: white; border: none; padding: 8px 16px;
-      border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-    }
+    .quest-reward-btn { background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
     .quest-reward-btn:disabled { background: #333; color: #666; cursor: default; }
     .quest-done-badge { background: #333; color: #888; padding: 8px 16px; border-radius: 8px; font-size:0.8rem; }
+    .quest-turnin-btn { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+    .quest-turnin-btn:hover { background: #42a5f5; }
 
     /* --- HOME & LEADERBOARD --- */
     .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:700px; margin-bottom:15px; }
     .passive-info { background:rgba(0,0,0,0.3); padding:8px 15px; border-radius:8px; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); }
-    .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; }
-    .claim-btn:hover { background: #ffea70; }
-    .claim-btn:disabled { background: #555; color: #888; }
+    .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; } .claim-btn:hover { background: #ffea70; } .claim-btn:disabled { background: #555; color: #888; }
     .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; max-width: 750px; }
-    .home-slot {
-      background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px;
-      height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      cursor: pointer; position: relative; transition: all 0.2s;
-    }
+    .home-slot { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s; }
     .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
     .slot-occupied { border-style: solid; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
     .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* Mutations */
-    .mut-Shiny { border-color: #ffcc00; }
-    .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
-    .mut-Mythical { border-color: #ff00ff; }
-    .mut-Albino { border-color: #ffffff; }
-    .txt-Shiny { color: #ffcc00; }
-    .txt-Sparkling { color: #00ccff; }
-    .txt-Mythical { color: #ff00ff; }
-    .txt-Albino { color: #fff; }
+    .mut-Shiny { border-color: #ffcc00; } .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; } .mut-Mythical { border-color: #ff00ff; } .mut-Albino { border-color: #ffffff; }
+    .txt-Shiny { color: #ffcc00; } .txt-Sparkling { color: #00ccff; } .txt-Mythical { color: #ff00ff; } .txt-Albino { color: #fff; }
     
     .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
     .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
@@ -255,10 +199,7 @@
     .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
     
     /* Selector & Profile */
-    .selector-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(27, 39, 53, 0.95); z-index: 50; display: flex; flex-direction: column; align-items: center; padding-top: 40px;
-    }
+    .selector-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(27, 39, 53, 0.95); z-index: 50; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
     .selector-close { position: absolute; top: 20px; right: 20px; }
     .profile-box { width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
     .profile-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
@@ -276,8 +217,7 @@
     body.w-heat { background: radial-gradient(circle, #563d2a 0%, #35231b 100%); }
     body.t-night { box-shadow: inset 0 0 200vw rgba(0,0,0,0.85); color: #ccc; }
     body.t-night .main-content { background: rgba(0,0,0,0.4); }
-    .time-icon-day { color: #ffd700; }
-    .time-icon-night { color: #b886e6; }
+    .time-icon-day { color: #ffd700; } .time-icon-night { color: #b886e6; }
     
     .mastery-info { font-size: 0.7rem; margin-top: 5px; color: #aaa; }
     .mastery-bar-bg { width: 80%; height: 6px; background: #222; margin: 4px auto; border-radius: 3px; overflow: hidden; }
@@ -581,7 +521,8 @@
         else if (randomFish.rarity === 'uncommon') needed = Math.floor(Math.random() * 2) + 2;
         else needed = 1;
         const reward = Math.ceil(randomFish.pricePerKg * 1.5 * 10 * needed) + 100;
-        newQuests.push({ id: Date.now() + i, target: randomFish.name, img: randomFish.img, needed: needed, reward: reward, claimed: false });
+        // Initialize current progress to 0
+        newQuests.push({ id: Date.now() + i, target: randomFish.name, img: randomFish.img, needed: needed, current: 0, reward: reward, claimed: false });
       }
       user.dailyQuests = newQuests;
       user.lastQuestReset = Date.now();
@@ -782,69 +723,87 @@
 
       const area = document.getElementById('marketArea');
       
-      if (tab === 'sell') {
-        const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
-        const snap = await getDocs(q);
-        const myListings = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        
-        let activeHTML = myListings.length === 0 ? '<p>No active listings.</p>' : myListings.map(l => 
-          `<div class="bp-item" style="border-color:#5bc0be;">
-             ${getEntityIcon(l.fish)}
-             <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br>${l.price}g</div>
-             <button class="market-sell-btn" style="background:#e53935;" onclick="window.cancelListing('${l.id}')">Cancel</button>
-           </div>`
-        ).join('');
-
-        // Map items to preserve original index
-        let invHTML = u.items.map((item, idx) => {
-          if (item.type === 'chest' || item.type === 'key') return ''; 
-          return `<div class="bp-item">
-            ${getEntityIcon(item)}
-            <div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>Val: ${item.value}g</div>
-            <input type="number" id="price-${idx}" class="market-price-input" placeholder="Price" min="1">
-            <button class="market-sell-btn" onclick="window.listForSale(${idx})">List Item</button>
-            <button class="market-sell-btn" style="background:#444; margin-top:4px;" onclick="window.npcSell(${idx})">Quick Sell (${item.value}g)</button>
-          </div>`
-        }).join('');
-
-        area.innerHTML = `
-          <h3>Active Listings (${myListings.length}/5)</h3>
-          <div class="bp-grid">${activeHTML}</div>
-          <hr style="border:1px solid rgba(255,255,255,0.1); margin:20px 0;">
-          <h3>Sell from Inventory</h3>
-          <div class="bp-grid">${invHTML || 'Inventory Empty'}</div>
-        `;
-      } else {
-        const q = query(collection(db, "market_listings"), orderBy("timestamp", "desc"), limit(50));
-        const snap = await getDocs(q);
-        
-        if (snap.empty) { area.innerHTML = "<p>No items for sale.</p>"; return; }
-        
-        let gridHTML = snap.docs.map(doc => {
-            const l = doc.data();
-            const isMe = l.seller === u.username;
-            const canAfford = u.coins >= l.price;
-            const locationLocked = !u.unlockedLocations.includes(l.fish.origin);
+      try {
+        if (tab === 'sell') {
+            const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
+            const snap = await getDocs(q);
+            const myListings = snap.docs.map(d => ({id: d.id, ...d.data()}));
             
-            let btnHTML = "";
-            if (isMe) {
-                btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:default;">Yours</button>`;
-            } else if (locationLocked) {
-                btnHTML = `<button class="market-sell-btn" style="background:#7a1f1b; cursor:not-allowed;" disabled>Locked (${l.fish.origin})</button>`;
-            } else if (!canAfford) {
-                btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:not-allowed;" disabled>Need Gold</button>`;
-            } else {
-                btnHTML = `<button class="market-sell-btn" onclick="window.buyItem('${doc.id}', ${l.price}, '${l.seller}')">Buy</button>`;
-            }
+            let activeHTML = myListings.length === 0 ? '<p>No active listings.</p>' : myListings.map(l => 
+              `<div class="bp-item" style="border-color:#5bc0be;">
+                 ${getEntityIcon(l.fish)}
+                 <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br>${l.price}g</div>
+                 <button class="market-sell-btn" style="background:#e53935;" onclick="window.cancelListing('${l.id}')">Cancel</button>
+               </div>`
+            ).join('');
 
-            return `<div class="bp-item">
-              <span class="listing-seller">Seller: ${l.seller}</span>
-              ${getEntityIcon(l.fish)}
-              <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br><span style="color:#ffd700;">${l.price}g</span></div>
-              ${btnHTML}
-            </div>`;
-        }).join('');
-        area.innerHTML = `<div class="bp-grid">${gridHTML}</div>`;
+            // Map items to preserve original index
+            let invHTML = u.items.map((item, idx) => {
+              if (item.type === 'chest' || item.type === 'key') return ''; 
+              return `<div class="bp-item">
+                ${getEntityIcon(item)}
+                <div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>Val: ${item.value}g</div>
+                <input type="number" id="price-${idx}" class="market-price-input" placeholder="Price" min="1">
+                <button class="market-sell-btn" onclick="window.listForSale(${idx})">List Item</button>
+                <button class="market-sell-btn" style="background:#444; margin-top:4px;" onclick="window.npcSell(${idx})">Quick Sell (${item.value}g)</button>
+              </div>`
+            }).join('');
+
+            area.innerHTML = `
+              <h3>Active Listings (${myListings.length}/5)</h3>
+              <div class="bp-grid">${activeHTML}</div>
+              <hr style="border:1px solid rgba(255,255,255,0.1); margin:20px 0;">
+              <h3>Sell from Inventory</h3>
+              <div class="bp-grid">${invHTML || 'Inventory Empty'}</div>
+            `;
+        } else {
+            const q = query(collection(db, "market_listings"), orderBy("timestamp", "desc"), limit(50));
+            const snap = await getDocs(q);
+            
+            if (snap.empty) { area.innerHTML = "<p>No items for sale.</p>"; return; }
+            
+            let gridHTML = snap.docs.map(doc => {
+                const l = doc.data();
+                const isMe = l.seller === u.username;
+                const canAfford = u.coins >= l.price;
+                const locationLocked = !u.unlockedLocations.includes(l.fish.origin);
+                
+                let btnHTML = "";
+                if (isMe) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:default;">Yours</button>`;
+                } else if (locationLocked) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#7a1f1b; cursor:not-allowed;" disabled>Locked (${l.fish.origin})</button>`;
+                } else if (!canAfford) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:not-allowed;" disabled>Need Gold</button>`;
+                } else {
+                    btnHTML = `<button class="market-sell-btn" onclick="window.buyItem('${doc.id}', ${l.price}, '${l.seller}')">Buy</button>`;
+                }
+
+                return `<div class="bp-item">
+                  <span class="listing-seller">Seller: ${l.seller}</span>
+                  ${getEntityIcon(l.fish)}
+                  <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br><span style="color:#ffd700;">${l.price}g</span></div>
+                  ${btnHTML}
+                </div>`;
+            }).join('');
+            area.innerHTML = `<div class="bp-grid">${gridHTML}</div>`;
+        }
+      } catch (error) {
+          console.error("Market Error:", error);
+          if (tab === 'sell') {
+              // Even if DB fails, show inventory so user can NPC sell
+              let invHTML = u.items.map((item, idx) => {
+                  if (item.type === 'chest' || item.type === 'key') return ''; 
+                  return `<div class="bp-item">
+                    ${getEntityIcon(item)}
+                    <div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>Val: ${item.value}g</div>
+                    <button class="market-sell-btn" style="background:#444; margin-top:4px;" onclick="window.npcSell(${idx})">Quick Sell (${item.value}g)</button>
+                  </div>`
+              }).join('');
+              area.innerHTML = `<h3>Sell from Inventory (Offline Mode)</h3><div class="bp-grid">${invHTML || 'Inventory Empty'}</div>`;
+          } else {
+              area.innerHTML = `<p>Error loading market. Check console.</p>`;
+          }
       }
     };
 
@@ -854,23 +813,28 @@
         const price = parseInt(priceInput.value);
         if (!price || price < 1) return alert("Invalid price.");
 
-        const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
-        const snap = await getDocs(q);
-        if (snap.size >= 5) return alert("You can only have 5 active listings.");
+        try {
+            const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
+            const snap = await getDocs(q);
+            if (snap.size >= 5) return alert("You can only have 5 active listings.");
 
-        const item = u.items[idx];
-        u.items.splice(idx, 1); // Remove from inventory
-        
-        await addDoc(collection(db, "market_listings"), {
-            seller: u.username,
-            fish: item,
-            price: price,
-            timestamp: serverTimestamp()
-        });
-        
-        setCurrentUser(u); savePlayerToCloud(u);
-        alert("Item listed!");
-        window.renderMarket('sell');
+            const item = u.items[idx];
+            u.items.splice(idx, 1); // Remove from inventory
+            
+            await addDoc(collection(db, "market_listings"), {
+                seller: u.username,
+                fish: item,
+                price: price,
+                timestamp: serverTimestamp()
+            });
+            
+            setCurrentUser(u); savePlayerToCloud(u);
+            alert("Item listed!");
+            window.renderMarket('sell');
+        } catch (e) {
+            console.error(e);
+            alert("Listing failed. Check permissions.");
+        }
     };
 
     window.cancelListing = async function(listingId) {
@@ -929,24 +893,30 @@
         window.renderMarket('sell');
     };
 
-    // --- QUESTS LOGIC ---
+    // --- QUESTS LOGIC (UPDATED FOR INCREMENTAL TURN-IN) ---
     window.renderQuests = function() {
       let u = getCurrentUser();
       const resetNeeded = checkAndResetQuests(u);
       if(resetNeeded) { setCurrentUser(u); savePlayerToCloud(u); }
       
       const listHTML = u.dailyQuests.map(q => {
+        // Ensure q.current exists for old saves
+        if (q.current === undefined) q.current = 0;
+        
         const heldCount = u.items.filter(i => i.name === q.target).length;
-        const pct = Math.min(100, (heldCount / q.needed) * 100);
-        const canTurnIn = heldCount >= q.needed;
+        const pct = Math.min(100, (q.current / q.needed) * 100);
+        const isDone = q.current >= q.needed;
         
         let actionBtn;
         if (q.claimed) { 
             actionBtn = `<span class="quest-done-badge">Completed</span>`; 
-        } else if (canTurnIn) { 
-            actionBtn = `<button class="quest-reward-btn" onclick="window.turnInQuest(${q.id})">Turn In</button>`; 
+        } else if (isDone) {
+            actionBtn = `<button class="quest-reward-btn" onclick="window.claimReward(${q.id})">Claim ${q.reward}g</button>`;
+        } else if (heldCount > 0) { 
+            // Button to turn in one fish
+            actionBtn = `<button class="quest-turnin-btn" onclick="window.turnInOne(${q.id})">Turn In (1)</button>`; 
         } else { 
-            actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">Need More</span>`; 
+            actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">Need ${q.target}</span>`; 
         }
         
         return `
@@ -954,41 +924,47 @@
             <div style="font-size:2rem;">${q.claimed ? '✅' : '🐟'}</div>
             <div class="quest-info">
               <div class="quest-title">Deliver ${q.target}</div>
-              <div class="quest-desc">Have: ${heldCount} / ${q.needed}</div>
+              <div class="quest-desc">Progress: ${q.current} / ${q.needed} (Have: ${heldCount})</div>
               <div class="quest-progress-bg"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
             </div>
             <div>${actionBtn}</div>
           </div>
         `;
       }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>📜 Daily Quests</h2><p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">Collect fish and Turn In for rewards.</p><div style="width:100%; max-width:600px;">${listHTML}</div>`;
+      mainContent.innerHTML = `${renderHudHTML()}<h2>📜 Daily Quests</h2><p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">Turn in fish one by one to complete the order.</p><div style="width:100%; max-width:600px;">${listHTML}</div>`;
       updateHud();
     };
 
-    window.turnInQuest = function(qId) {
+    window.turnInOne = function(qId) {
         const u = getCurrentUser();
         const quest = u.dailyQuests.find(q => q.id === qId);
-        if (!quest || quest.claimed) return;
+        if (!quest || quest.claimed || quest.current >= quest.needed) return;
 
-        const heldItems = u.items.filter(i => i.name === quest.target);
-        if (heldItems.length < quest.needed) return alert("Not enough fish!");
+        // Find index of one matching fish
+        const fishIdx = u.items.findIndex(i => i.name === quest.target);
+        if (fishIdx === -1) return alert("You don't have this fish!");
 
-        let removed = 0;
-        let i = 0;
-        while (removed < quest.needed && i < u.items.length) {
-            if (u.items[i].name === quest.target) {
-                u.items.splice(i, 1);
-                removed++;
-            } else {
-                i++;
-            }
-        }
+        // Remove 1 fish
+        u.items.splice(fishIdx, 1);
+        
+        // Update quest progress
+        quest.current = (quest.current || 0) + 1;
+        
+        setCurrentUser(u); savePlayerToCloud(u);
+        window.renderQuests();
+    };
+
+    window.claimReward = function(qId) {
+        const u = getCurrentUser();
+        const quest = u.dailyQuests.find(q => q.id === qId);
+        if (!quest || quest.claimed || quest.current < quest.needed) return;
 
         quest.claimed = true;
         u.coins += quest.reward;
         setCurrentUser(u); savePlayerToCloud(u);
         window.renderQuests();
     };
+
 
     // --- OTHER UI RENDERS (Restored full logic) ---
     window.renderBackpack = function() {
