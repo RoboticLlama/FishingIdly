@@ -219,6 +219,15 @@
     .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
     .lb-rank { width: 40px; font-weight: bold; text-align: center; }
     .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+
+    /* --- CLUBS --- */
+    .club-header { margin-bottom: 20px; border-bottom: 2px solid #5bc0be; padding-bottom: 10px; }
+    .club-buff { background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #81c784; }
+    .club-buff.inactive { background: rgba(255, 255, 255, 0.05); border-color: #555; color: #888; }
+    .club-member-list { width: 100%; max-width: 500px; margin: 0 auto; text-align: left; }
+    .member-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
+    .online-dot { height: 10px; width: 10px; background-color: #555; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .online-dot.active { background-color: #4caf50; box-shadow: 0 0 5px #4caf50; }
     
     /* Selector & Profile */
     .selector-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(27, 39, 53, 0.95); z-index: 50; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
@@ -297,6 +306,7 @@
         <button id="questsBtn">📜 Daily Quests</button>
         <button id="marketBtn">🏪 Marketplace</button>
         <button id="shopBtn">🛒 Rod Shop</button>
+        <button id="clubsBtn">⚔️ Clubs</button>
         <button id="indexBtn">📖 Index</button>
         <button id="leaderboardBtn">🏆 Leaderboard</button>
         <button id="retireBtn" class="retire-btn" onclick="window.confirmRetire()">✨ Retire (Prestige)</button>
@@ -332,7 +342,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -346,6 +356,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // Track Club Buff Locally
+    window.clubBuffActive = false;
 
     function cleanForFirestore(obj) {
       const cleaned = { ...obj };
@@ -470,6 +483,10 @@
       if (!user.fishCounts) { user.fishCounts = {}; changed = true; }
       if (user.pearls === undefined) { user.pearls = 0; changed = true; }
       if (user.prestige === undefined) { user.prestige = 0; changed = true; }
+      // CLUBS INIT
+      if (user.clubName === undefined) { user.clubName = null; changed = true; }
+      if (user.lastSeen === undefined) { user.lastSeen = Date.now(); changed = true; }
+      
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
       return user;
     }
@@ -620,6 +637,7 @@
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${w.icon} ${w.name}</div>
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${timeIcon} ${t.toUpperCase()}</div>
           </div>
+          ${window.clubBuffActive ? '<div style="margin-top:5px; font-size:0.7rem; color:#81c784; text-align:center;">⚔️ Clan XP Active! (+5%)</div>' : ''}
         `;
       }
     }
@@ -731,11 +749,213 @@
         u.fishCounts[fish.name] = (u.fishCounts[fish.name] || 0) + 1;
         if (!u.discoveredFish.includes(fish.name)) { u.discoveredFish.push(fish.name); }
         const locName = fish.origin || 'pond'; const locConfig = LOCATION_CONFIG[locName] || LOCATION_CONFIG.pond; const xpMult = locConfig.xpMult || 1.0; const baseXP = XP_RATES[fish.rarity] || 1;
-        u.xp = (u.xp || 0) + Math.ceil(baseXP * xpMult);
+        
+        let xpGain = Math.ceil(baseXP * xpMult);
+        
+        // APPLY CLUB BUFF
+        if (window.clubBuffActive) {
+            xpGain = Math.ceil(xpGain * 1.05);
+        }
+
+        u.xp = (u.xp || 0) + xpGain;
         if (u.xp >= u.level * 100) { u.xp -= u.level * 100; u.level++; u.coins += u.level * 50; }
-        setCurrentUser(u); savePlayerToCloud(u); updateHud(); statusEl.textContent = `Caught a ${fish.name}!`;
+        setCurrentUser(u); savePlayerToCloud(u); updateHud(); statusEl.textContent = `Caught a ${fish.name}! (+${xpGain}xp)`;
       } else { statusEl.textContent = "It got away..."; }
     }
+
+    // --- CLUBS SYSTEM ---
+    window.renderClubs = async function() {
+        const u = getCurrentUser();
+        mainContent.innerHTML = `${renderHudHTML()}<h2>⚔️ Fishing Clubs</h2><div id="clubArea">Loading...</div>`;
+        updateHud();
+
+        const clubArea = document.getElementById('clubArea');
+
+        // Requirement Check
+        if (u.level < 5) {
+            clubArea.innerHTML = `<div style="opacity:0.6; margin-top:50px;">
+                <div style="font-size:3rem;">🔒</div>
+                <h3>Locked</h3>
+                <p>Reach Level 5 to access Clubs.</p>
+            </div>`;
+            return;
+        }
+
+        // If not in a club
+        if (!u.clubName) {
+            const q = query(collection(db, "clubs"), limit(20));
+            const snap = await getDocs(q);
+            
+            let clubsHTML = "";
+            if (snap.empty) {
+                clubsHTML = "<p>No clubs found.</p>";
+            } else {
+                clubsHTML = snap.docs.map(doc => {
+                    const data = doc.data();
+                    const memCount = data.members ? data.members.length : 0;
+                    return `<div class="bp-item" style="flex-direction:row; width:100%; max-width:400px; justify-content:space-between; margin:5px auto;">
+                        <div style="text-align:left;"><b>${doc.id}</b><br><small>${memCount} members</small></div>
+                        <button class="btn-sm" style="background:#5bc0be;" onclick="window.joinClub('${doc.id}')">Join</button>
+                    </div>`;
+                }).join('');
+            }
+
+            clubArea.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">
+                        <h3>Create a Club</h3>
+                        <input type="text" id="newClubName" placeholder="Club Name" maxlength="12" style="padding:8px; border-radius:5px; border:none; width:60%;">
+                        <div style="margin-top:10px; display:flex; gap:10px; justify-content:center;">
+                            <button class="btn-sm" onclick="window.createClub('gold')">100k Gold</button>
+                            <button class="btn-sm" style="background:#e040fb;" onclick="window.createClub('pearl')">5 Pearls</button>
+                        </div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:10px;">
+                        <h3>Join a Club</h3>
+                        <div style="max-height:300px; overflow-y:auto;">${clubsHTML}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // User is in a club
+            try {
+                const clubRef = doc(db, "clubs", u.clubName);
+                const clubSnap = await getDoc(clubRef);
+                
+                if (!clubSnap.exists()) {
+                    // Cleanup glitch
+                    u.clubName = null;
+                    setCurrentUser(u);
+                    savePlayerToCloud(u);
+                    window.renderClubs();
+                    return;
+                }
+
+                const clubData = clubSnap.data();
+                
+                // Get Member Details to check Online Status
+                const membersSnap = await getDocs(query(collection(db, "players"), where("clubName", "==", u.clubName)));
+                const members = membersSnap.docs.map(d => d.data());
+                
+                const now = Date.now();
+                const onlineThreshold = 5 * 60 * 1000; // 5 mins
+                let onlineCount = 0;
+                
+                const memberListHTML = members.map(m => {
+                    const isOnline = (now - (m.lastSeen || 0)) < onlineThreshold;
+                    if(isOnline) onlineCount++;
+                    const isOwner = clubData.owner === m.username;
+                    return `<div class="member-row">
+                        <div><span class="online-dot ${isOnline?'active':''}"></span> ${m.username} ${isOwner ? '👑' : ''}</div>
+                        <div style="font-size:0.8rem; opacity:0.7;">Lv ${m.level}</div>
+                    </div>`;
+                }).join('');
+
+                const buffActive = onlineCount >= 5;
+                window.clubBuffActive = buffActive; // Sync global state
+
+                clubArea.innerHTML = `
+                    <div class="club-header">
+                        <h1>${u.clubName}</h1>
+                        <p>Owner: ${clubData.owner}</p>
+                    </div>
+                    
+                    <div class="club-buff ${buffActive ? '' : 'inactive'}">
+                        <h3>⚔️ Clan Synergy</h3>
+                        <p>5+ Members Online: +5% XP to everyone</p>
+                        <div style="font-weight:bold; font-size:1.2rem; margin-top:5px;">${onlineCount} / 5 Online</div>
+                        <div>${buffActive ? 'ACTIVE' : 'INACTIVE'}</div>
+                    </div>
+
+                    <div class="club-member-list">
+                        <h4>Members (${members.length})</h4>
+                        ${memberListHTML}
+                    </div>
+
+                    <button style="background:#b0413e; margin-top:30px; font-size:0.9rem; padding:0.5rem 1rem;" onclick="window.leaveClub('${u.clubName}')">Leave Club</button>
+                `;
+
+            } catch (e) {
+                console.error(e);
+                clubArea.innerHTML = "Error loading club data.";
+            }
+        }
+    };
+
+    window.createClub = async function(currency) {
+        const u = getCurrentUser();
+        const nameInput = document.getElementById('newClubName');
+        const name = nameInput.value.trim();
+
+        if (name.length < 3) return alert("Name too short (3-12 chars).");
+        if (name.length > 12) return alert("Name too long.");
+
+        // Cost Check
+        if (currency === 'gold') {
+            if (u.coins < 100000) return alert("Not enough Gold (100k required).");
+            u.coins -= 100000;
+        } else {
+            if (u.pearls < 5) return alert("Not enough Pearls (5 required).");
+            u.pearls -= 5;
+        }
+
+        // DB Check
+        const clubRef = doc(db, "clubs", name);
+        const clubSnap = await getDoc(clubRef);
+        if (clubSnap.exists()) return alert("Club name taken!");
+
+        await setDoc(clubRef, {
+            name: name,
+            owner: u.username,
+            members: [u.username],
+            created: serverTimestamp()
+        });
+
+        u.clubName = name;
+        setCurrentUser(u);
+        savePlayerToCloud(u);
+        
+        alert(`Club ${name} created!`);
+        window.renderClubs();
+    };
+
+    window.joinClub = async function(clubId) {
+        const u = getCurrentUser();
+        try {
+            const clubRef = doc(db, "clubs", clubId);
+            await updateDoc(clubRef, {
+                members: arrayUnion(u.username)
+            });
+            
+            u.clubName = clubId;
+            setCurrentUser(u);
+            savePlayerToCloud(u);
+            window.renderClubs();
+        } catch (e) {
+            alert("Could not join club. It might be full or deleted.");
+        }
+    };
+
+    window.leaveClub = async function(clubId) {
+        if(!confirm("Are you sure you want to leave?")) return;
+        
+        const u = getCurrentUser();
+        try {
+            const clubRef = doc(db, "clubs", clubId);
+            // If owner leaves, just remove them for now (simplified logic)
+            // Ideally, pass ownership or delete club, but simplified for this request:
+            await updateDoc(clubRef, {
+                members: arrayRemove(u.username)
+            });
+
+            u.clubName = null;
+            setCurrentUser(u);
+            savePlayerToCloud(u);
+            window.renderClubs();
+        } catch(e) {
+            console.error(e);
+        }
+    };
 
     // --- MARKET SYSTEM ---
     window.renderMarket = async function(tab = 'global') {
@@ -784,7 +1004,6 @@
               <div class="bp-grid">${invHTML || 'Inventory Empty'}</div>
             `;
         } else {
-            // REMOVED 'orderBy' to fix error without requiring index
             const q = query(collection(db, "market_listings"), limit(50));
             const snap = await getDocs(q);
             
@@ -819,7 +1038,6 @@
       } catch (error) {
           console.error("Market Error:", error);
           if (tab === 'sell') {
-              // Even if DB fails, show inventory so user can NPC sell
               let invHTML = u.items.map((item, idx) => {
                   if (item.type === 'chest' || item.type === 'key') return ''; 
                   return `<div class="bp-item">
@@ -921,14 +1139,13 @@
         window.renderMarket('sell');
     };
 
-    // --- QUESTS LOGIC (UPDATED FOR INCREMENTAL TURN-IN) ---
+    // --- QUESTS LOGIC ---
     window.renderQuests = function() {
       let u = getCurrentUser();
       const resetNeeded = checkAndResetQuests(u);
       if(resetNeeded) { setCurrentUser(u); savePlayerToCloud(u); }
       
       const listHTML = u.dailyQuests.map(q => {
-        // Ensure q.current exists for old saves
         if (q.current === undefined) q.current = 0;
         
         const heldCount = u.items.filter(i => i.name === q.target).length;
@@ -941,7 +1158,6 @@
         } else if (isDone) {
             actionBtn = `<button class="quest-reward-btn" onclick="window.claimReward(${q.id})">Claim ${q.reward}g</button>`;
         } else if (heldCount > 0) { 
-            // Button to turn in one fish
             actionBtn = `<button class="quest-turnin-btn" onclick="window.turnInOne(${q.id})">Turn In (1)</button>`; 
         } else { 
             actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">Need ${q.target}</span>`; 
@@ -967,17 +1183,10 @@
         const u = getCurrentUser();
         const quest = u.dailyQuests.find(q => q.id === qId);
         if (!quest || quest.claimed || quest.current >= quest.needed) return;
-
-        // Find index of one matching fish
         const fishIdx = u.items.findIndex(i => i.name === quest.target);
         if (fishIdx === -1) return alert("You don't have this fish!");
-
-        // Remove 1 fish
         u.items.splice(fishIdx, 1);
-        
-        // Update quest progress
         quest.current = (quest.current || 0) + 1;
-        
         setCurrentUser(u); savePlayerToCloud(u);
         window.renderQuests();
     };
@@ -986,15 +1195,13 @@
         const u = getCurrentUser();
         const quest = u.dailyQuests.find(q => q.id === qId);
         if (!quest || quest.claimed || quest.current < quest.needed) return;
-
         quest.claimed = true;
         u.coins += quest.reward;
         setCurrentUser(u); savePlayerToCloud(u);
         window.renderQuests();
     };
 
-
-    // --- OTHER UI RENDERS (Restored full logic) ---
+    // --- OTHER UI RENDERS ---
     window.renderBackpack = function() {
       const u = getCurrentUser(); const items = u.items || [];
       let gridHTML = items.map((item, idx) => {
@@ -1191,6 +1398,18 @@
       profileOverlay.style.display = 'flex';
     };
 
+    function updateHeartbeat() {
+        const u = getCurrentUser();
+        if(u) {
+            // Update local storage
+            u.lastSeen = Date.now();
+            setCurrentUser(u);
+            // Update Cloud
+            const ref = doc(db, "players", u.username);
+            updateDoc(ref, { lastSeen: Date.now() }).catch(e => console.log("Heartbeat fail", e));
+        }
+    }
+
     function startGame(user) { 
         overlay.style.display = 'none'; 
         title.style.display = 'none'; 
@@ -1210,6 +1429,10 @@
         document.getElementById('chatContainer').style.display = 'flex';
         initChat(); 
         window.renderHome(); 
+
+        // Start Heartbeat
+        updateHeartbeat();
+        setInterval(updateHeartbeat, 60000); // Every minute
     }
 
     document.getElementById('loginButton').onclick = async () => { 
@@ -1233,6 +1456,7 @@
     document.getElementById('questsBtn').onclick = window.renderQuests;
     document.getElementById('marketBtn').onclick = () => window.renderMarket('global');
     document.getElementById('shopBtn').onclick = window.renderShop;
+    document.getElementById('clubsBtn').onclick = window.renderClubs;
     document.getElementById('indexBtn').onclick = () => window.renderIndex('all');
     document.getElementById('leaderboardBtn').onclick = window.renderLeaderboard;
 
