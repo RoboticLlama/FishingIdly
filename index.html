@@ -124,8 +124,23 @@
     }
     .stat-label { display: block; font-size: 0.65rem; color: #aaa; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
     .stat-value { font-weight: bold; font-size: 1.1rem; }
-    .xp-container { width: 100%; height: 8px; background: #111; border-radius: 4px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+    
+    /* XP Bar */
+    .xp-container { 
+      width: 100%; height: 14px; background: #111; border-radius: 4px; 
+      overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); 
+      cursor: help;
+    }
     .xp-fill { height: 100%; background: linear-gradient(90deg, #a06cd5, #b886e6); width: 0%; transition: width 0.3s ease-out; }
+    /* XP Hover Tooltip */
+    .xp-text {
+        position: absolute; width: 100%; text-align: center; top: 0; left: 0;
+        font-size: 0.65rem; line-height: 14px; color: #fff; font-weight: bold;
+        opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        text-shadow: 0 0 3px #000; z-index: 2;
+    }
+    .xp-container:hover .xp-text { opacity: 1; }
+
     .hud-currency { display: flex; gap: 10px; }
 
     /* --- CHAT SYSTEM --- */
@@ -342,7 +357,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where, updateDoc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -632,7 +647,13 @@
             <span style="font-weight:bold; color:#ffd700; font-size:1rem;">💰 ${u.coins.toLocaleString()}</span>
             <span style="font-weight:bold; color:#e040fb; font-size:1rem;">⚪ ${u.pearls || 0}</span>
           </div>
-          <div class="xp-container"><div class="xp-fill" style="width:${pct}%"></div></div>
+          
+          <!-- XP Progress with Hover Text -->
+          <div class="xp-container" title="${xpCurrent} / ${xpNeeded} XP">
+              <div class="xp-fill" style="width:${pct}%"></div>
+              <div class="xp-text">${xpCurrent} / ${xpNeeded} XP</div>
+          </div>
+
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${w.icon} ${w.name}</div>
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${timeIcon} ${t.toUpperCase()}</div>
@@ -1118,13 +1139,11 @@
         await deleteDoc(docRef);
 
         try {
+            // FIX: Use atomic increment to ensure seller gets gold even if concurrent writes happen
             const sellerRef = doc(db, "players", sellerName);
-            const sellerSnap = await getDoc(sellerRef);
-            if (sellerSnap.exists()) {
-                const sellerData = sellerSnap.data();
-                sellerData.coins = (sellerData.coins || 0) + price;
-                await setDoc(sellerRef, sellerData, {merge: true});
-            }
+            await updateDoc(sellerRef, {
+                coins: increment(price)
+            });
         } catch(e) { console.error("Error paying seller:", e); }
 
         alert(`Bought ${data.fish.name} for ${price}g!`);
@@ -1268,14 +1287,13 @@
       const pondItems = pondTable.map(i => ({...i, _origin: 'pond'}));
       const streamItems = streamTable.map(i => ({...i, _origin: 'stream'}));
       
-      // FIX: Define uniqueAll here to calculate total count
       const allFish = [...pondItems, ...streamItems];
       const uniqueAll = allFish.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
 
       let displayList = [];
       if (filterType === 'pond') { displayList = pondItems; }
       else if (filterType === 'stream') { displayList = streamItems; }
-      else { displayList = uniqueAll; } // Use uniqueAll for display when 'all' is selected
+      else { displayList = uniqueAll; } 
       
       const tabs = ['all', 'pond', 'stream'];
       const tabsHTML = tabs.map(t => `<button class="tab-btn ${t===filterType?'active':''}" onclick="window.renderIndex('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('');
