@@ -1508,12 +1508,53 @@
         });
     }
 
+    // Admin Controls
+    document.getElementById('admLvlUp').onclick = () => {
+        const u = getCurrentUser();
+        u.level++;
+        setCurrentUser(u); savePlayerToCloud(u); updateHud();
+    };
+    document.getElementById('admLvlDown').onclick = () => {
+        const u = getCurrentUser();
+        if(u.level > 1) u.level--;
+        setCurrentUser(u); savePlayerToCloud(u); updateHud();
+    };
+    document.getElementById('admGoldUp').onclick = () => {
+        const u = getCurrentUser();
+        u.coins += 10000;
+        setCurrentUser(u); savePlayerToCloud(u); updateHud();
+    };
+    document.getElementById('admGoldDown').onclick = () => {
+        const u = getCurrentUser();
+        u.coins = Math.max(0, u.coins - 10000);
+        setCurrentUser(u); savePlayerToCloud(u); updateHud();
+    };
+
+    document.getElementById('adminResetBtn').onclick = async () => {
+        if(!confirm("DANGER: This will wipe ALL players, market listings, and clubs. Are you sure?")) return;
+        
+        // Helper to delete collection
+        const deleteCol = async (colName) => {
+            const snap = await getDocs(collection(db, colName));
+            snap.forEach(d => deleteDoc(doc(db, colName, d.id)));
+        };
+
+        await deleteCol("players");
+        await deleteCol("market_listings");
+        await deleteCol("clubs");
+        await deleteCol("messages");
+        
+        localStorage.clear();
+        alert("Database Reset. Reloading...");
+        location.reload();
+    };
+
     document.getElementById('loginButton').onclick = async () => { 
       const u = document.getElementById('signin-username').value.trim(); const p = document.getElementById('signin-password').value.trim();
       if(u==="Llama" && p==="Helloworld") { 
           const masterData = await getPlayerProfile("Llama");
           if(masterData) { setCurrentUser(masterData); startGame(masterData); }
-          else { const master = { username: "Llama", password: "Helloworld", coins: 250000, level: 50, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
+          else { const master = { username: "Llama", password: "Helloworld", coins: 250000, level: 60, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
           return; 
       }
       const snap = await getDoc(doc(db, "players", u)); if(snap.exists() && snap.data().password === p) { setCurrentUser(snap.data()); startGame(snap.data()); } else { alert("Error"); }
