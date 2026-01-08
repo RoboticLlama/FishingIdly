@@ -100,6 +100,30 @@
     
     .hud-currency { display: flex; gap: 10px; }
 
+    /* --- CHAT SYSTEM --- */
+    .chat-container {
+      position: absolute; bottom: 20px; right: 20px;
+      width: 300px; height: 250px;
+      background: rgba(15, 24, 36, 0.85);
+      border: 1px solid #5bc0be; border-radius: 12px;
+      display: flex; flex-direction: column; overflow: hidden;
+      z-index: 80; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .chat-messages {
+      flex: 1; padding: 10px; overflow-y: auto;
+      display: flex; flex-direction: column-reverse; 
+      font-size: 0.85rem; gap: 6px; text-align: left;
+    }
+    .chat-input-area { display: flex; border-top: 1px solid rgba(91,192,190,0.3); background: rgba(0,0,0,0.2); }
+    .chat-input-area input {
+      flex: 1; background: transparent; border: none; color: #fff;
+      padding: 8px 12px; outline: none; font-family: inherit; font-size: 0.85rem;
+    }
+    .chat-send-btn { background: transparent; border:none; color: #5bc0be; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+    .msg-row { line-height: 1.3; }
+    .msg-user { color: #5bc0be; font-weight: bold; margin-right: 5px; }
+    .msg-system { color: #ffcc00; font-style: italic; background: rgba(255, 204, 0, 0.1); padding: 2px 4px; border-radius: 4px; display: block; border-left: 2px solid #ffcc00; }
+
     /* --- POND --- */
     .pond-wrap { max-width: 800px; width: 100%; height: 500px; position: relative; display: flex; flex-direction: column; align-items: center; }
     .pond-header { width: 100%; position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
@@ -366,13 +390,22 @@
     </div>
     <div class="main-content" id="mainContent">
       <div id="viewArea"></div>
+      
+      <!-- Global Chat -->
+      <div class="chat-container" id="chatContainer" style="display:none;">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="Type to chat..." maxlength="80">
+          <button class="chat-send-btn" id="chatSendBtn">SEND</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, writeBatch } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -617,6 +650,7 @@
       if (updated) { setCurrentUser(user); savePlayerToCloud(user); }
     }
 
+    /* --- GLOBAL UI ELEMENTS --- */
     const overlay = document.getElementById('overlay');
     const profileOverlay = document.getElementById('profileOverlay');
     const startButton = document.getElementById('startButton');
@@ -689,6 +723,48 @@
           </div>
         `;
       }
+    }
+
+    // --- CHAT LOGIC ---
+    async function sendChatMessage(text, isSystem = false) {
+      const u = getCurrentUser();
+      if (!u || !u.username) return;
+      await addDoc(collection(db, "messages"), {
+        username: u.username,
+        text: text,
+        timestamp: serverTimestamp(),
+        isSystem: isSystem
+      });
+    }
+
+    function initChat() {
+      const chatEl = document.getElementById('chatMessages');
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      
+      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"), limit(30));
+      onSnapshot(q, (snapshot) => {
+        chatEl.innerHTML = '';
+        snapshot.forEach((doc) => {
+          const m = doc.data();
+          const row = document.createElement('div');
+          row.className = 'msg-row';
+          if (m.isSystem) {
+            row.innerHTML = `<span class="msg-system">📢 ${m.text}</span>`;
+          } else {
+            row.innerHTML = `<span class="msg-user">${m.username}:</span><span class="msg-text">${m.text}</span>`;
+          }
+          chatEl.appendChild(row);
+        });
+      });
+
+      const handleSend = () => {
+        const txt = chatInput.value.trim();
+        if (txt) { sendChatMessage(txt); chatInput.value = ''; }
+      };
+
+      chatSendBtn.onclick = handleSend;
+      chatInput.onkeydown = (e) => { if (e.key === 'Enter') handleSend(); };
     }
 
     window.confirmRetire = function() {
@@ -834,6 +910,12 @@
       if (won) {
         const u = getCurrentUser(); u.items.push(fish);
         checkQuestProgress(u, fish.name);
+        
+        // ANNOUNCEMENT TRIGGER
+        if (fish.mutation === 'Mythical' || fish.rarity === 'legendary') {
+            sendChatMessage(`${u.username} just caught a ${fish.mutation !== 'Normal' ? fish.mutation + ' ' : ''}${fish.name}!`, true);
+        }
+
         if(!u.fishCounts) u.fishCounts = {};
         u.fishCounts[fish.name] = (u.fishCounts[fish.name] || 0) + 1;
         if (!u.discoveredFish.includes(fish.name)) { u.discoveredFish.push(fish.name); }
@@ -999,7 +1081,6 @@
         }
     };
 
-    /* --- UPDATED LEADERBOARD (P 1 LV 1 FORMAT) --- */
     async function renderLeaderboard() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading ranking...</p>`;
       const p = await getAllPlayers(); 
@@ -1060,6 +1141,9 @@
             adminPanel.style.display = 'none';
             adminResetBtn.style.display = 'none';
         }
+        
+        document.getElementById('chatContainer').style.display = 'flex';
+        initChat(); // Setup Chat real-time listener
         renderHome(); 
     }
 
