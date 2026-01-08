@@ -43,7 +43,7 @@
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
-    /* --- Game UI Layout (Restored to Old Look) --- */
+    /* --- Game UI Layout --- */
     .game-container { 
       display: none; 
       width: 100%; 
@@ -58,7 +58,7 @@
       background: #2a3d56; 
       display: flex; 
       flex-direction: column; 
-      justify-content: space-between; /* Keeps Nav at top, Admin/Logout at bottom */
+      justify-content: space-between; 
       align-items: center; 
       padding: 16px 10px; 
       border-right: 2px solid #5bc0be;
@@ -86,7 +86,7 @@
     .retire-btn { background: #673ab7 !important; border: 1px solid #9575cd; display:none; }
     .retire-btn:hover { background: #9575cd !important; }
 
-    /* Admin & Logout Container at bottom */
+    /* Admin & Logout Container */
     .sidebar-footer {
         width: 100%;
         display: flex;
@@ -132,7 +132,6 @@
         cursor: help; 
     }
     .xp-fill { height: 100%; background: linear-gradient(90deg, #a06cd5, #b886e6); width: 0%; transition: width 0.3s ease-out; }
-    /* XP Hover Tooltip */
     .xp-text {
         position: absolute; width: 100%; text-align: center; top: 0; left: 0;
         font-size: 0.65rem; line-height: 14px; color: #fff; font-weight: bold;
@@ -233,7 +232,7 @@
     .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
     .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
     .lb-rank { width: 40px; font-weight: bold; text-align: center; }
-    /* NEW: Name moves to right side of center area */
+    /* NEW: Name aligned to right side of center column */
     .lb-name { flex: 1; text-align: right; padding-right: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
     .lb-name:hover { color: #5bc0be; }
     .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
@@ -1453,6 +1452,70 @@
       }).join('');
       profileOverlay.style.display = 'flex';
     };
+
+    function updateHeartbeat() {
+        const u = getCurrentUser();
+        if(u) {
+            // Update local storage
+            u.lastSeen = Date.now();
+            setCurrentUser(u);
+            // Update Cloud
+            const ref = doc(db, "players", u.username);
+            updateDoc(ref, { lastSeen: Date.now() }).catch(e => console.log("Heartbeat fail", e));
+        }
+    }
+
+    // Defined at root level
+    function startGame(user) { 
+        overlay.style.display = 'none'; 
+        title.style.display = 'none'; 
+        startButton.style.display = 'none'; 
+        signinLink.style.display = 'none'; 
+        gameContainer.style.display = 'flex'; 
+        
+        // Show Admin Panel if user is Llama
+        if(user.username === "Llama") {
+            adminPanel.style.display = 'block';
+            adminResetBtn.style.display = 'block';
+        } else {
+            adminPanel.style.display = 'none';
+            adminResetBtn.style.display = 'none';
+        }
+        
+        document.getElementById('chatContainer').style.display = 'flex';
+        initChat(); 
+        window.renderHome(); 
+
+        // Start Heartbeat
+        updateHeartbeat();
+        setInterval(updateHeartbeat, 60000); // Every minute
+
+        // START REALTIME LISTENER FOR USER DATA
+        if(unsubscribePlayerDoc) unsubscribePlayerDoc();
+        unsubscribePlayerDoc = onSnapshot(doc(db, "players", user.username), (docSnap) => {
+            if (docSnap.exists()) {
+                const cloudData = docSnap.data();
+                const localUser = getCurrentUser();
+                
+                // SYNC CHECK: If cloud has significantly more gold than local, we likely sold something while online.
+                if (cloudData.coins > localUser.coins) {
+                    const diff = cloudData.coins - localUser.coins;
+                    localUser.coins = cloudData.coins; // Update local gold
+                    
+                    setCurrentUser(localUser);
+                    updateHud(); // Refresh UI
+                    
+                    // Notify User
+                    const chatEl = document.getElementById('chatMessages');
+                    const notif = document.createElement('div');
+                    notif.className = 'msg-row';
+                    notif.innerHTML = `<span class="msg-system" style="color:#4caf50; border-color:#4caf50; background:rgba(76, 175, 80, 0.1);">💰 Market Update: You received ${diff} gold!</span>`;
+                    chatEl.appendChild(notif);
+                    chatEl.scrollTop = chatEl.scrollHeight;
+                }
+            }
+        });
+    }
 
     // Admin Controls
     document.getElementById('admLvlUp').onclick = () => {
