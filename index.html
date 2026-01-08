@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Idly - Prestige & Pearls</title>
+  <title>Fishing Idly</title>
   <style>
     /* --- Global & Layout --- */
     body {
@@ -43,20 +43,57 @@
     .toggle-link { display:block; margin-top:1rem; color:#9ad4d6; cursor:pointer; text-decoration:underline; font-size:.9rem; }
     @keyframes pop { to { transform: scale(1); opacity: 1; } }
 
-    /* --- Game UI --- */
-    .game-container { display: none; width: 100%; height: 100vh; flex-direction: row; background-color: transparent; position: relative; }
+    /* --- Game UI Layout (Restored to Old Look) --- */
+    .game-container { 
+      display: none; 
+      width: 100%; 
+      height: 100vh; 
+      flex-direction: row; 
+      background-color: transparent; 
+      position: relative; 
+    }
 
     .sidebar {
-      width: 240px; background: #2a3d56; display: flex; flex-direction: column; 
-      justify-content: space-between; align-items: center; padding: 16px 10px; border-right: 2px solid #5bc0be;
-      box-sizing: border-box; z-index: 10;
+      width: 240px; 
+      background: #2a3d56; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; /* Keeps Nav at top, Admin/Logout at bottom */
+      align-items: center; 
+      padding: 16px 10px; 
+      border-right: 2px solid #5bc0be;
+      box-sizing: border-box; 
+      z-index: 10;
     }
-    .nav-buttons { display: flex; flex-direction: column; align-items: center; width: 100%; }
-    .nav-buttons button { width: 95%; margin: 6px 0; background: #3a506b; font-size: 0.95rem; padding: 0.8rem; text-align: left; }
+
+    .nav-buttons { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      width: 100%; 
+    }
+    
+    .nav-buttons button { 
+      width: 95%; 
+      margin: 6px 0; 
+      background: #3a506b; 
+      font-size: 0.95rem; 
+      padding: 0.8rem; 
+      text-align: left; 
+    }
     .nav-buttons button:hover { background: #5bc0be; color: #1b2735; }
     
     .retire-btn { background: #673ab7 !important; border: 1px solid #9575cd; display:none; }
     .retire-btn:hover { background: #9575cd !important; }
+
+    /* Admin & Logout Container at bottom */
+    .sidebar-footer {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px;
+    }
 
     .logout-btn { background: #b0413e; width: 95%; font-size: 0.9rem; padding: 0.6rem; }
     .logout-btn:hover { background: #e24e4b; }
@@ -73,7 +110,7 @@
       text-align: center; padding: 30px; position: relative; 
     }
     
-    /* --- HUD (READABILITY UPDATED) --- */
+    /* --- HUD --- */
     .hud {
       position: absolute; top: 12px; right: 16px;
       background: rgba(15, 24, 36, 0.95); padding: 12px 18px; border-radius: 12px; font-size: .95rem;
@@ -82,22 +119,13 @@
     }
     .hud-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
     .hud-stat-box { 
-      background: rgba(0,0,0,0.4); 
-      padding: 4px 10px; 
-      border-radius: 6px; 
-      flex: 1; 
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 6px; 
+      flex: 1; text-align: center; border: 1px solid rgba(255,255,255,0.1);
     }
     .stat-label { display: block; font-size: 0.65rem; color: #aaa; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
     .stat-value { font-weight: bold; font-size: 1.1rem; }
-
-    .xp-container {
-      width: 100%; height: 8px; background: #111; border-radius: 4px;
-      overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1);
-    }
+    .xp-container { width: 100%; height: 8px; background: #111; border-radius: 4px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
     .xp-fill { height: 100%; background: linear-gradient(90deg, #a06cd5, #b886e6); width: 0%; transition: width 0.3s ease-out; }
-    
     .hud-currency { display: flex; gap: 10px; }
 
     /* --- CHAT SYSTEM --- */
@@ -109,22 +137,15 @@
       display: flex; flex-direction: column; overflow: hidden;
       z-index: 200; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
-    .chat-messages {
-      flex: 1; padding: 10px; overflow-y: auto;
-      display: flex; flex-direction: column-reverse; 
-      font-size: 0.85rem; gap: 6px; text-align: left;
-    }
+    .chat-messages { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; font-size: 0.85rem; gap: 6px; text-align: left; }
     .chat-input-area { display: flex; border-top: 1px solid rgba(91,192,190,0.3); background: rgba(0,0,0,0.2); }
-    .chat-input-area input {
-      flex: 1; background: transparent; border: none; color: #fff;
-      padding: 8px 12px; outline: none; font-family: inherit; font-size: 0.85rem;
-    }
+    .chat-input-area input { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 12px; outline: none; font-family: inherit; font-size: 0.85rem; }
     .chat-send-btn { background: transparent; border:none; color: #5bc0be; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
     .msg-row { line-height: 1.3; }
     .msg-user { color: #5bc0be; font-weight: bold; margin-right: 5px; }
     .msg-system { color: #ffcc00; font-style: italic; background: rgba(255, 204, 0, 0.1); padding: 2px 4px; border-radius: 4px; display: block; border-left: 2px solid #ffcc00; }
 
-    /* --- POND --- */
+    /* --- POND & MINIGAME --- */
     .pond-wrap { max-width: 800px; width: 100%; height: 500px; position: relative; display: flex; flex-direction: column; align-items: center; }
     .pond-header { width: 100%; position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
     .back-inline { position: absolute; left: 0; padding: .5rem 1rem; border-radius: 8px; font-size: 0.9rem; }
@@ -132,194 +153,96 @@
     .status { margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; color: #9ad4d6; }
     .wait-bar { position: relative; height: 10px; width: 200px; background: #0f1824; border-radius: 8px; overflow: hidden; margin: 10px auto; display: none; }
     .wait-fill { height: 100%; width: 0%; background: #5bc0be; transition: width 0.1s linear; }
+    .minigame-area { position: relative; width: 100%; height: 350px; background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: none; cursor: crosshair; }
+    .game-bar-container { width: 100%; max-width: 400px; height: 20px; background: #2b1d1d; border: 2px solid #555; border-radius: 10px; margin-bottom: 10px; position: relative; display: none; overflow: hidden; }
+    .game-bar-fill { height: 100%; width: 35%; background: linear-gradient(90deg, #ff8a00, #e52e71); transition: width 0.1s linear; }
+    .target-circle { position: absolute; width: 50px; height: 50px; background: #5bc0be; border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: auto; box-shadow: 0 0 10px rgba(91,192,190,0.5); }
+    .target-ring { position: absolute; width: 150px; height: 150px; border: 4px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); z-index: 4; pointer-events: none; opacity: 0.8; }
 
-    /* --- MINIGAME --- */
-    .minigame-area {
-      position: relative; width: 100%; height: 350px;
-      background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 12px; overflow: hidden; display: none; cursor: crosshair;
-    }
-    .game-bar-container {
-      width: 100%; max-width: 400px; height: 20px; background: #2b1d1d;
-      border: 2px solid #555; border-radius: 10px; margin-bottom: 10px;
-      position: relative; display: none; overflow: hidden;
-    }
-    .game-bar-fill {
-      height: 100%; width: 35%; background: linear-gradient(90deg, #ff8a00, #e52e71);
-      transition: width 0.1s linear;
-    }
-    .target-circle {
-      position: absolute; width: 50px; height: 50px; background: #5bc0be;
-      border-radius: 50%; transform: translate(-50%, -50%); z-index: 5;
-      pointer-events: auto; box-shadow: 0 0 10px rgba(91,192,190,0.5);
-    }
-    .target-ring {
-      position: absolute; width: 150px; height: 150px; border: 4px solid #fff;
-      border-radius: 50%; transform: translate(-50%, -50%); z-index: 4;
-      pointer-events: none; opacity: 0.8;
-    }
-
-    /* --- ROD SHOP & BACKPACK --- */
-    .bp-grid { 
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-      gap: 12px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
-    }
-    .bp-item {
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 12px; text-align: center; position: relative;
-      overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    }
-    .rod-stats { font-size: 0.8rem; color: #aaa; margin: 8px 0; line-height: 1.4; }
+    /* --- MARKET & SHOP --- */
+    .bp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px; }
+    .bp-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; text-align: center; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
     .shop-btn { width: 100%; padding: 6px; font-size: 0.9rem; margin-top: 5px; }
-    .btn-buy { background: #4caf50; }
-    .btn-buy:hover { background: #66bb6a; }
-    .btn-pearl { background: #e040fb; color: #fff; } 
-    .btn-pearl:hover { background: #ea80fc; }
+    .btn-buy { background: #4caf50; } .btn-buy:hover { background: #66bb6a; }
+    .btn-pearl { background: #e040fb; color: #fff; } .btn-pearl:hover { background: #ea80fc; }
     .btn-equip { background: #5bc0be; color: #1b2735; }
     .btn-owned { background: #555; color: #aaa; cursor: default; }
-    .btn-locked { background: #2b1d1d; color: #ff7a7a; border:1px solid #7a1f1b; }
-    .upgrade-item { border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.1); }
+    .market-sell-btn { margin-top: 8px; font-size: 0.8rem; padding: 4px 10px; width: 100%; background: #4caf50; color: white; border:none; cursor: pointer; border-radius: 4px; }
+    .market-sell-btn:hover { background: #66bb6a; }
     
     .item-chest { border: 1px solid #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
     .item-key { border: 1px solid #00e5ff; }
-
-    .star-btn {
-      position: absolute; top: 4px; right: 4px; background: none; border: none; padding: 0;
-      font-size: 1.4rem; cursor: pointer; line-height: 1;
-      color: rgba(255,255,255,0.3); transition: color 0.2s, transform 0.1s; z-index: 10;
-    }
+    .star-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; padding: 0; font-size: 1.4rem; cursor: pointer; color: rgba(255,255,255,0.3); z-index: 10; }
     .star-btn.fav-active { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); opacity: 1; }
+    .market-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+    .market-price-input { width: 80%; background: #111; border: 1px solid #444; color: white; padding: 4px; border-radius: 4px; margin-top: 5px; text-align: center; }
+    .listing-seller { font-size: 0.7rem; color: #aaa; position: absolute; top: 5px; left: 5px; }
 
-    /* --- INDEX STYLES --- */
-    .index-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 15px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px;
-    }
-    .index-card {
-      background: rgba(0,0,0,0.3); border: 2px solid #2a3d56; border-radius: 12px;
-      padding: 15px; text-align: center; opacity: 0.4; filter: grayscale(1);
-      transition: all 0.3s;
-    }
-    .index-card.unlocked {
-      opacity: 1; filter: none; border-color: #5bc0be; background: rgba(91,192,190,0.1);
-    }
+    /* --- INDEX & QUESTS --- */
+    .index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; width: 100%; max-height: 60vh; overflow-y: auto; padding: 10px; }
+    .index-card { background: rgba(0,0,0,0.3); border: 2px solid #2a3d56; border-radius: 12px; padding: 15px; text-align: center; opacity: 0.4; filter: grayscale(1); transition: all 0.3s; }
+    .index-card.unlocked { opacity: 1; filter: none; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
     .index-name { font-size: 0.8rem; margin-top: 8px; font-weight: bold; }
     .index-rarity { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
     .index-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-    .tab-btn {
-      background: #2a3d56; border: 1px solid #5bc0be; color: #5bc0be;
-      padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
-    }
+    .tab-btn { background: #2a3d56; border: 1px solid #5bc0be; color: #5bc0be; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
     .tab-btn:hover { background: rgba(91,192,190,0.2); }
     .tab-btn.active { background: #5bc0be; color: #1b2735; font-weight: bold; box-shadow: 0 0 10px rgba(91,192,190,0.4); }
 
-    .market-sell-btn { margin-top: 8px; font-size: 0.8rem; padding: 4px 10px; width: 100%; background: #4caf50; color: white; }
-    .market-sell-btn:hover { background: #66bb6a; }
-    .market-header { margin-bottom: 10px; display: flex; gap: 10px; justify-content: center; }
-    .sell-all-btn { background: #e53935; }
-    .sell-all-btn:hover { background: #ef5350; }
-
-    /* --- HOME / AQUARIUM STYLES --- */
-    .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:700px; margin-bottom:15px; }
-    .passive-info { background:rgba(0,0,0,0.3); padding:8px 15px; border-radius:8px; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); }
-    .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; }
-    .claim-btn:hover { background: #ffea70; }
-    .claim-btn:disabled { background: #555; color: #888; }
-    .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; max-width: 750px; }
-    .home-slot {
-      background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px;
-      height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-      cursor: pointer; position: relative; transition: all 0.2s;
-    }
-    .home-slot:hover { background: rgba(255,255,255,0.1); }
-    .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
-    .slot-locked:hover { opacity: 1; }
-    .slot-locked-disabled { opacity: 0.3; cursor: not-allowed; border-color: #333; }
-    .slot-locked-disabled:hover { opacity: 0.3; background: rgba(0,0,0,0.4); }
-    .lock-icon { font-size: 1.5rem; margin-bottom: 5px; }
-    .lock-cost { color: #ffd700; font-size: 0.8rem; font-weight: bold; }
-    .slot-occupied { border-style: solid; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
-    .slot-fish-icon { font-size: 2rem; margin-bottom: 5px; }
-    .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .slot-fish-val { font-size: 0.7rem; opacity: 0.8; color: #ffd700; }
-    
-    /* Selector & Profile */
-    .selector-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(27, 39, 53, 0.95); z-index: 50; display: flex; flex-direction: column; align-items: center; padding-top: 40px;
-    }
-    .selector-close { position: absolute; top: 20px; right: 20px; }
-    .profile-box { width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
-    .profile-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .profile-stats { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
-
-    /* Mutations & Leaderboard */
-    .mut-Shiny { border-color: #ffcc00; }
-    .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; }
-    .mut-Mythical { border-color: #ff00ff; }
-    .mut-Albino { border-color: #ffffff; }
-    .bp-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-top: 4px; font-weight: bold; background: rgba(255,255,255,0.1); }
-    .txt-Shiny { color: #ffcc00; }
-    .txt-Sparkling { color: #00ccff; }
-    .txt-Mythical { color: #ff00ff; }
-    .txt-Albino { color: #fff; }
-    
-    .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
-    .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
-    .lb-rank { width: 40px; font-weight: bold; text-align: center; }
-    .lb-name { flex: 1; margin-left: 15px; color: #5bc0be; cursor: pointer; text-decoration: underline; transition: color 0.2s; }
-    .lb-name:hover { color: #fff; }
-    .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-    .rank-2 { color: #c0c0c0; text-shadow: 0 0 5px rgba(192, 192, 192, 0.5); }
-    .rank-3 { color: #cd7f32; text-shadow: 0 0 5px rgba(205, 127, 50, 0.5); }
-
-    /* --- QUESTS --- */
-    .quest-card {
-      background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 15px; margin-bottom: 12px;
-      display: flex; flex-direction: row; align-items: center; justify-content: space-between;
-    }
+    .quest-card { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
     .quest-info { text-align: left; flex: 1; margin-left: 15px; }
     .quest-title { font-weight: bold; font-size: 1rem; color: #ffd700; margin-bottom: 4px; }
     .quest-desc { font-size: 0.85rem; color: #aaa; margin-bottom: 8px; }
     .quest-progress-bg { width: 100%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
     .quest-progress-fill { height: 100%; background: #5bc0be; transition: width 0.3s; }
-    .quest-reward-btn {
-      background: #4caf50; color: white; border: none; padding: 8px 16px;
-      border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-    }
+    .quest-reward-btn { background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
     .quest-reward-btn:disabled { background: #333; color: #666; cursor: default; }
     .quest-done-badge { background: #333; color: #888; padding: 8px 16px; border-radius: 8px; font-size:0.8rem; }
+    .quest-turnin-btn { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+    .quest-turnin-btn:hover { background: #42a5f5; }
 
-    /* --- MASTERY / BESTIARY --- */
+    /* --- HOME & LEADERBOARD --- */
+    .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:700px; margin-bottom:15px; }
+    .passive-info { background:rgba(0,0,0,0.3); padding:8px 15px; border-radius:8px; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); }
+    .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; } .claim-btn:hover { background: #ffea70; } .claim-btn:disabled { background: #555; color: #888; }
+    .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; max-width: 750px; }
+    .home-slot { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); border-radius: 10px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.2s; }
+    .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
+    .slot-occupied { border-style: solid; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
+    .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Mutations */
+    .mut-Shiny { border-color: #ffcc00; } .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; } .mut-Mythical { border-color: #ff00ff; } .mut-Albino { border-color: #ffffff; }
+    .txt-Shiny { color: #ffcc00; } .txt-Sparkling { color: #00ccff; } .txt-Mythical { color: #ff00ff; } .txt-Albino { color: #fff; }
+    
+    .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
+    .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
+    .lb-rank { width: 40px; font-weight: bold; text-align: center; }
+    .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    
+    /* Selector & Profile */
+    .selector-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(27, 39, 53, 0.95); z-index: 50; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
+    .selector-close { position: absolute; top: 20px; right: 20px; }
+    .profile-box { width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
+    .profile-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-stats { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+    
+    /* Weather & Time */
+    .weather-indicator { font-size: 0.9rem; margin-top: 5px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); display:inline-block; }
+    body.w-rain { background: radial-gradient(circle, #2a3d56 0%, #1b2735 100%); }
+    body.w-storm { background: radial-gradient(circle, #2b1d1d 0%, #0f0f0f 100%); }
+    body.w-fog { background: radial-gradient(circle, #4a5a6b 0%, #2f3a46 100%); }
+    body.w-heat { background: radial-gradient(circle, #563d2a 0%, #35231b 100%); }
+    body.t-night { box-shadow: inset 0 0 200vw rgba(0,0,0,0.85); color: #ccc; }
+    body.t-night .main-content { background: rgba(0,0,0,0.4); }
+    .time-icon-day { color: #ffd700; } .time-icon-night { color: #b886e6; }
+    
     .mastery-info { font-size: 0.7rem; margin-top: 5px; color: #aaa; }
     .mastery-bar-bg { width: 80%; height: 6px; background: #222; margin: 4px auto; border-radius: 3px; overflow: hidden; }
     .mastery-bar-fill { height: 100%; background: #5bc0be; }
     .badge-bronze { border: 2px solid #cd7f32; box-shadow: 0 0 8px rgba(205, 127, 50, 0.4); }
     .badge-silver { border: 2px solid #c0c0c0; box-shadow: 0 0 8px rgba(192, 192, 192, 0.4); }
     .badge-gold { border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); animation: pulseGold 2s infinite; }
-    .mastery-label { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; padding: 2px 4px; border-radius: 4px; margin-top: 2px; display: inline-block; }
-    @keyframes pulseGold { 0% { box-shadow: 0 0 5px #ffd700; } 50% { box-shadow: 0 0 15px #ffd700; } 100% { box-shadow: 0 0 5px #ffd700; } }
-
-    /* --- WEATHER STYLES --- */
-    .weather-indicator { font-size: 0.9rem; margin-top: 5px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); display:inline-block; }
-    body.w-rain { background: radial-gradient(circle, #2a3d56 0%, #1b2735 100%); }
-    body.w-storm { background: radial-gradient(circle, #2b1d1d 0%, #0f0f0f 100%); }
-    body.w-fog { background: radial-gradient(circle, #4a5a6b 0%, #2f3a46 100%); }
-    body.w-heat { background: radial-gradient(circle, #563d2a 0%, #35231b 100%); }
-    .w-rain .main-content { border: 1px solid rgba(100, 200, 255, 0.2); box-shadow: inset 0 0 50px rgba(0,0,50,0.5); }
-    .w-storm .main-content { border: 1px solid rgba(255, 100, 100, 0.2); box-shadow: inset 0 0 50px rgba(50,0,0,0.5); }
-    .w-fog .game-container { filter: grayscale(0.5) blur(0.5px); }
-    .w-heat .main-content { box-shadow: inset 0 0 50px rgba(255, 100, 0, 0.2); }
-
-    /* --- TIME SYSTEM --- */
-    body.t-night { box-shadow: inset 0 0 200vw rgba(0,0,0,0.85); color: #ccc; }
-    body.t-night .main-content { background: rgba(0,0,0,0.4); }
-    body.t-night button { filter: saturate(0.8) brightness(0.9); }
-    body.t-night .game-container { border-color: #445; }
-    .time-icon-day { color: #ffd700; }
-    .time-icon-night { color: #b886e6; }
-
   </style>
 </head>
 <body>
@@ -372,13 +295,15 @@
         <button id="fishingSpotBtn">🎣 Fishing Spot</button>
         <button id="backpackBtn">🎒 Backpack</button>
         <button id="questsBtn">📜 Daily Quests</button>
-        <button id="marketBtn">🏪 Market</button>
+        <button id="marketBtn">🏪 Marketplace</button>
         <button id="shopBtn">🛒 Rod Shop</button>
         <button id="indexBtn">📖 Index</button>
         <button id="leaderboardBtn">🏆 Leaderboard</button>
         <button id="retireBtn" class="retire-btn" onclick="window.confirmRetire()">✨ Retire (Prestige)</button>
       </div>
-      <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
+      
+      <!-- Footer with Admin and Logout -->
+      <div class="sidebar-footer">
         <div id="adminPanel" class="admin-panel" style="display:none;">
           <div class="admin-title">ADMIN TOOLS</div>
           <div class="admin-row"><span>Level</span><div><button class="btn-sm" id="admLvlDown">-</button><button class="btn-sm" id="admLvlUp">+</button></div></div>
@@ -394,7 +319,7 @@
       <div id="viewArea"></div>
     </div>
 
-    <!-- Global Chat (MOVED HERE) -->
+    <!-- Global Chat -->
     <div class="chat-container" id="chatContainer" style="display:none;">
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-area">
@@ -407,7 +332,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -460,9 +385,6 @@
       { name: "Treasure Chest", type: "chest", img: "placeholder.png", minKg: 10, maxKg: 10, pricePerKg: 0, rarity: "legendary", chanceWeight: 0.5 },
       { name: "Old Boot", type: "trash", img: "placeholder.png", minKg: 0.5, maxKg: 1.5, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
       { name: "Tin Can", type: "trash", img: "placeholder.png", minKg: 0.1, maxKg: 0.3, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      { name: "Tangled Line", type: "trash", img: "placeholder.png", minKg: 0.1, maxKg: 0.5, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      { name: "Broken Glass", type: "trash", img: "placeholder.png", minKg: 0.1, maxKg: 0.2, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      { name: "Rusty Hook", type: "trash", img: "placeholder.png", minKg: 0.05, maxKg: 0.1, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Pumpkinseed", type: "fish", img: "placeholder.png", minKg: 0.1, maxKg: 0.4, pricePerKg: 4, rarity: "common", chanceWeight: 20, time: ['day'] },
       { name: "Yellow Perch", type: "fish", img: "placeholder.png", minKg: 0.2, maxKg: 1.0, pricePerKg: 5, rarity: "common", chanceWeight: 20, time: ['day'] },
       { name: "Walleye", type: "fish", img: "placeholder.png", minKg: 0.5, maxKg: 4.0, pricePerKg: 6, rarity: "common", chanceWeight: 20, time: ['night'] }, 
@@ -477,20 +399,13 @@
     const streamTable = [
       { name: "Treasure Chest", type: "chest", img: "placeholder.png", minKg: 10, maxKg: 10, pricePerKg: 0, rarity: "legendary", chanceWeight: 0.5 },
       { name: "Waterlogged Branch", type: "trash", img: "placeholder.png", minKg: 1.0, maxKg: 5.0, pricePerKg: 1, rarity: "trash", chanceWeight: 10 },
-      { name: "Torn Fishing Net", type: "trash", img: "placeholder.png", minKg: 0.5, maxKg: 2.0, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
-      { name: "Muddy Bottle", type: "trash", img: "placeholder.png", minKg: 0.2, maxKg: 0.8, pricePerKg: 1, rarity: "trash", chanceWeight: 8 },
       { name: "Creek Chub", type: "fish", img: "placeholder.png", minKg: 0.1, maxKg: 0.5, pricePerKg: 4, rarity: "common", chanceWeight: 20, time: ['day'] },
       { name: "Fallfish", type: "fish", img: "placeholder.png", minKg: 0.2, maxKg: 1.0, pricePerKg: 4, rarity: "common", chanceWeight: 20, time: ['day'] },
       { name: "White Sucker", type: "fish", img: "placeholder.png", minKg: 0.5, maxKg: 2.5, pricePerKg: 5, rarity: "common", chanceWeight: 15, weather: ['fog', 'rain'], time: ['night'] },
-      { name: "Common Shiner", type: "fish", img: "placeholder.png", minKg: 0.1, maxKg: 0.3, pricePerKg: 4, rarity: "common", chanceWeight: 15, weather: ['clear'], time: ['day'] },
-      { name: "Redbreast Sunfish", type: "fish", img: "placeholder.png", minKg: 0.2, maxKg: 0.8, pricePerKg: 4, rarity: "common", chanceWeight: 15, weather: ['heat'], time: ['day'] },
       { name: "Smallmouth Bass", type: "fish", img: "placeholder.png", minKg: 0.8, maxKg: 4.0, pricePerKg: 10, rarity: "uncommon", chanceWeight: 12, weather: ['heat', 'clear'], time: ['day'] },
       { name: "Rock Bass", type: "fish", img: "placeholder.png", minKg: 0.3, maxKg: 1.5, pricePerKg: 7, rarity: "uncommon", chanceWeight: 12, time: ['night'] },
       { name: "Rainbow Darter", type: "fish", img: "placeholder.png", minKg: 0.02, maxKg: 0.15, pricePerKg: 20, rarity: "uncommon", chanceWeight: 8, weather: ['rain'] }, 
-      { name: "Brook Stickleback", type: "fish", img: "placeholder.png", minKg: 0.02, maxKg: 0.1, pricePerKg: 15, rarity: "uncommon", chanceWeight: 8, weather: ['fog'] },
       { name: "Brook Trout", type: "fish", img: "placeholder.png", minKg: 0.5, maxKg: 4.0, pricePerKg: 16, rarity: "rare", chanceWeight: 6, time: ['day'] },
-      { name: "Brown Trout", type: "fish", img: "placeholder.png", minKg: 0.5, maxKg: 5.0, pricePerKg: 18, rarity: "rare", chanceWeight: 5, weather: ['rain', 'storm'], time: ['night'] },
-      { name: "Tiger Trout", type: "fish", img: "placeholder.png", minKg: 0.5, maxKg: 4.0, pricePerKg: 19, rarity: "rare", chanceWeight: 4, weather: ['heat'] },
       { name: "Atlantic Salmon", type: "fish", img: "placeholder.png", minKg: 2.0, maxKg: 12.0, pricePerKg: 28, rarity: "epic", chanceWeight: 3, weather: ['storm'] },
       { name: "Ancient River Sturgeon", type: "fish", img: "placeholder.png", minKg: 10.0, maxKg: 50.0, pricePerKg: 45, rarity: "legendary", chanceWeight: 1, weather: ['storm', 'rain'], time: ['night'] }
     ];
@@ -638,21 +553,7 @@
       user.lastQuestReset = Date.now();
     }
 
-    function checkQuestProgress(user, caughtFishName) {
-      let updated = false;
-      if (!user.dailyQuests) return;
-      user.dailyQuests.forEach(q => {
-        if (!q.claimed && q.target === caughtFishName && q.current < q.needed) {
-          q.current++;
-          updated = true;
-          const hud = document.getElementById('pondStatus');
-          if(hud) hud.textContent = `Quest: ${q.current}/${q.needed} ${q.target}`;
-        }
-      });
-      if (updated) { setCurrentUser(user); savePlayerToCloud(user); }
-    }
-
-    /* --- GLOBAL UI ELEMENTS --- */
+    // --- GLOBAL UI ELEMENTS ---
     const overlay = document.getElementById('overlay');
     const profileOverlay = document.getElementById('profileOverlay');
     const startButton = document.getElementById('startButton');
@@ -700,7 +601,6 @@
             <span style="font-weight:bold; color:#fff; font-size: 1.1rem;">👤 ${u.username}</span>
             <span style="font-size:0.75rem; color:${bagColor}; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">🎒 ${items}/${max}</span>
           </div>
-          
           <div class="hud-row">
             <div class="hud-stat-box" style="border-color: #7986cb;">
               <span class="stat-label" style="color:#7986cb;">Prestige</span>
@@ -711,14 +611,11 @@
               <span class="stat-value" style="color:#fff;">⭐ ${u.level}</span>
             </div>
           </div>
-
           <div class="hud-row hud-currency">
             <span style="font-weight:bold; color:#ffd700; font-size:1rem;">💰 ${u.coins.toLocaleString()}</span>
             <span style="font-weight:bold; color:#e040fb; font-size:1rem;">⚪ ${u.pearls || 0}</span>
           </div>
-
           <div class="xp-container"><div class="xp-fill" style="width:${pct}%"></div></div>
-          
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${w.icon} ${w.name}</div>
             <div class="weather-indicator" style="margin:0; font-size:0.8rem;">${timeIcon} ${t.toUpperCase()}</div>
@@ -727,7 +624,7 @@
       }
     }
 
-    // --- CHAT LOGIC ---
+    // --- CHAT SYSTEM ---
     async function sendChatMessage(text, isSystem = false) {
       const u = getCurrentUser();
       if (!u || !u.username) return;
@@ -769,93 +666,8 @@
       chatInput.onkeydown = (e) => { if (e.key === 'Enter') handleSend(); };
     }
 
-    window.confirmRetire = function() {
-        const u = getCurrentUser();
-        if (u.level < 50) return;
-        const pearlReward = 10 + (u.level - 50);
-        if (confirm(`Are you sure you want to RETIRE?\n\nRewards:\n- Prestige Rank +1\n- ${pearlReward} Pearls\n\nYou will keep Chests and Keys, but LOSE all Gold, Rods, and Levels.`)) {
-            u.pearls += pearlReward;
-            u.prestige++;
-            u.items = u.items.filter(i => i.type === 'chest' || i.type === 'key');
-            u.level = 1;
-            u.xp = 0;
-            u.coins = 0;
-            u.ownedRods = [0];
-            u.equippedRod = 0;
-            setCurrentUser(u);
-            savePlayerToCloud(u);
-            alert("You have retired! Enjoy your retirement (and your Pearls).");
-            location.reload(); 
-        }
-    };
-
-    function calculatePassive(user) {
-      const now = Date.now();
-      const diffHours = (now - (user.home.lastClaim || now)) / (1000 * 60 * 60);
-      let ratePerHour = 0;
-      if(user.home && user.home.slots) {
-        user.home.slots.forEach(slot => {
-          if (slot.unlocked && slot.fish) {
-            ratePerHour += Math.ceil(slot.fish.value * 0.4);
-          }
-        });
-      }
-      return { rate: ratePerHour, pending: Math.floor(ratePerHour * diffHours) };
-    }
-
-    function renderHome() {
-      let u = getCurrentUser(); u = initUserData(u);
-      const passive = calculatePassive(u);
-      const slotsHTML = u.home.slots.map(slot => {
-        if (!slot.unlocked) {
-          const cost = SLOT_COSTS[slot.id];
-          const prevUnlocked = (slot.id === 0) || u.home.slots[slot.id - 1].unlocked;
-          const lockClass = prevUnlocked ? "slot-locked" : "slot-locked slot-locked-disabled";
-          return `<div class="home-slot ${lockClass}" onclick="window.unlockHomeSlot(${slot.id})"><div class="lock-icon">🔒</div><div class="lock-cost">${cost}g</div></div>`;
-        } else if (slot.fish) {
-          const fish = slot.fish;
-          const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
-          const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
-          const rate = Math.ceil(fish.value * 0.4);
-          return `<div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">${getEntityIcon(fish)}<div class="slot-fish-name ${txtClass}">${fish.name}</div><div class="slot-fish-val">${rate}g/hr</div></div>`;
-        } else {
-          return `<div class="home-slot" onclick="window.openFishSelector(${slot.id})"><div style="font-size:1.5rem; opacity:0.5;">+</div><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
-        }
-      }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏠 Home Aquarium</h2><div class="home-header"><div class="passive-info">Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/hr)</span></div><button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button></div><div class="slot-grid">${slotsHTML}</div>`;
-      updateHud();
-      document.getElementById('claimBtn').onclick = claimPassiveGold;
-    }
-
-    window.unlockHomeSlot = function(id) {
-      const u = getCurrentUser(); const cost = SLOT_COSTS[id];
-      if (u.coins >= cost) { if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) { u.coins -= cost; u.home.slots[id].unlocked = true; setCurrentUser(u); savePlayerToCloud(u); renderHome(); } } else { alert("Not enough gold!"); }
-    };
-    window.removeFishFromSlot = function(slotId) { const u = getCurrentUser(); const fish = u.home.slots[slotId].fish; if (!fish) return; u.items.push(fish); u.home.slots[slotId].fish = null; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
-    window.openFishSelector = function(slotId) {
-      const u = getCurrentUser(); 
-      let validFish = u.items.map((item, idx) => {
-        const rate = Math.ceil(item.value * 0.4);
-        return { ...item, originalIdx: idx, calculatedRate: rate };
-      }).filter(i => i.type === 'fish');
-      validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
-      let listHTML = validFish.length === 0 ? "<p>No fish in backpack.</p>" : validFish.map(f => `<div class="bp-item" style="width:300px; flex-direction:row; justify-content:space-between; margin:5px auto;"><div>${getEntityIcon(f)}</div><div style="text-align:left;"><b>${f.name}</b><br><small>${f.calculatedRate}g/hr</small></div><button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button></div>`).join('');
-      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; mainContent.appendChild(selOverlay); document.getElementById('closeSel').onclick = () => renderHome();
-    };
-    window.placeFish = function(sId, itemIdx) { const u = getCurrentUser(); const fishToMove = u.items[itemIdx]; if(!fishToMove) { renderHome(); return; } u.items.splice(itemIdx, 1); u.home.slots[sId].fish = fishToMove; setCurrentUser(u); savePlayerToCloud(u); renderHome(); };
-    function claimPassiveGold() { const u = getCurrentUser(); const passive = calculatePassive(u); if (passive.pending > 0) { u.coins += passive.pending; u.home.lastClaim = Date.now(); setCurrentUser(u); savePlayerToCloud(u); renderHome(); } }
-
-    function renderFishingSpot() {
-      const u = getCurrentUser();
-      const currentRod = getEquippedRod(u);
-      const streamUnlocked = u.unlockedLocations.includes("stream");
-      let streamBtnHTML = streamUnlocked ? `<button class="location-btn" onclick="window.renderStream()">🌊 Stream</button>` : (u.level < 5 ? `<button class="location-btn btn-locked" disabled>🔒 Stream (Lv 5)</button>` : `<button class="location-btn btn-locked" onclick="window.unlockStream()">🔒 Unlock Stream (2500g)</button>`);
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p><button class="location-btn" onclick="window.renderPond()">🐟 Pond</button>${streamBtnHTML}`;
-      updateHud();
-    }
-    window.unlockStream = function() { const u = getCurrentUser(); if(u.coins >= 2500) { if(confirm("Unlock Stream for 2500g?")) { u.coins -= 2500; u.unlockedLocations.push("stream"); setCurrentUser(u); savePlayerToCloud(u); renderFishingSpot(); } } else { alert("Not enough gold!"); } };
-    window.renderPond = function() { mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🐟 Pond</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">Scanning water...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><button id="castBtn" onclick="window.handleCast('pond')">Cast Line</button></div>`; };
-    window.renderStream = function() { mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🌊 Stream</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">Current flows gently...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><button id="castBtn" onclick="window.handleCast('stream')">Cast Line</button></div>`; };
+    // --- MINIGAME LOGIC ---
+    let minigameActive = false; let minigameProgress = 35; let spawnTimer = null; let gameLoop = null;
 
     window.handleCast = function(locationType) {
       const u = getCurrentUser(); const rod = getEquippedRod(u);
@@ -877,7 +689,6 @@
       }, (1000 + Math.random() * 2000) / speedMult);
     };
 
-    let minigameActive = false; let minigameProgress = 35; let spawnTimer = null; let gameLoop = null;
     function startMinigame(fish) {
       window.currentActiveFish = fish; 
       const area = document.getElementById('minigameArea'); const barFill = document.getElementById('gameBarFill');
@@ -911,9 +722,7 @@
       const statusEl = document.getElementById('pondStatus'); document.getElementById('minigameArea').style.display = 'none'; document.getElementById('gameBarContainer').style.display = 'none'; const btn = document.getElementById('castBtn'); btn.style.display = 'block'; btn.disabled = false;
       if (won) {
         const u = getCurrentUser(); u.items.push(fish);
-        checkQuestProgress(u, fish.name);
         
-        // ANNOUNCEMENT TRIGGER
         if (fish.mutation === 'Mythical' || fish.rarity === 'legendary') {
             sendChatMessage(`${u.username} just caught a ${fish.mutation !== 'Normal' ? fish.mutation + ' ' : ''}${fish.name}!`, true);
         }
@@ -928,7 +737,265 @@
       } else { statusEl.textContent = "It got away..."; }
     }
 
-    function renderBackpack() {
+    // --- MARKET SYSTEM ---
+    window.renderMarket = async function(tab = 'global') {
+      const u = getCurrentUser();
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏪 Marketplace</h2>
+        <div class="market-tabs">
+          <button class="tab-btn ${tab==='global'?'active':''}" onclick="window.renderMarket('global')">Global Listings</button>
+          <button class="tab-btn ${tab==='sell'?'active':''}" onclick="window.renderMarket('sell')">My Listings / Sell</button>
+        </div>
+        <div id="marketArea">Loading...</div>`;
+      updateHud();
+
+      const area = document.getElementById('marketArea');
+      
+      try {
+        if (tab === 'sell') {
+            const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
+            const snap = await getDocs(q);
+            const myListings = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            
+            let activeHTML = myListings.length === 0 ? '<p>No active listings.</p>' : myListings.map(l => 
+              `<div class="bp-item" style="border-color:#5bc0be;">
+                 ${getEntityIcon(l.fish)}
+                 <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br>${l.price}g</div>
+                 <button class="market-sell-btn" style="background:#e53935;" onclick="window.cancelListing('${l.id}')">Cancel</button>
+               </div>`
+            ).join('');
+
+            // Map items to preserve original index
+            let invHTML = u.items.map((item, idx) => {
+              if (item.type === 'chest' || item.type === 'key') return ''; 
+              return `<div class="bp-item">
+                ${getEntityIcon(item)}
+                <div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>Val: ${item.value}g</div>
+                <input type="number" id="price-${idx}" class="market-price-input" placeholder="Price" min="1">
+                <button class="market-sell-btn" onclick="window.listForSale(${idx})">List Item</button>
+                <button class="market-sell-btn" style="background:#444; margin-top:4px;" onclick="window.npcSell(${idx})">Quick Sell (${item.value}g)</button>
+              </div>`
+            }).join('');
+
+            area.innerHTML = `
+              <h3>Active Listings (${myListings.length}/5)</h3>
+              <div class="bp-grid">${activeHTML}</div>
+              <hr style="border:1px solid rgba(255,255,255,0.1); margin:20px 0;">
+              <h3>Sell from Inventory</h3>
+              <div class="bp-grid">${invHTML || 'Inventory Empty'}</div>
+            `;
+        } else {
+            // REMOVED 'orderBy' to fix error without requiring index
+            const q = query(collection(db, "market_listings"), limit(50));
+            const snap = await getDocs(q);
+            
+            if (snap.empty) { area.innerHTML = "<p>No items for sale.</p>"; return; }
+            
+            let gridHTML = snap.docs.map(doc => {
+                const l = doc.data();
+                const isMe = l.seller === u.username;
+                const canAfford = u.coins >= l.price;
+                const locationLocked = !u.unlockedLocations.includes(l.fish.origin);
+                
+                let btnHTML = "";
+                if (isMe) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:default;">Yours</button>`;
+                } else if (locationLocked) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#7a1f1b; cursor:not-allowed;" disabled>Locked (${l.fish.origin})</button>`;
+                } else if (!canAfford) {
+                    btnHTML = `<button class="market-sell-btn" style="background:#555; cursor:not-allowed;" disabled>Need Gold</button>`;
+                } else {
+                    btnHTML = `<button class="market-sell-btn" onclick="window.buyItem('${doc.id}', ${l.price}, '${l.seller}')">Buy</button>`;
+                }
+
+                return `<div class="bp-item">
+                  <span class="listing-seller">Seller: ${l.seller}</span>
+                  ${getEntityIcon(l.fish)}
+                  <div class="${l.fish.mutation!=='Normal'?`txt-${l.fish.mutation}`:''}"><b>${l.fish.name}</b><br><span style="color:#ffd700;">${l.price}g</span></div>
+                  ${btnHTML}
+                </div>`;
+            }).join('');
+            area.innerHTML = `<div class="bp-grid">${gridHTML}</div>`;
+        }
+      } catch (error) {
+          console.error("Market Error:", error);
+          if (tab === 'sell') {
+              // Even if DB fails, show inventory so user can NPC sell
+              let invHTML = u.items.map((item, idx) => {
+                  if (item.type === 'chest' || item.type === 'key') return ''; 
+                  return `<div class="bp-item">
+                    ${getEntityIcon(item)}
+                    <div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>Val: ${item.value}g</div>
+                    <button class="market-sell-btn" style="background:#444; margin-top:4px;" onclick="window.npcSell(${idx})">Quick Sell (${item.value}g)</button>
+                  </div>`
+              }).join('');
+              area.innerHTML = `<h3>Sell from Inventory (Offline Mode)</h3><div class="bp-grid">${invHTML || 'Inventory Empty'}</div>`;
+          } else {
+              area.innerHTML = `<p>Error loading market. Check console.</p>`;
+          }
+      }
+    };
+
+    window.listForSale = async function(idx) {
+        const u = getCurrentUser();
+        const priceInput = document.getElementById(`price-${idx}`);
+        const price = parseInt(priceInput.value);
+        if (!price || price < 1) return alert("Invalid price.");
+
+        try {
+            const q = query(collection(db, "market_listings"), where("seller", "==", u.username));
+            const snap = await getDocs(q);
+            if (snap.size >= 5) return alert("You can only have 5 active listings.");
+
+            const item = u.items[idx];
+            u.items.splice(idx, 1); // Remove from inventory
+            
+            await addDoc(collection(db, "market_listings"), {
+                seller: u.username,
+                fish: item,
+                price: price,
+                timestamp: serverTimestamp()
+            });
+            
+            setCurrentUser(u); savePlayerToCloud(u);
+            alert("Item listed!");
+            window.renderMarket('sell');
+        } catch (e) {
+            console.error(e);
+            alert("Listing failed. Check permissions.");
+        }
+    };
+
+    window.cancelListing = async function(listingId) {
+        const u = getCurrentUser();
+        const docRef = doc(db, "market_listings", listingId);
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) return alert("Listing not found.");
+        
+        const data = snap.data();
+        if (data.seller !== u.username) return alert("Not your listing.");
+
+        await deleteDoc(docRef);
+        u.items.push(data.fish); // Return to inventory
+        setCurrentUser(u); savePlayerToCloud(u);
+        window.renderMarket('sell');
+    };
+
+    window.buyItem = async function(listingId, price, sellerName) {
+        const u = getCurrentUser();
+        if (u.coins < price) return alert("Not enough gold.");
+
+        const docRef = doc(db, "market_listings", listingId);
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            alert("Item already sold!");
+            window.renderMarket('global');
+            return;
+        }
+
+        const data = snap.data();
+        u.coins -= price;
+        u.items.push(data.fish);
+        setCurrentUser(u); savePlayerToCloud(u);
+
+        await deleteDoc(docRef);
+
+        try {
+            const sellerRef = doc(db, "players", sellerName);
+            const sellerSnap = await getDoc(sellerRef);
+            if (sellerSnap.exists()) {
+                const sellerData = sellerSnap.data();
+                sellerData.coins = (sellerData.coins || 0) + price;
+                await setDoc(sellerRef, sellerData, {merge: true});
+            }
+        } catch(e) { console.error("Error paying seller:", e); }
+
+        alert(`Bought ${data.fish.name} for ${price}g!`);
+        window.renderMarket('global');
+    };
+
+    window.npcSell = function(idx) {
+        const u = getCurrentUser();
+        u.coins += u.items[idx].value;
+        u.items.splice(idx, 1);
+        setCurrentUser(u); savePlayerToCloud(u);
+        window.renderMarket('sell');
+    };
+
+    // --- QUESTS LOGIC (UPDATED FOR INCREMENTAL TURN-IN) ---
+    window.renderQuests = function() {
+      let u = getCurrentUser();
+      const resetNeeded = checkAndResetQuests(u);
+      if(resetNeeded) { setCurrentUser(u); savePlayerToCloud(u); }
+      
+      const listHTML = u.dailyQuests.map(q => {
+        // Ensure q.current exists for old saves
+        if (q.current === undefined) q.current = 0;
+        
+        const heldCount = u.items.filter(i => i.name === q.target).length;
+        const pct = Math.min(100, (q.current / q.needed) * 100);
+        const isDone = q.current >= q.needed;
+        
+        let actionBtn;
+        if (q.claimed) { 
+            actionBtn = `<span class="quest-done-badge">Completed</span>`; 
+        } else if (isDone) {
+            actionBtn = `<button class="quest-reward-btn" onclick="window.claimReward(${q.id})">Claim ${q.reward}g</button>`;
+        } else if (heldCount > 0) { 
+            // Button to turn in one fish
+            actionBtn = `<button class="quest-turnin-btn" onclick="window.turnInOne(${q.id})">Turn In (1)</button>`; 
+        } else { 
+            actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">Need ${q.target}</span>`; 
+        }
+        
+        return `
+          <div class="quest-card">
+            <div style="font-size:2rem;">${q.claimed ? '✅' : '🐟'}</div>
+            <div class="quest-info">
+              <div class="quest-title">Deliver ${q.target}</div>
+              <div class="quest-desc">Progress: ${q.current} / ${q.needed} (Have: ${heldCount})</div>
+              <div class="quest-progress-bg"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div>${actionBtn}</div>
+          </div>
+        `;
+      }).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>📜 Daily Quests</h2><p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">Turn in fish one by one to complete the order.</p><div style="width:100%; max-width:600px;">${listHTML}</div>`;
+      updateHud();
+    };
+
+    window.turnInOne = function(qId) {
+        const u = getCurrentUser();
+        const quest = u.dailyQuests.find(q => q.id === qId);
+        if (!quest || quest.claimed || quest.current >= quest.needed) return;
+
+        // Find index of one matching fish
+        const fishIdx = u.items.findIndex(i => i.name === quest.target);
+        if (fishIdx === -1) return alert("You don't have this fish!");
+
+        // Remove 1 fish
+        u.items.splice(fishIdx, 1);
+        
+        // Update quest progress
+        quest.current = (quest.current || 0) + 1;
+        
+        setCurrentUser(u); savePlayerToCloud(u);
+        window.renderQuests();
+    };
+
+    window.claimReward = function(qId) {
+        const u = getCurrentUser();
+        const quest = u.dailyQuests.find(q => q.id === qId);
+        if (!quest || quest.claimed || quest.current < quest.needed) return;
+
+        quest.claimed = true;
+        u.coins += quest.reward;
+        setCurrentUser(u); savePlayerToCloud(u);
+        window.renderQuests();
+    };
+
+
+    // --- OTHER UI RENDERS (Restored full logic) ---
+    window.renderBackpack = function() {
       const u = getCurrentUser(); const items = u.items || [];
       let gridHTML = items.map((item, idx) => {
         let actionBtn = "";
@@ -949,35 +1016,46 @@
         </div>`;
       }).join('');
       mainContent.innerHTML = `${renderHudHTML()}<h2>🎒 Backpack (${items.length}/${u.maxItems})</h2><div class="bp-grid">${gridHTML || 'Empty'}</div>`; updateHud();
-    }
+    };
     
-    window.toggleFav = function(i) { const u = getCurrentUser(); u.items[i].favorite = !u.items[i].favorite; setCurrentUser(u); savePlayerToCloud(u); renderBackpack(); };
+    window.toggleFav = function(i) { const u = getCurrentUser(); u.items[i].favorite = !u.items[i].favorite; setCurrentUser(u); savePlayerToCloud(u); window.renderBackpack(); };
+    window.openChest = function(chestIdx) { const u = getCurrentUser(); const keyIdx = u.items.findIndex(i => i.type === 'key'); if (keyIdx === -1) return alert("No key found!"); if (keyIdx > chestIdx) { u.items.splice(keyIdx, 1); u.items.splice(chestIdx, 1); } else { u.items.splice(chestIdx, 1); u.items.splice(keyIdx, 1); } const r = Math.random(); let msg = ""; if (r < 0.1) { const p = 1 + Math.floor(Math.random()*2); u.pearls += p; msg = `🎉 Found ${p} Pearls!`; } else if (r < 0.4) { const g = 20000 + Math.floor(Math.random()*10000); u.coins += g; msg = `💰 Found ${g} Gold!`; } else { const g = 5000 + Math.floor(Math.random()*5000); u.coins += g; msg = `💰 Found ${g} Gold.`; } setCurrentUser(u); savePlayerToCloud(u); alert(msg); window.renderBackpack(); };
+
+    window.renderPond = function() { mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🐟 Pond</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">Scanning water...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><button id="castBtn" onclick="window.handleCast('pond')">Cast Line</button></div>`; };
+    window.renderStream = function() { mainContent.innerHTML = `${renderHudHTML()}<div class="pond-wrap"><div class="pond-header"><button class="back-inline" onclick="window.renderFishingSpot()">← Back</button><h2>🌊 Stream</h2></div><div class="game-bar-container" id="gameBarContainer"><div class="game-bar-fill" id="gameBarFill"></div></div><div class="status" id="pondStatus">Current flows gently...</div><div class="wait-bar" id="waitBar"><div class="wait-fill" id="waitFill"></div></div><div class="minigame-area" id="minigameArea"></div><button id="castBtn" onclick="window.handleCast('stream')">Cast Line</button></div>`; };
     
-    window.openChest = function(chestIdx) {
-        const u = getCurrentUser();
-        const keyIdx = u.items.findIndex(i => i.type === 'key');
-        if (keyIdx === -1) return alert("No key found!");
-        if (keyIdx > chestIdx) { u.items.splice(keyIdx, 1); u.items.splice(chestIdx, 1); } 
-        else { u.items.splice(chestIdx, 1); u.items.splice(keyIdx, 1); }
-        const r = Math.random();
-        let msg = "";
-        if (r < 0.1) { const p = 1 + Math.floor(Math.random()*2); u.pearls += p; msg = `🎉 Found ${p} Pearls!`; } 
-        else if (r < 0.4) { const g = 20000 + Math.floor(Math.random()*10000); u.coins += g; msg = `💰 Found ${g} Gold!`; } 
-        else { const g = 5000 + Math.floor(Math.random()*5000); u.coins += g; msg = `💰 Found ${g} Gold.`; }
-        setCurrentUser(u); savePlayerToCloud(u); alert(msg); renderBackpack();
+    window.renderFishingSpot = function() {
+      const u = getCurrentUser(); const currentRod = getEquippedRod(u); const streamUnlocked = u.unlockedLocations.includes("stream");
+      let streamBtnHTML = streamUnlocked ? `<button class="location-btn" onclick="window.renderStream()">🌊 Stream</button>` : (u.level < 5 ? `<button class="location-btn btn-locked" disabled>🔒 Stream (Lv 5)</button>` : `<button class="location-btn btn-locked" onclick="window.unlockStream()">🔒 Unlock Stream (2500g)</button>`);
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🎣 Fishing Spot</h2><p>Using: <b>${currentRod.icon} ${currentRod.name}</b></p><button class="location-btn" onclick="window.renderPond()">🐟 Pond</button>${streamBtnHTML}`; updateHud();
+    };
+    window.unlockStream = function() { const u = getCurrentUser(); if(u.coins >= 2500) { if(confirm("Unlock Stream for 2500g?")) { u.coins -= 2500; u.unlockedLocations.push("stream"); setCurrentUser(u); savePlayerToCloud(u); window.renderFishingSpot(); } } else { alert("Not enough gold!"); } };
+
+    window.confirmRetire = function() { const u = getCurrentUser(); if (u.level < 50) return; const pearlReward = 10 + (u.level - 50); if (confirm(`Are you sure you want to RETIRE?\n\nRewards:\n- Prestige Rank +1\n- ${pearlReward} Pearls\n\nYou will keep Chests and Keys, but LOSE all Gold, Rods, and Levels.`)) { u.pearls += pearlReward; u.prestige++; u.items = u.items.filter(i => i.type === 'chest' || i.type === 'key'); u.level = 1; u.xp = 0; u.coins = 0; u.ownedRods = [0]; u.equippedRod = 0; setCurrentUser(u); savePlayerToCloud(u); alert("You have retired!"); location.reload(); } };
+
+    window.renderShop = function() {
+      const u = getCurrentUser();
+      const upgradeCost = (u.maxItems || 15) * 50;
+      const upgradeHTML = `<div class="bp-item upgrade-item"><h3>Expand Bag</h3><p>${u.maxItems} -> ${u.maxItems+5}</p><button class="shop-btn btn-buy" onclick="window.buyBag()">Buy ${upgradeCost}g</button></div>`;
+      const keyHTML = `<div class="bp-item item-key">
+        <h3>🔑 Golden Key</h3>
+        <p>Opens Treasure Chests</p>
+        <button class="shop-btn btn-buy" onclick="window.buyKey('gold')">10,000g</button>
+        <button class="shop-btn btn-pearl" onclick="window.buyKey('pearl')">1 Pearl</button>
+      </div>`;
+      const rodsHTML = RODS.map(r => {
+        const owned = u.ownedRods.includes(r.id); const eq = u.equippedRod === r.id;
+        let btn = eq ? `<button class="shop-btn btn-owned">Equipped</button>` : (owned ? `<button class="shop-btn btn-equip" onclick="window.eqRod(${r.id})">Equip</button>` : `<button class="shop-btn btn-buy" onclick="window.buyRod(${r.id})">${r.cost}g</button>`);
+        return `<div class="bp-item"><h3>${r.icon} ${r.name}</h3><p>${r.luck}x Luck</p>${btn}</div>`;
+      }).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🛒 Rod Shop</h2><div class="bp-grid">${upgradeHTML}${keyHTML}${rodsHTML}</div>`; updateHud();
     };
 
-    function renderMarket() {
-      const u = getCurrentUser(); const profit = u.items.filter(i => !i.favorite && i.type !== 'chest' && i.type !== 'key').reduce((s, i) => s + i.value, 0);
-      let gridHTML = u.items.map((item, idx) => {
-          if (item.type === 'chest' || item.type === 'key') return ''; 
-          return `<div class="bp-item"><div class="${item.mutation!=='Normal'?`txt-${item.mutation}`:''}"><b>${item.name}</b><br>${item.value}g</div><button class="market-sell-btn" onclick="window.sellOne(${idx})" ${item.favorite?'disabled':''}>${item.favorite?'★':'Sell'}</button></div>`
-      }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏪 Market</h2><button class="sell-all-btn" onclick="window.sellAll()">Sell All (${profit}g)</button><div class="bp-grid">${gridHTML}</div>`; updateHud();
-    }
-    window.sellOne = function(i) { const u = getCurrentUser(); u.coins += u.items[i].value; u.items.splice(i, 1); setCurrentUser(u); savePlayerToCloud(u); renderMarket(); };
-    window.sellAll = function() { const u = getCurrentUser(); const sold = u.items.filter(i => !i.favorite && i.type !== 'chest' && i.type !== 'key'); u.coins += sold.reduce((s,i) => s + i.value, 0); u.items = u.items.filter(i => i.favorite || i.type === 'chest' || i.type === 'key'); setCurrentUser(u); savePlayerToCloud(u); renderMarket(); };
-
+    window.buyBag = function() { const u = getCurrentUser(); const c = u.maxItems * 50; if(u.coins >= c) { u.coins -= c; u.maxItems += 5; setCurrentUser(u); savePlayerToCloud(u); window.renderShop(); } };
+    window.buyRod = function(id) { const u = getCurrentUser(); const r = RODS[id]; if(u.coins >= r.cost) { u.coins -= r.cost; u.ownedRods.push(id); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); window.renderShop(); } };
+    window.eqRod = function(id) { const u = getCurrentUser(); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); window.renderShop(); };
+    window.buyKey = function(currency) { const u = getCurrentUser(); if (currency === 'gold') { if (u.coins >= 10000) { u.coins -= 10000; u.items.push({ name: "Golden Key", type: "key", value: 0 }); setCurrentUser(u); savePlayerToCloud(u); window.renderShop(); } else alert("Not enough Gold!"); } else { if (u.pearls >= 1) { u.pearls -= 1; u.items.push({ name: "Golden Key", type: "key", value: 0 }); setCurrentUser(u); savePlayerToCloud(u); window.renderShop(); } else alert("Not enough Pearls!"); } };
+    
     window.renderIndex = function(filterType = 'all') {
       const u = getCurrentUser();
       const pondItems = pondTable.map(i => ({...i, _origin: 'pond'}));
@@ -988,16 +1066,8 @@
       else { const combined = [...pondItems, ...streamItems]; displayList = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i); }
       const tabs = ['all', 'pond', 'stream'];
       const tabsHTML = tabs.map(t => `<button class="tab-btn ${t===filterType?'active':''}" onclick="window.renderIndex('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('');
-      function getWeatherIcons(weatherArr) {
-         if(!weatherArr) return '';
-         const map = { 'rain': '🌧️', 'storm': '⛈️', 'fog': '🌫️', 'heat': '🔥', 'clear': '☀️' };
-         return weatherArr.map(w => map[w]).join(' ');
-      }
-      function getTimeIcons(timeArr) {
-         if(!timeArr) return '';
-         const map = { 'day': '<span class="time-icon-day">☀️</span>', 'night': '<span class="time-icon-night">🌙</span>' };
-         return timeArr.map(t => map[t]).join(' ');
-      }
+      function getWeatherIcons(weatherArr) { if(!weatherArr) return ''; const map = { 'rain': '🌧️', 'storm': '⛈️', 'fog': '🌫️', 'heat': '🔥', 'clear': '☀️' }; return weatherArr.map(w => map[w]).join(' '); }
+      function getTimeIcons(timeArr) { if(!timeArr) return ''; const map = { 'day': '<span class="time-icon-day">☀️</span>', 'night': '<span class="time-icon-night">🌙</span>' }; return timeArr.map(t => map[t]).join(' '); }
       const gridHTML = displayList.map(item => {
         const isUnlocked = u.discoveredFish.includes(item.name) || item.type === 'chest';
         const count = (u.fishCounts || {})[item.name] || 0;
@@ -1019,71 +1089,11 @@
             ${isUnlocked ? `<div class="mastery-info"><div>Caught: ${count}</div><div class="mastery-bar-bg"><div class="mastery-bar-fill" style="width:${pct}%"></div></div></div>` : ''}
           </div>`;
       }).join('');
-      const uniqueAll = [...pondItems, ...streamItems].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
       mainContent.innerHTML = `${renderHudHTML()}<h2>📖 Fish Index</h2><div class="index-tabs">${tabsHTML}</div><p style="margin-top:0;">Global Discovery: ${u.discoveredFish.length} / ${uniqueAll.length} species</p><div class="index-grid">${gridHTML}</div>`;
       updateHud();
     };
 
-    window.renderQuests = function() {
-      let u = getCurrentUser();
-      const resetNeeded = checkAndResetQuests(u);
-      if(resetNeeded) { setCurrentUser(u); savePlayerToCloud(u); }
-      const listHTML = u.dailyQuests.map(q => {
-        const pct = Math.min(100, (q.current / q.needed) * 100);
-        const isDone = q.current >= q.needed;
-        let actionBtn;
-        if (q.claimed) { actionBtn = `<span class="quest-done-badge">Completed</span>`; }
-        else if (isDone) { actionBtn = `<button class="quest-reward-btn" onclick="window.claimQuest(${q.id})">Claim ${q.reward}g</button>`; }
-        else { actionBtn = `<span style="font-size:0.8rem; opacity:0.7;">In Progress</span>`; }
-        return `
-          <div class="quest-card">
-            <div style="font-size:2rem;">🐟</div>
-            <div class="quest-info">
-              <div class="quest-title">Catch ${q.target}</div>
-              <div class="quest-desc">Progress: ${q.current} / ${q.needed}</div>
-              <div class="quest-progress-bg"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
-            </div>
-            <div>${actionBtn}</div>
-          </div>
-        `;
-      }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>📜 Daily Quests</h2><p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">Resets daily at 12:01 AM</p><div style="width:100%; max-width:600px;">${listHTML}</div>`;
-      updateHud();
-    };
-    window.claimQuest = function(qId) { const u = getCurrentUser(); const quest = u.dailyQuests.find(q => q.id === qId); if (quest && !quest.claimed && quest.current >= quest.needed) { quest.claimed = true; u.coins += quest.reward; setCurrentUser(u); savePlayerToCloud(u); window.renderQuests(); } };
-
-    function renderShop() {
-      const u = getCurrentUser();
-      const upgradeCost = (u.maxItems || 15) * 50;
-      const upgradeHTML = `<div class="bp-item upgrade-item"><h3>Expand Bag</h3><p>${u.maxItems} -> ${u.maxItems+5}</p><button class="shop-btn btn-buy" onclick="window.buyBag()">Buy ${upgradeCost}g</button></div>`;
-      const keyHTML = `<div class="bp-item item-key">
-        <h3>🔑 Golden Key</h3>
-        <p>Opens Treasure Chests</p>
-        <button class="shop-btn btn-buy" onclick="window.buyKey('gold')">10,000g</button>
-        <button class="shop-btn btn-pearl" onclick="window.buyKey('pearl')">1 Pearl</button>
-      </div>`;
-      const rodsHTML = RODS.map(r => {
-        const owned = u.ownedRods.includes(r.id); const eq = u.equippedRod === r.id;
-        let btn = eq ? `<button class="shop-btn btn-owned">Equipped</button>` : (owned ? `<button class="shop-btn btn-equip" onclick="window.eqRod(${r.id})">Equip</button>` : `<button class="shop-btn btn-buy" onclick="window.buyRod(${r.id})">${r.cost}g</button>`);
-        return `<div class="bp-item"><h3>${r.icon} ${r.name}</h3><p>${r.luck}x Luck</p>${btn}</div>`;
-      }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🛒 Rod Shop</h2><div class="bp-grid">${upgradeHTML}${keyHTML}${rodsHTML}</div>`; updateHud();
-    }
-    window.buyBag = function() { const u = getCurrentUser(); const c = u.maxItems * 50; if(u.coins >= c) { u.coins -= c; u.maxItems += 5; setCurrentUser(u); savePlayerToCloud(u); renderShop(); } };
-    window.buyRod = function(id) { const u = getCurrentUser(); const r = RODS[id]; if(u.coins >= r.cost) { u.coins -= r.cost; u.ownedRods.push(id); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); renderShop(); } };
-    window.eqRod = function(id) { const u = getCurrentUser(); u.equippedRod = id; setCurrentUser(u); savePlayerToCloud(u); renderShop(); };
-    window.buyKey = function(currency) {
-        const u = getCurrentUser();
-        if (currency === 'gold') {
-            if (u.coins >= 10000) { u.coins -= 10000; u.items.push({ name: "Golden Key", type: "key", value: 0 }); setCurrentUser(u); savePlayerToCloud(u); renderShop(); } 
-            else alert("Not enough Gold!");
-        } else {
-            if (u.pearls >= 1) { u.pearls -= 1; u.items.push({ name: "Golden Key", type: "key", value: 0 }); setCurrentUser(u); savePlayerToCloud(u); renderShop(); } 
-            else alert("Not enough Pearls!");
-        }
-    };
-
-    async function renderLeaderboard() {
+    window.renderLeaderboard = async function() {
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><p>Loading ranking...</p>`;
       const p = await getAllPlayers(); 
       p.sort((a, b) => {
@@ -1110,6 +1120,58 @@
       mainContent.innerHTML = `${renderHudHTML()}<h2>🏆 Leaderboard</h2><div class="lb-list">${rows}</div>`; updateHud();
     }
 
+    function calculatePassive(user) {
+      const now = Date.now();
+      const diffHours = (now - (user.home.lastClaim || now)) / (1000 * 60 * 60);
+      let ratePerHour = 0;
+      if(user.home && user.home.slots) {
+        user.home.slots.forEach(slot => {
+          if (slot.unlocked && slot.fish) {
+            ratePerHour += Math.ceil(slot.fish.value * 0.4);
+          }
+        });
+      }
+      return { rate: ratePerHour, pending: Math.floor(ratePerHour * diffHours) };
+    }
+
+    window.renderHome = function() {
+      let u = getCurrentUser(); u = initUserData(u);
+      const passive = calculatePassive(u);
+      const slotsHTML = u.home.slots.map(slot => {
+        if (!slot.unlocked) {
+          const cost = SLOT_COSTS[slot.id];
+          const prevUnlocked = (slot.id === 0) || u.home.slots[slot.id - 1].unlocked;
+          const lockClass = prevUnlocked ? "slot-locked" : "slot-locked slot-locked-disabled";
+          return `<div class="home-slot ${lockClass}" onclick="window.unlockHomeSlot(${slot.id})"><div class="lock-icon">🔒</div><div class="lock-cost">${cost}g</div></div>`;
+        } else if (slot.fish) {
+          const fish = slot.fish;
+          const mutClass = fish.mutation !== "Normal" ? `mut-${fish.mutation}` : "";
+          const txtClass = fish.mutation !== "Normal" ? `txt-${fish.mutation}` : "";
+          const rate = Math.ceil(fish.value * 0.4);
+          return `<div class="home-slot slot-occupied ${mutClass}" onclick="window.removeFishFromSlot(${slot.id})">${getEntityIcon(fish)}<div class="slot-fish-name ${txtClass}">${fish.name}</div><div class="slot-fish-val">${rate}g/hr</div></div>`;
+        } else {
+          return `<div class="home-slot" onclick="window.openFishSelector(${slot.id})"><div style="font-size:1.5rem; opacity:0.5;">+</div><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
+        }
+      }).join('');
+      mainContent.innerHTML = `${renderHudHTML()}<h2>🏠 Home Aquarium</h2><div class="home-header"><div class="passive-info">Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/hr)</span></div><button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button></div><div class="slot-grid">${slotsHTML}</div>`;
+      updateHud();
+      document.getElementById('claimBtn').onclick = claimPassiveGold;
+    }
+    
+    function claimPassiveGold() { const u = getCurrentUser(); const passive = calculatePassive(u); if (passive.pending > 0) { u.coins += passive.pending; u.home.lastClaim = Date.now(); setCurrentUser(u); savePlayerToCloud(u); window.renderHome(); } }
+    window.unlockHomeSlot = function(id) { const u = getCurrentUser(); const cost = SLOT_COSTS[id]; if (u.coins >= cost) { if(confirm(`Unlock Slot ${id+1} for ${cost} gold?`)) { u.coins -= cost; u.home.slots[id].unlocked = true; setCurrentUser(u); savePlayerToCloud(u); window.renderHome(); } } else { alert("Not enough gold!"); } };
+    window.removeFishFromSlot = function(slotId) { const u = getCurrentUser(); const fish = u.home.slots[slotId].fish; if (!fish) return; u.items.push(fish); u.home.slots[slotId].fish = null; setCurrentUser(u); savePlayerToCloud(u); window.renderHome(); };
+    window.openFishSelector = function(slotId) {
+      const u = getCurrentUser(); 
+      let validFish = u.items.map((item, idx) => {
+        const rate = Math.ceil(item.value * 0.4);
+        return { ...item, originalIdx: idx, calculatedRate: rate };
+      }).filter(i => i.type === 'fish');
+      validFish.sort((a, b) => b.calculatedRate - a.calculatedRate);
+      let listHTML = validFish.length === 0 ? "<p>No fish in backpack.</p>" : validFish.map(f => `<div class="bp-item" style="width:300px; flex-direction:row; justify-content:space-between; margin:5px auto;"><div>${getEntityIcon(f)}</div><div style="text-align:left;"><b>${f.name}</b><br><small>${f.calculatedRate}g/hr</small></div><button class="btn-sm" style="background:#5bc0be" onclick="window.placeFish(${slotId}, ${f.originalIdx})">Select</button></div>`).join('');
+      const selOverlay = document.createElement('div'); selOverlay.className = "selector-overlay"; selOverlay.innerHTML = `<button class="selector-close" id="closeSel">Close</button><h3>Select a Fish</h3><div style="overflow-y:auto; max-height:400px; width:100%;">${listHTML}</div>`; mainContent.appendChild(selOverlay); document.getElementById('closeSel').onclick = () => window.renderHome();
+    };
+    window.placeFish = function(sId, itemIdx) { const u = getCurrentUser(); const fishToMove = u.items[itemIdx]; if(!fishToMove) { window.renderHome(); return; } u.items.splice(itemIdx, 1); u.home.slots[sId].fish = fishToMove; setCurrentUser(u); savePlayerToCloud(u); window.renderHome(); };
     window.viewProfile = async function(username) {
       const data = await getPlayerProfile(username);
       if(!data) return alert("Player not found");
@@ -1136,6 +1198,7 @@
         signinLink.style.display = 'none'; 
         gameContainer.style.display = 'flex'; 
         
+        // Show Admin Panel if user is Llama
         if(user.username === "Llama") {
             adminPanel.style.display = 'block';
             adminResetBtn.style.display = 'block';
@@ -1144,10 +1207,9 @@
             adminResetBtn.style.display = 'none';
         }
         
-        // Chat starts hidden by default until game load, but now it won't be deleted.
         document.getElementById('chatContainer').style.display = 'flex';
         initChat(); 
-        renderHome(); 
+        window.renderHome(); 
     }
 
     document.getElementById('loginButton').onclick = async () => { 
@@ -1165,14 +1227,14 @@
       const newUser = { username: u, password: p, email: e, coins: 0, level: 1, items: [], discoveredFish: [], prestige: 0, pearls: 0 }; await savePlayerToCloud(newUser); alert("Created!"); location.reload();
     };
     document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('currentUser'); location.reload(); };
-    document.getElementById('homeBtn').onclick = renderHome;
-    document.getElementById('fishingSpotBtn').onclick = renderFishingSpot;
-    document.getElementById('backpackBtn').onclick = renderBackpack;
+    document.getElementById('homeBtn').onclick = window.renderHome;
+    document.getElementById('fishingSpotBtn').onclick = window.renderFishingSpot;
+    document.getElementById('backpackBtn').onclick = window.renderBackpack;
     document.getElementById('questsBtn').onclick = window.renderQuests;
-    document.getElementById('marketBtn').onclick = renderMarket;
-    document.getElementById('shopBtn').onclick = renderShop;
+    document.getElementById('marketBtn').onclick = () => window.renderMarket('global');
+    document.getElementById('shopBtn').onclick = window.renderShop;
     document.getElementById('indexBtn').onclick = () => window.renderIndex('all');
-    document.getElementById('leaderboardBtn').onclick = renderLeaderboard;
+    document.getElementById('leaderboardBtn').onclick = window.renderLeaderboard;
 
     (async function() { const s = getCurrentUser(); if(s) startGame(s); })();
   </script>
