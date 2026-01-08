@@ -1267,10 +1267,16 @@
       const u = getCurrentUser();
       const pondItems = pondTable.map(i => ({...i, _origin: 'pond'}));
       const streamItems = streamTable.map(i => ({...i, _origin: 'stream'}));
+      
+      // FIX: Define uniqueAll here to calculate total count
+      const allFish = [...pondItems, ...streamItems];
+      const uniqueAll = allFish.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+
       let displayList = [];
       if (filterType === 'pond') { displayList = pondItems; }
       else if (filterType === 'stream') { displayList = streamItems; }
-      else { const combined = [...pondItems, ...streamItems]; displayList = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i); }
+      else { displayList = uniqueAll; } // Use uniqueAll for display when 'all' is selected
+      
       const tabs = ['all', 'pond', 'stream'];
       const tabsHTML = tabs.map(t => `<button class="tab-btn ${t===filterType?'active':''}" onclick="window.renderIndex('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('');
       function getWeatherIcons(weatherArr) { if(!weatherArr) return ''; const map = { 'rain': '🌧️', 'storm': '⛈️', 'fog': '🌫️', 'heat': '🔥', 'clear': '☀️' }; return weatherArr.map(w => map[w]).join(' '); }
