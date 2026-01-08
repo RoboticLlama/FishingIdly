@@ -233,6 +233,9 @@
     .lb-list { width: 100%; max-width: 500px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 10px; }
     .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
     .lb-rank { width: 40px; font-weight: bold; text-align: center; }
+    /* NEW: Name moves to right side of center area */
+    .lb-name { flex: 1; text-align: right; padding-right: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .lb-name:hover { color: #5bc0be; }
     .rank-1 { color: #ffd700; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
 
     /* --- CLUBS --- */
@@ -357,7 +360,7 @@
   <!-- Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where, updateDoc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, onSnapshot, serverTimestamp, deleteDoc, where, updateDoc, arrayUnion, arrayRemove, increment, Timestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnoFqUUjddA6ipJSisLOS7MsFklhQKt_w",
@@ -501,7 +504,7 @@
       if (user.prestige === undefined) { user.prestige = 0; changed = true; }
       // CLUBS INIT
       if (user.clubName === undefined) { user.clubName = null; changed = true; }
-      if (user.clubTag === undefined) { user.clubTag = null; changed = true; } // NEW: Ensure clubTag exists on player
+      if (user.clubTag === undefined) { user.clubTag = null; changed = true; }
       if (user.lastSeen === undefined) { user.lastSeen = Date.now(); changed = true; }
       
       if (changed) { setCurrentUser(user); savePlayerToCloud(user); }
@@ -668,10 +671,17 @@
     async function sendChatMessage(text, isSystem = false) {
       const u = getCurrentUser();
       if (!u || !u.username) return;
+
+      // Calculate 1 hour from now for TTL
+      const now = new Date();
+      now.setHours(now.getHours() + 1); // Add 1 hour
+      const expireTime = Timestamp.fromDate(now);
+
       await addDoc(collection(db, "messages"), {
         username: u.username,
         text: text,
         timestamp: serverTimestamp(),
+        expireAt: expireTime, // Enables Auto-Delete (requires Firestore TTL)
         isSystem: isSystem
       });
     }
@@ -987,9 +997,9 @@
             });
 
             u.clubName = null;
-            u.clubTag = null;
+            u.clubTag = null; // FIX: Ensure tag is removed locally
             setCurrentUser(u);
-            savePlayerToCloud(u);
+            savePlayerToCloud(u); // FIX: Ensure tag removal is saved to DB
             window.renderClubs();
         } catch(e) {
             console.error(e);
@@ -1444,70 +1454,6 @@
       profileOverlay.style.display = 'flex';
     };
 
-    function updateHeartbeat() {
-        const u = getCurrentUser();
-        if(u) {
-            // Update local storage
-            u.lastSeen = Date.now();
-            setCurrentUser(u);
-            // Update Cloud
-            const ref = doc(db, "players", u.username);
-            updateDoc(ref, { lastSeen: Date.now() }).catch(e => console.log("Heartbeat fail", e));
-        }
-    }
-
-    function startGame(user) { 
-        overlay.style.display = 'none'; 
-        title.style.display = 'none'; 
-        startButton.style.display = 'none'; 
-        signinLink.style.display = 'none'; 
-        gameContainer.style.display = 'flex'; 
-        
-        // Show Admin Panel if user is Llama
-        if(user.username === "Llama") {
-            adminPanel.style.display = 'block';
-            adminResetBtn.style.display = 'block';
-        } else {
-            adminPanel.style.display = 'none';
-            adminResetBtn.style.display = 'none';
-        }
-        
-        document.getElementById('chatContainer').style.display = 'flex';
-        initChat(); 
-        window.renderHome(); 
-
-        // Start Heartbeat
-        updateHeartbeat();
-        setInterval(updateHeartbeat, 60000); // Every minute
-
-        // START REALTIME LISTENER FOR USER DATA (For Gold Sync on Sale)
-        if(unsubscribePlayerDoc) unsubscribePlayerDoc();
-        unsubscribePlayerDoc = onSnapshot(doc(db, "players", user.username), (docSnap) => {
-            if (docSnap.exists()) {
-                const cloudData = docSnap.data();
-                const localUser = getCurrentUser();
-                
-                // SYNC CHECK: If cloud has significantly more gold than local, we likely sold something while online.
-                // We only sync UP gold to avoid overwriting local progress with old cloud data.
-                if (cloudData.coins > localUser.coins) {
-                    const diff = cloudData.coins - localUser.coins;
-                    localUser.coins = cloudData.coins; // Update local gold
-                    
-                    setCurrentUser(localUser);
-                    updateHud(); // Refresh UI
-                    
-                    // Notify User
-                    const chatEl = document.getElementById('chatMessages');
-                    const notif = document.createElement('div');
-                    notif.className = 'msg-row';
-                    notif.innerHTML = `<span class="msg-system" style="color:#4caf50; border-color:#4caf50; background:rgba(76, 175, 80, 0.1);">💰 Market Update: You received ${diff} gold!</span>`;
-                    chatEl.appendChild(notif);
-                    chatEl.scrollTop = chatEl.scrollHeight;
-                }
-            }
-        });
-    }
-
     // Admin Controls
     document.getElementById('admLvlUp').onclick = () => {
         const u = getCurrentUser();
@@ -1554,7 +1500,7 @@
       if(u==="Llama" && p==="Helloworld") { 
           const masterData = await getPlayerProfile("Llama");
           if(masterData) { setCurrentUser(masterData); startGame(masterData); }
-          else { const master = { username: "Llama", password: "Helloworld", coins: 250000, level: 60, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
+          else { const master = { username: "Llama", password: "Helloworld", coins: 0, level: 60, items: [], prestige: 0, pearls: 0 }; setCurrentUser(master); startGame(master); }
           return; 
       }
       const snap = await getDoc(doc(db, "players", u)); if(snap.exists() && snap.data().password === p) { setCurrentUser(snap.data()); startGame(snap.data()); } else { alert("Error"); }
