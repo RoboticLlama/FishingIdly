@@ -455,14 +455,6 @@
     async function getAllPlayers() { const snap = await getDocs(collection(db, "players")); return snap.docs.map(d => d.data()); }
     async function getPlayerProfile(username) { const snap = await getDoc(doc(db, "players", username)); return snap.exists() ? snap.data() : null; }
 
-    function getEntityIcon(item) {
-        if (item.type === 'chest') return `<span class="emoji-icon">🎁</span>`;
-        if (item.type === 'key') return `<span class="emoji-icon">🔑</span>`;
-        if (item.img && item.img !== "placeholder.png") { return `<img src="assets/fish/${item.img}" class="pixel-icon" alt="${item.name}">`; }
-        if (item.type === 'trash') return `<span class="emoji-icon">👞</span>`;
-        return `<span class="emoji-icon">🐟</span>`;
-    }
-
     const RODS = [
       { id: 0, name: "Bamboo Rod", cost: 0, luck: 1.0, speed: 1.0, icon: "🎋" },
       { id: 1, name: "Fiberglass Rod", cost: 1500, luck: 1.2, speed: 1.1, icon: "🎣" },
@@ -506,6 +498,36 @@
       { name: "Atlantic Salmon", type: "fish", img: "placeholder.png", minKg: 2.0, maxKg: 12.0, pricePerKg: 28, rarity: "epic", chanceWeight: 3, weather: ['storm'] },
       { name: "Ancient River Sturgeon", type: "fish", img: "placeholder.png", minKg: 10.0, maxKg: 50.0, pricePerKg: 45, rarity: "legendary", chanceWeight: 1, weather: ['storm', 'rain'], time: ['night'] }
     ];
+
+    // --- FIX FOR IMAGES: MASTER LIST LOOKUP ---
+    const masterFishList = [...pondTable, ...streamTable];
+    
+    function getCurrentImg(name) {
+        const found = masterFishList.find(f => f.name === name);
+        if (found && found.img && found.img !== "placeholder.png") {
+            return found.img;
+        }
+        return null;
+    }
+
+    function getEntityIcon(item) {
+        if (item.type === 'chest') return `<span class="emoji-icon">🎁</span>`;
+        if (item.type === 'key') return `<span class="emoji-icon">🔑</span>`;
+        
+        // 1. Check Master List for updated image (Overrides saved placeholder)
+        const freshImg = getCurrentImg(item.name);
+        if (freshImg) { 
+            return `<img src="assets/fish/${freshImg}" class="pixel-icon" alt="${item.name}">`; 
+        }
+
+        // 2. Check saved data (Fallback)
+        if (item.img && item.img !== "placeholder.png") { 
+            return `<img src="assets/fish/${item.img}" class="pixel-icon" alt="${item.name}">`; 
+        }
+        
+        if (item.type === 'trash') return `<span class="emoji-icon">👞</span>`;
+        return `<span class="emoji-icon">🐟</span>`;
+    }
 
     const mutations = [
       { name: "Normal", mult: 1.0, chance: 0.85 },
@@ -1486,8 +1508,9 @@
            if (f.mutation === 'Mythical') filterStyle = 'filter: drop-shadow(0 0 8px #ff00ff);';
            if (f.mutation === 'Albino') filterStyle = 'filter: brightness(1.5) grayscale(100%);';
 
-           // Use actual image if available, else a generic fallback for visual continuity
-           const imgSrc = (f.img && f.img !== "placeholder.png") ? `assets/fish/${f.img}` : `https://cdn-icons-png.flaticon.com/512/3076/3076882.png`;
+           // FIX: Use getCurrentImg to ensure new images show immediately even for old fish
+           const freshImg = getCurrentImg(f.name);
+           const imgSrc = freshImg ? `assets/fish/${freshImg}` : (f.img && f.img !== "placeholder.png" ? `assets/fish/${f.img}` : `https://cdn-icons-png.flaticon.com/512/3076/3076882.png`);
 
            return `<img src="${imgSrc}" 
                        class="swim-fish" 
