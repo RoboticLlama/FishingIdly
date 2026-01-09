@@ -216,7 +216,7 @@
     .quest-turnin-btn:hover { background: #42a5f5; }
 
     /* --- HOME & LEADERBOARD --- */
-    .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:700px; margin-bottom:15px; }
+    .home-header { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:750px; margin-bottom:15px; }
     .passive-info { background:rgba(0,0,0,0.3); padding:8px 15px; border-radius:8px; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); }
     .claim-btn { background: #ffd700; color: #1b2735; font-weight:bold; padding: 0.6rem 1.2rem; } .claim-btn:hover { background: #ffea70; } .claim-btn:disabled { background: #555; color: #888; }
     .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; max-width: 750px; }
@@ -224,6 +224,72 @@
     .slot-locked { background: rgba(0,0,0,0.4); border-color: #444; opacity: 0.7; }
     .slot-occupied { border-style: solid; border-color: #5bc0be; background: rgba(91,192,190,0.1); }
     .slot-fish-name { font-size: 0.75rem; font-weight: bold; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* --- VISUAL AQUARIUM --- */
+    .visual-aquarium {
+      width: 100%;
+      max-width: 750px; /* Matched to slot-grid width */
+      height: 250px;
+      background: linear-gradient(to bottom, #3a6186, #1b2735); /* Deep Blue Gradient */
+      border: 6px solid #C0C0C0; /* Silver Border */
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.6), 0 5px 15px rgba(0,0,0,0.5);
+    }
+    
+    /* Bubble/Water overlay decoration */
+    .visual-aquarium::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.1) 2px, transparent 2px);
+      background-size: 20px 20px, 40px 40px;
+      background-position: 0 0, 10px 10px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .swim-fish {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      /* Animation settings will be set inline for random timing */
+      animation-name: swimPatrol;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    /* 
+       Logic: Fish image faces LEFT naturally.
+       0-49%: Moving Right (flipped to look right).
+       50-99%: Moving Left (natural orientation).
+    */
+    @keyframes swimPatrol {
+      0% {
+        left: -15%;
+        transform: scaleX(-1); /* Face Right */
+      }
+      49% {
+        transform: scaleX(-1); /* Keep facing Right */
+      }
+      50% {
+        left: 110%;
+        transform: scaleX(1); /* Flip to Face Left */
+      }
+      99% {
+        transform: scaleX(1); /* Keep facing Left */
+      }
+      100% {
+        left: -15%;
+        transform: scaleX(-1);
+      }
+    }
 
     /* Mutations */
     .mut-Shiny { border-color: #ffcc00; } .mut-Sparkling { border-color: #00ccff; box-shadow: 0 0 5px #00ccff; } .mut-Mythical { border-color: #ff00ff; } .mut-Albino { border-color: #ffffff; }
@@ -1397,8 +1463,44 @@
     }
 
     window.renderHome = function() {
-      let u = getCurrentUser(); u = initUserData(u);
+      let u = getCurrentUser(); 
+      u = initUserData(u);
       const passive = calculatePassive(u);
+
+      // --- 1. Generate Visual Aquarium Fish ---
+      let swimmingFishHTML = '';
+      if (u.home && u.home.slots) {
+        const occupiedSlots = u.home.slots.filter(s => s.unlocked && s.fish);
+        swimmingFishHTML = occupiedSlots.map((slot) => {
+           const f = slot.fish;
+           // Random vertical position (5% to 80% from top)
+           const topPos = Math.floor(Math.random() * 75) + 5;
+           // Random swim duration (10s to 25s)
+           const duration = Math.floor(Math.random() * 15) + 10;
+           // Random delay to offset animations
+           const delay = Math.floor(Math.random() * 10) * -1;
+           
+           let filterStyle = '';
+           if (f.mutation === 'Shiny') filterStyle = 'filter: drop-shadow(0 0 5px #ffcc00);';
+           if (f.mutation === 'Sparkling') filterStyle = 'filter: drop-shadow(0 0 5px #00ccff);';
+           if (f.mutation === 'Mythical') filterStyle = 'filter: drop-shadow(0 0 8px #ff00ff);';
+           if (f.mutation === 'Albino') filterStyle = 'filter: brightness(1.5) grayscale(100%);';
+
+           // Use actual image if available, else a generic fallback for visual continuity
+           const imgSrc = (f.img && f.img !== "placeholder.png") ? `assets/fish/${f.img}` : `https://cdn-icons-png.flaticon.com/512/3076/3076882.png`;
+
+           return `<img src="${imgSrc}" 
+                       class="swim-fish" 
+                       style="top:${topPos}%; animation-duration:${duration}s; animation-delay:${delay}s; ${filterStyle}"
+                       alt="${f.name}">`;
+        }).join('');
+      }
+
+      if (swimmingFishHTML === '') {
+        swimmingFishHTML = `<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:rgba(255,255,255,0.2); font-size:1.2rem;">Aquarium Empty</div>`;
+      }
+
+      // --- 2. Generate Slot Grid (Existing Logic) ---
       const slotsHTML = u.home.slots.map(slot => {
         if (!slot.unlocked) {
           const cost = SLOT_COSTS[slot.id];
@@ -1415,7 +1517,26 @@
           return `<div class="home-slot" onclick="window.openFishSelector(${slot.id})"><div style="font-size:1.5rem; opacity:0.5;">+</div><div style="font-size:0.8rem; opacity:0.7;">Empty</div></div>`;
         }
       }).join('');
-      mainContent.innerHTML = `${renderHudHTML()}<h2>🏠 Home Aquarium</h2><div class="home-header"><div class="passive-info">Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/hr)</span></div><button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button></div><div class="slot-grid">${slotsHTML}</div>`;
+
+      // --- 3. Render Combined View ---
+      mainContent.innerHTML = `
+        ${renderHudHTML()}
+        <h2>🏠 Home Aquarium</h2>
+        
+        <!-- VISUAL AQUARIUM -->
+        <div class="visual-aquarium">
+            ${swimmingFishHTML}
+        </div>
+
+        <div class="home-header">
+            <div class="passive-info">Generated: <b>${passive.pending}g</b> <span style="opacity:0.7">(${passive.rate}g/hr)</span></div>
+            <button class="claim-btn" id="claimBtn" ${passive.pending <= 0 ? 'disabled' : ''}>Claim Gold</button>
+        </div>
+        
+        <!-- SLOT GRID (Moved below Aquarium) -->
+        <div class="slot-grid">${slotsHTML}</div>
+      `;
+      
       updateHud();
       document.getElementById('claimBtn').onclick = claimPassiveGold;
     }
